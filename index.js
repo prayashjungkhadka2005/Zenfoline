@@ -1,30 +1,30 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
 const user_routes = require('./routes/user');
 
 const app = express();
 
-const PORT = 3000;
-const MONGOURL = "mongodb://localhost:27017/User";
-
+const PORT = 3000; 
+const MONGOURL = process.env.MONGOURL; 
 
 app.use(cors());
 app.use(express.json());
 
 // Use routes
-app.use('', user_routes);
+app.use('/user', user_routes);
 
-
-// Connect to MongoDB and start the server
  mongoose.connect(MONGOURL)
- .then(() => {
-     console.log('Database connected');
-     app.listen(PORT, () => {
-         console.log(`Server is running on port ${PORT}`);
-     });
- })
- .catch((error) => {
-     console.error("Connection failed:", error);
- });
- 
+  .then(() => {
+    console.log('Database connected');
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Connection failed:", error);
+  });
