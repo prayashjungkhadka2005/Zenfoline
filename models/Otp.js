@@ -19,7 +19,7 @@ const otpSchema = new mongoose.Schema({
     },
 });
 
-otpSchema.index({ otpExpiry: 1 }, { expireAfterSeconds: 0 });
+otpSchema.index({ otpExpiry: 1 }, { expireAfterSeconds: 10 });
 
 const Otp = mongoose.model("otp", otpSchema); 
 
