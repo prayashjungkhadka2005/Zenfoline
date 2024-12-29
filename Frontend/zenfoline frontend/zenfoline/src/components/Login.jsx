@@ -12,7 +12,7 @@ const Login = () => {
         </h1>
       </div>
 
-      <div className="bg-white p-12 rounded-lg shadow-lg w-full w-[600px]"> 
+      <div className="bg-white p-12 rounded-lg shadow-lg w-[700px]"> 
         
         <div className="text-center mb-6">
           <img src={logo} alt="Logo" className="mx-auto mb-4 w-60 h-35" />

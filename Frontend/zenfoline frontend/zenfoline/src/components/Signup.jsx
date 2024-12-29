@@ -4,16 +4,14 @@ import logo from "../assets/logo.png";
 
 const Signup = () => {
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100 ">
-      
+    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
       <div className="text-center mb-6 w-full max-w-md">
         <h1 className="text-2xl md:text-3xl lg:text-3xl font-bold">
           Signup for free
         </h1>
       </div>
 
-      <div className="bg-white p-12 rounded-lg shadow-lg w-full w-[600px]">
-        
+      <div className="bg-white p-12 rounded-lg shadow-lg  w-[700px]">
         <div className="text-center mb-6">
           <img src={logo} alt="Logo" className="mx-auto mb-4 w-60 h-35" />
         </div>
@@ -23,16 +21,14 @@ const Signup = () => {
             <InputField label="Email" placeholder="Email" type="email" />
             <InputField label="Password" placeholder="Password" type="password" />
 
-         
-
             <button
               type="submit"
-              className="w-full bg-[#FE6C05] text-white font-light text-[18px] rounded-md py-1 my-3 cursor-pointer"
+              className="w-full bg-[#FE6C05] text-white font-light text-[18px] rounded-md py-3 my-4 cursor-pointer"
             >
               Signup now
             </button>
 
-            <p className="text-center text-[14px] pt-0 py-0">
+            <p className="text-center text-[14px] pt-0 py-2">
               Already Registered?
               <Link to="/login">
                 <span className="text-[black] text-[16px] px-1 cursor-pointer">
@@ -43,13 +39,10 @@ const Signup = () => {
 
             <button
               type="submit"
-              className="w-full bg-[#DB4437] text-white font-light text-[18px] rounded-md py-2 my-3 cursor-pointer"
+              className="w-full bg-[#DB4437] text-white font-light text-[18px] rounded-md py-3 my-4 cursor-pointer"
             >
-                 Google
+              Continue with Google
             </button>
-            
-
-          
           </form>
         </div>
       </div>
