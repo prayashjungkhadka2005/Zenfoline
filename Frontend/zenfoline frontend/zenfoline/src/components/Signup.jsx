@@ -8,17 +8,27 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [passwordError, setPasswordError] = useState(''); 
+  const [Error, setError] = useState(''); 
   const navigate = useNavigate(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setPasswordError('');
+    setError('');
 
-    if (password.length <= 4) {
-      setPasswordError('Password must be greater than 4 characters');
-      return; 
+    if (!email && !password) {
+      setError('Email and Password cannot be empty');
+      return;
+    }
+  
+    if (!email) {
+      setError('Email cannot be empty');
+      return;
+    }
+  
+    if (!password) {
+      setError('Password cannot be empty');
+      return;
     }
 
     console.log('Email:', email);
@@ -37,24 +47,34 @@ const Signup = () => {
       });
       console.log('Signup successful', response.data);
       
-      navigate('/registerotp'); 
+      navigate('/login'); 
     } catch (error) {
-      console.error('Error signing up', error);
-      alert('Signup failed. Please try again.');
+      if (error.response) {
+        const errorMessage = error.response.data.message || "Signup failed!";
+        console.error("Error:", errorMessage);
+        setError(errorMessage);
+      } else {
+        console.error("Network error or server is down.");
+        setError("An unexpected error occurred. Please try again.");
+      }
     }
   };
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
     <div className="text-center mb-6 w-full max-w-md">
-      <h1 className="text-2xl md:text-3xl lg:text-3xl font-bold">Signup for free</h1>
+    <img src={logo} alt="Logo" className="mx-auto w-60 h-35" />
     </div>
   
     <div className="bg-[#F8F9FA] p-12 rounded-lg w-[600px] h-[545px] outline-none border-2 border-[#000000]/21">
       <div className="text-center mb-3">
-        <img src={logo} alt="Logo" className="mx-auto w-60 h-35" />
+ 
+        <h1 className="text-2xl  md:text-3xl lg:text-3xl font-bold">Signup for free</h1>
       </div>
-  
+      {Error && (
+  <p className="text-red-500 text-xs text-center">{Error}</p>
+)}
+
       <div className="w-full p-2 border-b-0 mx-auto">
         <form onSubmit={handleSubmit}>
           <InputField
@@ -71,7 +91,7 @@ const Signup = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {passwordError && <p className="text-red-500 text-xs">{passwordError}</p>}
+         
   
           <button
             type="submit"

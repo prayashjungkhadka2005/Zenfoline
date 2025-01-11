@@ -2,6 +2,8 @@ import Signup from './components/Signup';
 import Login from './components/Login';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import RegisterOTP from './components/RegisterOTP';
+import ResetPassword from './components/ResetPassword';
+import Dashboard from './AuthenticatedUser/dashboard';
 
 
 const App = () => {
@@ -13,6 +15,9 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/registerotp" element={<RegisterOTP />} />
+          <Route path='/resetpassword' element={<ResetPassword />}/>
+          <Route path='/dashboard' element={<Dashboard />}/>
+
         </Routes>
       </Router>
     </div>

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import InputField from './InputField';
 import logo from "../assets/logo.png";
 
-const RegisterOTP = () => {
+const ResetPassword = () => {
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
       <div className="text-center mb-6 w-full max-w-md">
@@ -14,13 +14,13 @@ const RegisterOTP = () => {
       <div className="bg-[#F8F9FA] p-12 rounded-lg   w-[600px] h-[360px] outline-none border-2 border-[#000000]/21">
         <div className="text-center mb-3">
         <h1 className="text-2xl md:text-3xl lg:text-3xl font-bold">
-          Verify OTP 
+          Reset Password
         </h1>
         </div>
 
         <div className="w-full p-2   border-b-0 mx-auto">
           <form action="">
-            <InputField label="Enter 6-digit OTP" placeholder="Enter OTP" type="number"   />
+            <InputField label="Enter new password" placeholder="Create new password" type="text"   />
            
 
             
@@ -29,17 +29,10 @@ const RegisterOTP = () => {
               type="submit"
              className="w-full bg-[#FE6C05] text-white font-light text-[18px] rounded-md py-3 my-4 cursor-pointer"
             >
-              Verify
+              Reset Password
             </button>
 
-            <p className="text-center text-[14px] ">
-             Not received OTP?
-              <Link to="/signup">
-              <span className="text-[darkblue] text-[14px] px-1 cursor-pointer">
-                  Resend
-                </span>
-              </Link>
-            </p>
+            
 
            
           </form>
@@ -49,4 +42,4 @@ const RegisterOTP = () => {
   );
 };
 
-export default RegisterOTP;
+export default ResetPassword;
