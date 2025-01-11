@@ -47,7 +47,7 @@ const Signup = () => {
       });
       console.log('Signup successful', response.data);
       
-      navigate('/login'); 
+      navigate('/registerotp'); 
     } catch (error) {
       if (error.response) {
         const errorMessage = error.response.data.message || "Signup failed!";
