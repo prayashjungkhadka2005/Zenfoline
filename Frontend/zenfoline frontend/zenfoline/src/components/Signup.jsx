@@ -1,63 +1,28 @@
-import React, { useState } from 'react'; 
-import { Link, useNavigate } from "react-router-dom"; 
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { signupUser } from '../store/authSlice';
 import InputField from './InputField';
-import logo from "../assets/logo.png";
-import axios from 'axios';
-import '@fortawesome/fontawesome-free/css/all.min.css';
+import logo from '../assets/logo.png';
 
 const Signup = () => {
-  const [email, setEmail] = useState('');
+  const [email , setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [Error, setError] = useState(''); 
-  const navigate = useNavigate(); 
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (!email || !password) return;
 
-    setError('');
-
-    if (!email && !password) {
-      setError('Email and Password cannot be empty');
-      return;
-    }
-  
-    if (!email) {
-      setError('Email cannot be empty');
-      return;
-    }
-  
-    if (!password) {
-      setError('Password cannot be empty');
-      return;
-    }
-
-    console.log('Email:', email);
-    console.log('Password:', password);
-
-    const userData = {
-      email,
-      password,
-    };
-
-    try {
-      const response = await axios.post('http://localhost:3000/user/registeruser', userData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      console.log('Signup successful', response.data);
-      
-      navigate('/registerotp'); 
-    } catch (error) {
-      if (error.response) {
-        const errorMessage = error.response.data.message || "Signup failed!";
-        console.error("Error:", errorMessage);
-        setError(errorMessage);
-      } else {
-        console.error("Network error or server is down.");
-        setError("An unexpected error occurred. Please try again.");
-      }
-    }
+    const userData = { email, password };
+    dispatch(signupUser(userData))
+      .unwrap()
+      .then(() => {
+        navigate('/registerotp');
+      })
+      .catch((err) => console.error(err));
   };
 
   return (
@@ -71,9 +36,10 @@ const Signup = () => {
  
         <h1 className="text-2xl  md:text-3xl lg:text-3xl font-bold">Signup for free</h1>
       </div>
-      {Error && (
-  <p className="text-red-500 text-xs text-center">{Error}</p>
+      {error && (
+  <p className="text-red-500 text-xs text-center">{error}</p>
 )}
+
 
       <div className="w-full p-2 border-b-0 mx-auto">
         <form onSubmit={handleSubmit}>
