@@ -9,7 +9,7 @@ const RegisterOTP = () => {
 const [OTPError, setOTPError] = useState(''); 
 
  
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();

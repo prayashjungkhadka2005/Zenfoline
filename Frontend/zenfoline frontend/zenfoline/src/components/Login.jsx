@@ -5,20 +5,18 @@ import logo from "../assets/logo.png";
 const Login = () => {
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
-      
       <div className="text-center mb-6 w-full max-w-md">
         <h1 className="text-2xl md:text-3xl lg:text-3xl font-bold">
           Login to Zenfoline
         </h1>
       </div>
 
-      <div className="bg-white p-12 rounded-lg shadow-lg w-[700px]"> 
-        
-        <div className="text-center mb-6">
-          <img src={logo} alt="Logo" className="mx-auto mb-4 w-60 h-35" />
+      <div className="bg-[#F8F9FA] p-12 rounded-lg   w-[600px] h-[565px] outline-none border-2 border-[#000000]/21">
+        <div className="text-center mb-3">
+          <img src={logo} alt="Logo" className="mx-auto  w-60 h-35" />
         </div>
 
-        <div className="w-full p-2 my-4 border-b-0 mx-auto">
+        <div className="w-full p-2   border-b-0 mx-auto">
           <form action="">
             <InputField label="Email" placeholder="Email" type="email" />
             <InputField label="Password" placeholder="Password" type="password" />
@@ -33,15 +31,15 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full bg-[#FE6C05] text-white font-light text-[18px] rounded-md py-2 my-3 cursor-pointer"
+             className="w-full bg-[#FE6C05] text-white font-light text-[18px] rounded-md py-3 my-4 cursor-pointer"
             >
               Login now
             </button>
 
-            <p className="text-center text-[14px] pt-0 py-0">
+            <p className="text-center text-[14px] ">
              Not registered yet?
               <Link to="/signup">
-                <span className="text-[black] text-[16px] px-1 cursor-pointer">
+              <span className="text-[darkblue] text-[14px] px-1 cursor-pointer">
                   Signup Now
                 </span>
               </Link>
@@ -49,8 +47,9 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full bg-[#DB4437] text-white font-light text-[18px] rounded-md py-2 my-3 cursor-pointer"
-            >
+              className="flex items-center justify-center gap-2 w-full bg-[#DB4437] text-white font-light text-[18px] rounded-md py-3 my-4 cursor-pointer"
+              >
+                <i className="fa-brands fa-google text-lg"></i>
               Continue with Google
             </button>
           </form>
