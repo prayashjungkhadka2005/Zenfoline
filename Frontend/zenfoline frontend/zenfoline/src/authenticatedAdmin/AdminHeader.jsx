@@ -1,8 +1,9 @@
 import React from 'react';
 import { BellIcon, UserCircleIcon } from '@heroicons/react/outline';
+import useAuthStore from '../store/userAuthStore'; 
 
 const AdminHeader = () => {
-    const username = 'Prayash'; 
+    const username = useAuthStore((state) => state.username); 
 
     return (
         <header className="bg-white fixed top-0 left-64 w-[calc(100%-16rem)] z-10 shadow flex items-center justify-between px-6 py-4 border-b border-gray-300">

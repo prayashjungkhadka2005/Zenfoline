@@ -149,7 +149,8 @@ const adminLogin = async (req, res) => {
 
         return res.status(200).json({ 
             message: 'Admin login successful.', 
-            admin_id: admin._id 
+            admin_id: admin._id ,
+            username: admin.username,
         });
     } catch (error) {
         console.error('Error during login:', error);
