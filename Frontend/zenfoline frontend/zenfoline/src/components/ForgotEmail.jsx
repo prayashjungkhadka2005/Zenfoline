@@ -1,34 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import InputField from './InputField';
 import logo from '../assets/logo.png';
+import useAuthStore from '../store/userAuthStore';
 import { useNavigate } from 'react-router-dom'; 
 
 const ForgotEmail = () => {
-  const [email, setEmailState] = useState('');  // Local state for email
-  const dispatch = useDispatch();
-  const navigate = useNavigate(); 
-  const { error } = useSelector((state) => state.auth);
+  const setEmail = useAuthStore((state) => state.setEmail);
+  const setError = useAuthStore((state) => state.setError);
+  const forgotEmail = useAuthStore((state) => state.forgotEmail);
+  const email = useAuthStore((state) => state.email);
+  const error = useAuthStore((state) => state.error);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(clearError());  // Clear error on component mount
-  }, [dispatch]);
+    setEmail(''); 
+    setError(null); 
+  }, [setError, setEmail]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+          setError(null);
+        }, 3000);
+        return () => clearTimeout(timer); 
+      
+    }, [error, setError]);
 
   const handleEmailChange = (e) => {
-    const emailValue = e.target.value;
-    setEmailState(emailValue);  // Update local state
-    dispatch(setEmail(emailValue));  // Update Redux store state
+    setEmail(e.target.value);
   };
 
-  const handleforgotemail = (e) => {
+  const handleforgotemail = async (e) => {
     e.preventDefault();
-    dispatch(forgotemail({ email }))  // Pass email as an object to the action
-      .unwrap()
-      .then(() => {
-        navigate('/forgotpasswordotp');  // Navigate after successful action
-      })
-      .catch((err) => {
-        console.error(err);  // Log any errors
-      });
+
+    if (!email) {
+      setError('Please enter the email!');
+      return;
+    }
+
+    try {
+      await forgotEmail(email);
+      navigate('/registerotp');
+    } catch (err) {
+      console.error('Forgot password failed:', err.message);
+    }
   };
 
   return (

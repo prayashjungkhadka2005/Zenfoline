@@ -103,6 +103,31 @@ loginUser: async (email, password) => {
     throw err; 
   }
 },
+
+forgotEmail: async (email) => {
+  try {
+    const response = await fetch('http://localhost:3000/user/forgotpassword', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email}),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'An error occurred during forgot password.');
+    }
+
+    const data = await response.json();
+    set({ error: null, email }); 
+    return data;
+  } catch (err) {
+    set({ error: err.message });
+    throw err; 
+  }
+},
+
 }));
 
 export default useAuthStore;

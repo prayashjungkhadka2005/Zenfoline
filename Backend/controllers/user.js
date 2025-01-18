@@ -149,16 +149,27 @@ const forgotPasswordOtp = async (req, res) => {
     try {
         const { email } = req.body;
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).lean();
         if (!user) {
             return res.status(404).json({ message: 'User not found! Please enter a correct email.' });
         }
 
-        await sendOTPVerificationEmail(user);
+        const otpCode = generateOTP();
+        const otpExpire = new Date(Date.now() + 60 * 1000);
+
+        await Otp.updateOne(
+            { user_id: user._id },
+            { otp: otpCode, otpExpiry: otpExpire },
+            { upsert: true }
+        );
+
+        sendOTPVerificationEmail(user, otpCode).catch((err) =>
+            console.error('Error sending OTP email:', err)
+        );
 
         return res.status(200).json({
             status: 'Pending',
-            message: 'Password reset OTP email sent.',
+            message: 'Password reset OTP email is being sent.',
             data: { email },
         });
     } catch (error) {
