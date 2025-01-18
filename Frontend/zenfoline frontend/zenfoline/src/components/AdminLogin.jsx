@@ -4,20 +4,17 @@ import useAuthStore from '../store/userAuthStore';
 import InputField from './InputField';
 import logo from '../assets/logo.png';
 
-const AdminSignup = () => {
+const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const setEmail = useAuthStore((state) => state.setEmail);
   const setError = useAuthStore((state) => state.setError);
-  const signupAdmin = useAuthStore((state) => state.signupAdmin);
-  const email = useAuthStore((state) => state.email);
+  const adminLogin = useAuthStore((state) => state.adminLogin); 
   const error = useAuthStore((state) => state.error);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setEmail('');
     setError(null);
-  }, [setError, setEmail]);
+  }, [setError]);
 
   useEffect(() => {
     if (error) {
@@ -32,10 +29,6 @@ const AdminSignup = () => {
     setUsername(e.target.value);
   };
 
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
-
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
   };
@@ -43,16 +36,16 @@ const AdminSignup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!username || !email || !password) {
+    if (!username || !password) {
       setError('Please fill out all fields!');
       return;
     }
 
     try {
-      await signupAdmin(username, email, password);
-      navigate('/');
+      await adminLogin(username, password); 
+      navigate('/admindashboard');
     } catch (err) {
-      console.error('Admin Signup failed:', err.message);
+      console.error('Admin Login failed:', err.message);
     }
   };
 
@@ -67,12 +60,12 @@ const AdminSignup = () => {
 
       <div className="flex-1 flex flex-col items-center justify-center">
         <div className="mb-6">
-          <img src={logo} alt="Logo"className="mx-auto w-60 h-35" />
+          <img src={logo} alt="Logo" className="mx-auto w-60 h-35" />
         </div>
 
         <div className="bg-white shadow-lg rounded-lg w-[500px] p-8">
           <h2 className="text-center text-2xl font-bold text-gray-800 mb-6">
-            Admin Signup
+            Admin Login
           </h2>
 
           {error && <p className="text-red-500 text-xs text-center mb-4">{error}</p>}
@@ -86,15 +79,8 @@ const AdminSignup = () => {
               onChange={handleUsernameChange}
             />
             <InputField
-              label="Email"
-              placeholder="Enter your email"
-              type="email"
-              value={email}
-              onChange={handleEmailChange}
-            />
-            <InputField
               label="Password"
-              placeholder="Create your password"
+              placeholder="Enter your password"
               type="password"
               value={password}
               onChange={handlePasswordChange}
@@ -104,13 +90,13 @@ const AdminSignup = () => {
               type="submit"
               className="w-full bg-[#000042] text-white text-lg font-medium py-2 rounded-md hover:bg-[#000061]"
             >
-              Signup Now
+              Login Now
             </button>
 
             <p className="text-center text-sm text-gray-600">
-              Already an admin?{' '}
-              <Link to="/" className="text-blue-600 hover:underline">
-                Login here
+              Not an admin yet?{' '}
+              <Link to="/adminsignup" className="text-blue-600 hover:underline">
+                Signup here
               </Link>
             </p>
           </form>
@@ -120,4 +106,4 @@ const AdminSignup = () => {
   );
 };
 
-export default AdminSignup;
+export default AdminLogin;

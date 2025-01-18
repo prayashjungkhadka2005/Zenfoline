@@ -9,6 +9,8 @@ import Dashboard from './authenticatedUser/Dashboard';
 import Home from './authenticatedUser/Home';
 import Templates from './authenticatedUser/Templates';
 import AdminSignup from './components/AdminSignup';
+import AdminLogin from './components/AdminLogin';
+import AdminDahboard from './authenticatedAdmin/AdminDashboard';
 // Import other dashboard-related pages as needed
 
 const App = () => {
@@ -16,7 +18,7 @@ const App = () => {
     <div>
       <Router>
         <Routes>
-          {/* Public Routes */}
+         
           {/* <Route path="/" element={<Login />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -25,14 +27,14 @@ const App = () => {
           <Route path="/forgotemail" element={<ForgotEmail />} />
           <Route path="/forgotpasswordotp" element={<ForgotPasswordOTP />} />
 
-          <Route path="/" element={<AdminSignup />} />
+          <Route path="/adminsignup" element={<AdminSignup />} />
+          <Route path="/" element={<AdminLogin />} />
+          <Route path="/admindashboard" element={<AdminDahboard/>} />
 
-          {/* Dashboard Routes */}
+
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
-            {/* Uncomment and add other dashboard pages as needed */}
-            <Route path="templates" element={<Templates />} />
-            {/* <Route path="appearance" element={<Appearance />} />
+            {/* <Route path="templates" element={<Templates />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} /> */}
           </Route>

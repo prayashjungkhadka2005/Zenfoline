@@ -2,9 +2,11 @@ import { create } from 'zustand';
 
 const useAuthStore = create((set) => ({
   email: '', 
+  username: '',
   error: null, 
   success: null,
   setSuccess: (message) => set({ success: message }),
+  setUsername: (username) => set({ username }),
   setEmail: (email) => set({ email }),
   setError: (error) => set({ error }),
 
@@ -15,7 +17,7 @@ const useAuthStore = create((set) => ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }), // Flattened payload
+        body: JSON.stringify({ username, email, password }), 
       });
   
       if (!response.ok) {
@@ -24,13 +26,39 @@ const useAuthStore = create((set) => ({
       }
   
       const data = await response.json();
-      set({ error: null, email }); // Reset error and set email in the state
+      set({ error: null, success: 'Admin registered successfully' }); 
       return data;
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, success: null });
       throw err;
     }
   },
+
+  adminLogin: async (username, password) => {
+    try {
+      const response = await fetch('http://localhost:3000/user/adminlogin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'An error occurred during admin login.');
+      }
+  
+      const data = await response.json();
+      set({ error: null, username}); 
+      return data;
+    } catch (err) {
+      set({ error: err.message, success: null });
+      throw err;
+    }
+  },
+
+
   
   
 

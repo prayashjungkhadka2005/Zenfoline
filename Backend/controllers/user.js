@@ -72,6 +72,33 @@ const addAdmin = async (req, res) => {
     }
 };
 
+
+const adminLogin = async (req, res) => { 
+    try {
+        const { username, password } = req.body;
+
+        const admin = await Admin.findOne({ username }).lean();
+        if (!admin) {
+            return res.status(404).json({ message: 'Admin not found! Please signup to login.' });
+        }
+
+        const passwordMatch = await bcrypt.compare(password, admin.password);
+        if (!passwordMatch) {
+            return res.status(400).json({ message: 'Username or password incorrect.' });
+        }
+
+        return res.status(200).json({ 
+            message: 'Admin login successful.', 
+            admin_id: admin._id 
+        });
+    } catch (error) {
+        console.error('Error during login:', error);
+        return res.status(500).json({ message: 'An error occurred during login.' });
+    }
+};
+
+
+
 const addTemplate = async (req, res) => {
     try {
         const { name, description, image, category, adminId } = req.body;
@@ -379,5 +406,6 @@ module.exports = {
     resendOTP,
     addTemplate,
     addAdmin,
-    activateTemplate
+    activateTemplate,
+    adminLogin
 };
