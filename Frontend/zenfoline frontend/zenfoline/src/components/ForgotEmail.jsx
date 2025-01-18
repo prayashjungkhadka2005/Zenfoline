@@ -39,7 +39,7 @@ const ForgotEmail = () => {
 
     try {
       await forgotEmail(email);
-      navigate('/registerotp');
+      navigate('/forgotpasswordotp');
     } catch (err) {
       console.error('Forgot password failed:', err.message);
     }

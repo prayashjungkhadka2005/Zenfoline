@@ -128,6 +128,36 @@ forgotEmail: async (email) => {
   }
 },
 
+
+
+
+
+verifyForgotPasswordOtp: async ({ otp, email }) => {
+  try {
+    const response = await fetch('http://localhost:3000/user/verifyforgototp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ otp, email }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to verify OTP.');
+    }
+
+    const data = await response.json();
+    set({ error: null });
+    return data;
+  } catch (err) {
+    set({ error: err.message });
+    throw err;
+  }
+},
+
+
+
 }));
 
 export default useAuthStore;

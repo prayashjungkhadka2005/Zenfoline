@@ -3,6 +3,9 @@ import InputField from './InputField';
 import logo from "../assets/logo.png";
 
 const ResetPassword = () => {
+
+  
+
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
       <div className="text-center mb-6 w-full max-w-md">
