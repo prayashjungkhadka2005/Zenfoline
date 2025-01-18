@@ -229,7 +229,7 @@ const updateForgotPassword = async (req, res) => {
         await user.save();
 
         return res.status(200).json({
-            message: 'Password updated successfully. You can now log in with your new password.',
+            message: 'Password updated successfully.',
         });
     } catch (error) {
         console.error('Error updating password:', error);

@@ -156,6 +156,32 @@ verifyForgotPasswordOtp: async ({ otp, email }) => {
   }
 },
 
+resetPassword: async ({ email, newPassword }) => {
+  try {
+    const response = await fetch('http://localhost:3000/user/updatepassword', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({  email, newPassword }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to reset passowrd.');
+    }
+
+    const data = await response.json();
+    set({ success: data.message, error: null, email }); 
+    return data;
+  } catch (err) {
+    set({ error: err.message });
+    throw err;
+  }
+},
+
+
+
 
 
 }));
