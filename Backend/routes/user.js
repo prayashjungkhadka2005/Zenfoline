@@ -1,6 +1,7 @@
 const express = require('express');
-const { handleSignupMethod, userLogin , verifyRegisterOtp, resendOTP, forgotPasswordOtp, updateForgotPassword, verifyForgotPasswordOtp, addAdmin, addTemplate, activateTemplate, adminLogin} = require('../controllers/user');
+const { handleSignupMethod, userLogin , verifyRegisterOtp, resendOTP, forgotPasswordOtp, updateForgotPassword, verifyForgotPasswordOtp, addAdmin, addTemplate, activateTemplate, adminLogin, upload} = require('../controllers/user');
 const router = express.Router();
+const Template = require('../models/Templates');
 
 router.post('/registeruser', handleSignupMethod);
 
@@ -18,11 +19,21 @@ router.post('/updatepassword', updateForgotPassword);
 
 router.post('/addadmin', addAdmin);
 
-router.post('/addtemplate', addTemplate);
+router.post('/addtemplate', upload.single('image'), addTemplate);
 
 router.post('/activatetemplate', activateTemplate);
 
 router.post('/adminlogin', adminLogin);
+
+router.get('/templates', async (req, res) => {
+    try {
+        const templates = await Template.find({});
+        res.status(200).json(templates);
+    } catch (error) {
+        console.error('Error fetching templates:', error);
+        res.status(500).json({ message: 'Error fetching templates' });
+    }
+});
 
 
 module.exports = router;

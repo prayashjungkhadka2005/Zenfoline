@@ -10,32 +10,35 @@ import Home from './authenticatedUser/Home';
 import Templates from './authenticatedUser/Templates';
 import AdminSignup from './components/AdminSignup';
 import AdminLogin from './components/AdminLogin';
-import AdminDahboard from './authenticatedAdmin/AdminDashboard';
-// Import other dashboard-related pages as needed
+import AdminDashboard from './authenticatedAdmin/AdminDashboard';
+import AdminHome from './authenticatedAdmin/AdminHome';
+import AddTemplates from './authenticatedAdmin/AddTemplates';
 
 const App = () => {
   return (
     <div>
       <Router>
         <Routes>
-         
-          {/* <Route path="/" element={<Login />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/registerotp" element={<RegisterOTP />} />
           <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/forgotemail" element={<ForgotEmail />} />
           <Route path="/forgotpasswordotp" element={<ForgotPasswordOTP />} />
-
           <Route path="/adminsignup" element={<AdminSignup />} />
           <Route path="/" element={<AdminLogin />} />
-          <Route path="/admindashboard" element={<AdminDahboard/>} />
 
+          <Route path="/admindashboard" element={<AdminDashboard />}>
+            <Route index element={<AdminHome />} />
+            <Route path="addtemplates" element={<AddTemplates />} />
+          </Route>
 
+        
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
-            {/* <Route path="templates" element={<Templates />} />
-            <Route path="analytics" element={<Analytics />} />
+            <Route path="templates" element={<Templates />} />
+            {/* Uncomment or add additional dashboard pages */}
+            {/* <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} /> */}
           </Route>
         </Routes>

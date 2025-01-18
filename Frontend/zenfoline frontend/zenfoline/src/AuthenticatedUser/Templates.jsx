@@ -1,21 +1,37 @@
-import React from 'react';
-import tem1 from "../assets/tem1.png";
-import tem2 from "../assets/tem2.png";
-import tem3 from "../assets/tem3.png";
-import tem4 from "../assets/tem4.png";
-import tem5 from "../assets/tem5.png";
-import tem6 from "../assets/tem6.png";
-
-const templates = [
-    { id: 1, name: 'Developer', image: tem1 },
-    { id: 2, name: 'Simple', image: tem2},
-    { id: 3, name: 'Expert', image: tem3 },
-    { id: 4, name: 'Mixed', image: tem4},
-    { id: 5, name: 'Extra', image: tem5 },
-    { id: 6, name: 'Beginner', image: tem6 },
-];
+import React, { useEffect, useState } from 'react';
 
 const Templates = () => {
+    const [templates, setTemplates] = useState([]);
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTemplates = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/user/templates');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch templates');
+                }
+                const data = await response.json();
+                setTemplates(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTemplates();
+    }, []);
+
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
+    if (error) {
+        return <p className="text-red-500">{error}</p>;
+    }
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -28,11 +44,12 @@ const Templates = () => {
             <div className="grid grid-cols-3 gap-6">
                 {templates.map((template) => (
                     <div
-                        key={template.id}
+                        key={template._id} 
                         className="border rounded-lg overflow-hidden shadow-sm"
                     >
                         <img
-                            src={template.image}
+
+                            src={`http://localhost:3000${template.image}`}
                             alt={template.name}
                             className="w-full h-60 object-cover"
                         />

@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 
 const useAuthStore = create((set) => ({
-  email: '', 
+  
+  email: '',
   username: '',
-  error: null, 
+  adminId: '', 
+  error: null,
   success: null,
   setSuccess: (message) => set({ success: message }),
   setUsername: (username) => set({ username }),
@@ -17,16 +19,16 @@ const useAuthStore = create((set) => ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }), 
+        body: JSON.stringify({ username, email, password }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'An error occurred during admin signup.');
       }
-  
+
       const data = await response.json();
-      set({ error: null, success: 'Admin registered successfully' }); 
+      set({ error: null, success: 'Admin registered successfully' });
       return data;
     } catch (err) {
       set({ error: err.message, success: null });
@@ -43,14 +45,14 @@ const useAuthStore = create((set) => ({
         },
         body: JSON.stringify({ username, password }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'An error occurred during admin login.');
       }
-  
+
       const data = await response.json();
-      set({ error: null, username}); 
+      set({ error: null, username: data.username, adminId: data.admin_id });
       return data;
     } catch (err) {
       set({ error: err.message, success: null });
@@ -58,10 +60,34 @@ const useAuthStore = create((set) => ({
     }
   },
 
-
+  addTemplate: async (name, description, image, category) => {
+    try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('description', description || ''); 
+      formData.append('image', image); 
+      formData.append('category', category);
+      formData.append('adminId', useAuthStore.getState().adminId); 
   
+      const response = await fetch('http://localhost:3000/user/addtemplate', {
+        method: 'POST',
+        body: formData, 
+      });
   
-
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'An error occurred while adding the template.');
+      }
+  
+      const data = await response.json();
+      set({ error: null, success: 'Template added successfully!' });
+      return data;
+    } catch (err) {
+      set({ error: err.message, success: null });
+      throw err;
+    }
+  },
+  
   signupUser: async (email, password) => {
     try {
       const response = await fetch('http://localhost:3000/user/registeruser', {

@@ -2,12 +2,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
+
+
 
 dotenv.config();
 
 const user_routes = require('./routes/user');
 
 const app = express();
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 const PORT = 3000; 
 const MONGOURL = process.env.MONGOURL; 
@@ -15,7 +20,6 @@ const MONGOURL = process.env.MONGOURL;
 app.use(cors());
 app.use(express.json());
 
-// Use routes
 app.use('/user', user_routes);
 
  mongoose.connect(MONGOURL)

@@ -5,9 +5,16 @@ const Otp = require('../models/Otp');
 const Admin = require('../models/Admin');
 const Template = require('../models/Templates');
 require('dotenv').config();
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+
 
 const saltRounds = 10;
 const generateOTP = () => Math.floor(9999 + Math.random() * 900);
+
+
+
 
 
 const transporter = nodemailer.createTransport({
@@ -31,11 +38,61 @@ const sendOTPVerificationEmail = async (user, otpCode) => {
     await transporter.sendMail(mailOptions);
 };
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../uploads/');
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true }); 
+        }
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`); 
+    },
+
+});
+
+const upload = multer({ storage });
+
+const addTemplate = async (req, res) => {
+    try {
+        const { name, description, category, adminId } = req.body;
+
+        if (!name || !req.file || !category || !adminId) {
+            return res.status(400).json({ message: 'All fields are required!' });
+        }
+
+        const admin = await Admin.findById(adminId).lean();
+        if (!admin || admin.role !== 'Admin') {
+            return res.status(403).json({ message: 'Only an admin can add templates.' });
+        }
+
+        const imagePath = `/uploads/${req.file.filename}`; //relativepath
+
+        const newTemplate = await Template.create({
+            name,
+            description: description || '',
+            image: imagePath, 
+            category,
+            addedBy: adminId,
+        });
+
+        return res.status(201).json({
+            message: 'Template added successfully.',
+            data: newTemplate,
+        });
+    } catch (error) {
+        console.error('Error adding template:', error);
+        return res.status(500).json({ message: 'An error occurred while adding the template.' });
+    }
+};
+
+
+
 const addAdmin = async (req, res) => {
     try {
         const { username, email, password } = req.body;
         console.log(req.body);
-
 
         if (!username || !email || !password) {
             return res.status(400).json({ message: 'All fields are required.' });
@@ -44,9 +101,12 @@ const addAdmin = async (req, res) => {
         const normalizedEmail = email.toLowerCase();
         const normalizedUsername = username.toLowerCase();
 
-        const existingAdmin = await Admin.findOne({ email: normalizedEmail }).lean();
+        const existingAdmin = await Admin.findOne({
+            $or: [{ email: normalizedEmail }, { username: normalizedUsername }]
+        }).lean();
+
         if (existingAdmin) {
-            return res.status(400).json({ message: 'Admin is already registered.' });
+            return res.status(400).json({ message: 'Admin with this email or username already exists.' });
         }
 
         const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -99,45 +159,45 @@ const adminLogin = async (req, res) => {
 
 
 
-const addTemplate = async (req, res) => {
-    try {
-        const { name, description, image, category, adminId } = req.body;
+// const addTemplate = async (req, res) => {
+//     try {
+//         const { name, description, image, category, adminId } = req.body;
 
-        if (!name || !image || !category || !adminId) {
-            return res.status(400).json({ message: 'All fields are required: name, image, category, and adminId.' });
-        }
+//         if (!name || !image || !category || !adminId) {
+//             return res.status(400).json({ message: 'All fields are required: name, image, category, and adminId.' });
+//         }
 
-        const admin = await Admin.findById(adminId).lean();
-if (!admin || admin.role !== 'Admin') {
-    return res.status(403).json({ message: 'Only an admin can add templates.' });
-}
+//         const admin = await Admin.findById(adminId).lean();
+// if (!admin || admin.role !== 'Admin') {
+//     return res.status(403).json({ message: 'Only an admin can add templates.' });
+// }
 
 
-        const newTemplate = await Template.create({
-            name,
-            description: description || '', 
-            image,
-            category,
-            addedBy: adminId,
-        });
+//         const newTemplate = await Template.create({
+//             name,
+//             description: description || '', 
+//             image,
+//             category,
+//             addedBy: adminId,
+//         });
 
-        return res.status(201).json({
-            message: 'Template added successfully.',
-            data: {
-                id: newTemplate._id,
-                name: newTemplate.name,
-                description: newTemplate.description,
-                image: newTemplate.image,
-                category: newTemplate.category,
-                addedBy: adminId,
-                createdAt: newTemplate.createdAt,
-            },
-        });
-    } catch (error) {
-        console.error('Error adding template:', error);
-        return res.status(500).json({ message: 'An error occurred while adding the template.' });
-    }
-};
+//         return res.status(201).json({
+//             message: 'Template added successfully.',
+//             data: {
+//                 id: newTemplate._id,
+//                 name: newTemplate.name,
+//                 description: newTemplate.description,
+//                 image: newTemplate.image,
+//                 category: newTemplate.category,
+//                 addedBy: adminId,
+//                 createdAt: newTemplate.createdAt,
+//             },
+//         });
+//     } catch (error) {
+//         console.error('Error adding template:', error);
+//         return res.status(500).json({ message: 'An error occurred while adding the template.' });
+//     }
+// };
 
 
 const activateTemplate = async (req, res) => {
@@ -407,5 +467,6 @@ module.exports = {
     addTemplate,
     addAdmin,
     activateTemplate,
-    adminLogin
+    adminLogin,
+    upload
 };
