@@ -1,12 +1,25 @@
-import React, {useState} from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
+import Header from './Header';
 
-const Dashboard = () =>{
-    return(
-<div className="dashboard">
-    Welcome to dashboard
-</div>
+const DashboardLayout = () => {
+    return (
+        <div className="flex h-screen">
+            <Sidebar />
+
+            <div className="flex-1 flex flex-col" style={{ marginLeft: '16rem' }}>
+                <Header />
+
+                <main
+                    className="p-6 bg-gray-100 flex-1 overflow-auto"
+                    style={{ marginTop: '2.5rem' }}
+                >
+                    <Outlet />
+                </main>
+            </div>
+        </div>
     );
 };
 
-export default Dashboard;
+export default DashboardLayout;

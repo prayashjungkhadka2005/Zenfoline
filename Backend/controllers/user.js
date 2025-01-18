@@ -4,7 +4,6 @@ const User = require('../models/User');
 const Otp = require('../models/Otp');
 require('dotenv').config();
 
-
 const saltRounds = 10;
 const generateOTP = () => Math.floor(9999 + Math.random() * 900);
 
