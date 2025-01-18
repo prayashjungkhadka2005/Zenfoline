@@ -1,12 +1,18 @@
 import React from 'react';
+import tem1 from "../assets/tem1.png";
+import tem2 from "../assets/tem2.png";
+import tem3 from "../assets/tem3.png";
+import tem4 from "../assets/tem4.png";
+import tem5 from "../assets/tem5.png";
+import tem6 from "../assets/tem6.png";
 
 const templates = [
-    { id: 1, name: 'Developer', image: '' },
-    { id: 2, name: 'Simple', image: '' },
-    { id: 3, name: 'Expert', image: '' },
-    { id: 4, name: 'Mixed', image: '' },
-    { id: 5, name: 'Extra', image: '' },
-    { id: 6, name: 'Beginner', image: '' },
+    { id: 1, name: 'Developer', image: tem1 },
+    { id: 2, name: 'Simple', image: tem2},
+    { id: 3, name: 'Expert', image: tem3 },
+    { id: 4, name: 'Mixed', image: tem4},
+    { id: 5, name: 'Extra', image: tem5 },
+    { id: 6, name: 'Beginner', image: tem6 },
 ];
 
 const Templates = () => {
@@ -28,10 +34,10 @@ const Templates = () => {
                         <img
                             src={template.image}
                             alt={template.name}
-                            className="w-full h-40 object-cover"
+                            className="w-full h-60 object-cover"
                         />
 
-                        <div className="p-4">
+                        <div className="p-4 py-4">
                             <h2 className="text-lg font-bold mb-2">{template.name}</h2>
                             <div className="flex justify-between">
                                 <button className="bg-orange-500 text-white px-4 py-2 rounded-md text-sm">
