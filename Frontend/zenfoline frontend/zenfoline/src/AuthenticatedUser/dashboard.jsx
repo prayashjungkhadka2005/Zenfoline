@@ -12,8 +12,8 @@ const DashboardLayout = () => {
                 <Header />
 
                 <main
-                    className="p-6 bg-gray-100 flex-1 overflow-auto"
-                    style={{ marginTop: '2.5rem' }}
+                    className="p-6 py-11 bg-gray-100 flex-1 overflow-auto"
+                    style={{ marginTop: '2.5rem'}}
                 >
                     <Outlet />
                 </main>

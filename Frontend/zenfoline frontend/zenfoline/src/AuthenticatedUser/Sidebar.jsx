@@ -24,7 +24,7 @@ const Sidebar = () => {
                         to={menu.path}
                         end={menu.exact || false}
                         className={({ isActive }) =>
-                            `flex items-center gap-4 py-3 px-4 mx-2 text-lg font-medium rounded-md ${
+                            `flex items-center gap-4 py-3 px-4 mx-2 my-0.5 text-lg font-medium rounded-md ${
                                 isActive
                                     ? 'bg-[#000042]/10 text-red font-bold'
                                     : 'text-[#686868] hover:bg-gray-100'
