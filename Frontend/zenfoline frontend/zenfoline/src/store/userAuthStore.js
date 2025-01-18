@@ -8,6 +8,32 @@ const useAuthStore = create((set) => ({
   setEmail: (email) => set({ email }),
   setError: (error) => set({ error }),
 
+  signupAdmin: async (username, email, password) => {
+    try {
+      const response = await fetch('http://localhost:3000/user/addadmin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password }), // Flattened payload
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'An error occurred during admin signup.');
+      }
+  
+      const data = await response.json();
+      set({ error: null, email }); // Reset error and set email in the state
+      return data;
+    } catch (err) {
+      set({ error: err.message });
+      throw err;
+    }
+  },
+  
+  
+
   signupUser: async (email, password) => {
     try {
       const response = await fetch('http://localhost:3000/user/registeruser', {

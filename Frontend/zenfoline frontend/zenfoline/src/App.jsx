@@ -8,6 +8,7 @@ import ForgotPasswordOTP from './components/ForgotPasswordOTP';
 import Dashboard from './authenticatedUser/Dashboard';
 import Home from './authenticatedUser/Home';
 import Templates from './authenticatedUser/Templates';
+import AdminSignup from './components/AdminSignup';
 // Import other dashboard-related pages as needed
 
 const App = () => {
@@ -16,13 +17,15 @@ const App = () => {
       <Router>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Login />} />
+          {/* <Route path="/" element={<Login />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/registerotp" element={<RegisterOTP />} />
           <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/forgotemail" element={<ForgotEmail />} />
           <Route path="/forgotpasswordotp" element={<ForgotPasswordOTP />} />
+
+          <Route path="/" element={<AdminSignup />} />
 
           {/* Dashboard Routes */}
           <Route path="/dashboard" element={<Dashboard />}>

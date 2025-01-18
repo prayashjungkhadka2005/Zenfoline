@@ -118,7 +118,7 @@ const Login = () => {
               type="button"
               className="flex items-center justify-center gap-2 w-full bg-[#DB4437] text-white font-light text-[18px] rounded-md py-3 my-4 cursor-pointer"
             >
-              <i className="fa-brands fa-google text-lg"></i>
+              <i className="fab fa-google text-lg"></i>
               Continue with Google
             </button>
           </form>
