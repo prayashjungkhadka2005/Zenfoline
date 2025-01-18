@@ -2,67 +2,52 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import InputField from "./InputField";
 import logo from "../assets/logo.png";
-import axios from "axios";
-import "@fortawesome/fontawesome-free";
-
+import useAuthStore from '../store/userAuthStore';
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [Error, setError] = useState(""); 
+  const [password, setPassword] = useState('');
+  const setEmail = useAuthStore((state) => state.setEmail);
+  const setError = useAuthStore((state) => state.setError);
+  const loginUser = useAuthStore((state) => state.loginUser);
+  const email = useAuthStore((state) => state.email);
+  const error = useAuthStore((state) => state.error);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    setError(null);
+    setEmail(''); 
+  }, [setError, setEmail]);
 
- 
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, setError]);
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    setError('');
-
-    if (!email && !password) {
-      setError('Email and Password cannot be empty');
+    if (!email || !password) {
+      setError('Please fill out all fields!');
       return;
     }
-  
-    if (!email) {
-      setError('Email cannot be empty');
-      return;
-    }
-  
-    if (!password) {
-      setError('Password cannot be empty');
-      return;
-    }
-
-
-    const userData = {
-      email,
-      password,
-    };
 
     try {
-      const response = await axios.post(
-        "http://localhost:3000/user/userlogin",
-        userData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Login Successful", response.data);
-      navigate("/dashboard");
-    } catch (error) {
-      if (error.response) {
-        const errorMessage = error.response.data.message || "Login failed!";
-        console.error("Error:", errorMessage);
-        setError(errorMessage);
-      } else {
-        console.error("Network error or server is down.");
-        setError("An unexpected error occurred. Please try again.");
-      }
+      await loginUser(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Login failed:', err.message);
     }
   };
 
@@ -79,9 +64,7 @@ const Login = () => {
           </h1>
         </div>
 
-        {Error && (
-  <p className="text-red-500 text-xs text-center">{Error}</p>
-)}
+        {error && <p className="text-red-500 text-xs text-center">{error}</p>}
 
         <div className="w-full p-2 border-b-0 mx-auto">
           <form onSubmit={handleLogin}>
@@ -90,14 +73,14 @@ const Login = () => {
               placeholder="Email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
             />
             <InputField
               label="Password"
               placeholder="Password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
             />
 
             <div className="flex md:flex-row justify-between mx-2 my-2 items-center">
@@ -115,7 +98,6 @@ const Login = () => {
               </Link>
             </div>
 
-           
             <button
               type="submit"
               className="w-full bg-[#FE6C05] text-white font-light text-[18px] rounded-md py-3 my-4 cursor-pointer"

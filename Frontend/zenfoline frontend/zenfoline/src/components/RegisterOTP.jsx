@@ -1,36 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import InputField from './InputField';
 import logo from '../assets/logo.png';
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '../store/userAuthStore';
 
 const RegisterOTP = () => {
   const [otp, setOtp] = useState('');
-  const dispatch = useDispatch();
-  const navigate = useNavigate(); 
-  const {  error, email } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+
+  const email = useAuthStore((state) => state.email);
+  const error = useAuthStore((state) => state.error);
+  const success = useAuthStore((state) => state.success);
+  const setError = useAuthStore((state) => state.setError);
+  const setSuccess = useAuthStore((state) => state.setSuccess);
+  const verifyOtp = useAuthStore((state) => state.verifyOtp);
+  const resendOtp = useAuthStore((state) => state.resendOtp);
 
   useEffect(() => {
-    dispatch(clearError());
-  }, [dispatch]);
+    setError(null);
+    setSuccess(null);
+  }, [setError, setSuccess]);
 
-  const handleVerifyOtp = (e) => {
+  useEffect(() => {
+    if (error || success) {
+      const timer = setTimeout(() => {
+        setError(null);
+        setSuccess(null);
+      }, 3000);
+      return () => clearTimeout(timer); 
+    }
+  }, [error, success, setError, setSuccess]);
+
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    dispatch(verifyOtp({ otp, email }))
-      .unwrap()
-      .then(() => {
-        navigate('/login'); 
-      })
-      .catch((err) => console.error(err));
+
+    try {
+      await verifyOtp({ otp, email });
+      navigate('/login');
+    } catch (err) {
+      console.error('Error verifying OTP:', err.message);
+    }
   };
 
-  const handleResendOtp = () => {
-    dispatch(resendOtp(email)); 
+  const handleResendOtp = async () => {
+    try {
+      await resendOtp(email);
+    } catch (err) {
+      console.error('Error resending OTP:', err.message);
+    }
   };
 
   return (
     <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
       <div className="text-center mb-6 w-full max-w-md">
-        <img src={logo} alt="Logo" className="mx-auto  w-60 h-35" />
+        <img src={logo} alt="Logo" className="mx-auto w-60 h-35" />
       </div>
 
       <div className="bg-[#F8F9FA] p-12 rounded-lg w-[600px] h-[400px] outline-none border-2 border-[#000000]/21">
@@ -38,8 +61,8 @@ const RegisterOTP = () => {
           <h1 className="text-2xl md:text-3xl lg:text-3xl font-bold">Verify OTP</h1>
         </div>
 
+        {success && <p className="text-green-500 text-xs text-center">{success}</p>}
         {error && <p className="text-red-500 text-xs text-center">{error}</p>}
-
 
         <div className="w-full p-2 border-b-0 mx-auto">
           <form onSubmit={handleVerifyOtp}>

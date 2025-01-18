@@ -1,16 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import useSignUpStore from '../store/userAuthStore';
+import useAuthStore from '../store/userAuthStore';
 import InputField from './InputField';
 import logo from '../assets/logo.png';
 
 const Signup = () => {
   const [password, setPassword] = useState('');
-  const setEmail = useSignUpStore((state) => state.setEmail);
-  const signupUser = useSignUpStore((state) => state.signupUser); // Fetch the signupUser method
-  const email = useSignUpStore((state) => state.email);
-  const error = useSignUpStore((state) => state.error);
+  const setEmail = useAuthStore((state) => state.setEmail);
+  const setError = useAuthStore((state) => state.setError);
+  const signupUser = useAuthStore((state) => state.signupUser);
+  const email = useAuthStore((state) => state.email);
+  const error = useAuthStore((state) => state.error);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setEmail(''); 
+    setError(null); 
+  }, [setError, setEmail]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+          setError(null);
+        }, 3000);
+        return () => clearTimeout(timer); 
+      
+    }, [error, setError]);
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -24,14 +38,13 @@ const Signup = () => {
     e.preventDefault();
 
     if (!email || !password) {
-      useSignUpStore.setState({ error: 'Please fill out all fields!' });
+      setError('Please fill out all fields!');
       return;
     }
 
     try {
-      const result = await signupUser(email, password); 
-      console.log('Signup successful:', result);
-      navigate('/registerotp'); 
+      await signupUser(email, password);
+      navigate('/registerotp');
     } catch (err) {
       console.error('Signup failed:', err.message);
     }

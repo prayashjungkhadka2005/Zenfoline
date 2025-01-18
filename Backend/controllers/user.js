@@ -4,9 +4,30 @@ const User = require('../models/User');
 const Otp = require('../models/Otp');
 require('dotenv').config();
 
-const saltRounds = 10;
 
+const saltRounds = 10;
 const generateOTP = () => Math.floor(9999 + Math.random() * 900);
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    requireTLS: true,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
+const sendOTPVerificationEmail = async (user, otpCode) => {
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: 'Welcome to Zenfoline!',
+        text: `Your OTP for signup (expires in 1 minute): ${otpCode}`,
+    };
+    await transporter.sendMail(mailOptions);
+};
 
 const handleSignupMethod = async (req, res) => {
     try {
@@ -18,34 +39,33 @@ const handleSignupMethod = async (req, res) => {
 
         const normalizedEmail = email.toLowerCase();
 
-        const existingUser = await User.findOne({ email: normalizedEmail });
+        const existingUser = await User.findOne({ email: normalizedEmail }).lean();
         if (existingUser) {
             return res.status(400).json({ message: 'Email is already registered.' });
         }
 
-        const hashedPassword = await bcrypt.hash(password, saltRounds).catch(() => {
-            throw new Error('Password hashing failed.');
-        });
-
-        const newUser = new User({
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const newUser = await User.create({
             email: normalizedEmail,
             password: hashedPassword,
             verified: false,
         });
 
-        await newUser.save();
+        const otpCode = generateOTP();
+        const otpExpire = new Date(Date.now() + 60 * 1000);
 
-        sendOTPVerificationEmail(newUser).catch((err) =>
-            console.error('Error sending verification email:', err)
-        );
+        await Otp.create({
+            user_id: newUser._id,
+            otp: otpCode,
+            otpExpiry: otpExpire,
+        });
+
+        sendOTPVerificationEmail(newUser, otpCode);
 
         return res.status(201).json({
             status: 'Pending',
             message: 'Verification OTP email is being sent.',
-            data: {
-                userId: newUser._id,
-                email: normalizedEmail,
-            },
+            data: { userId: newUser._id, email: normalizedEmail },
         });
     } catch (error) {
         console.error('Error during signup:', error);
@@ -53,67 +73,21 @@ const handleSignupMethod = async (req, res) => {
     }
 };
 
-const sendOTPVerificationEmail = async (user) => {
-    try {
-        const otpCode = generateOTP();
-        const otpExpire = new Date();
-        otpExpire.setMinutes(otpExpire.getMinutes() + 1);
-
-        const newOtp = new Otp({
-            user_id: user._id,
-            otp: otpCode,
-            otpExpiry: otpExpire,
-        });
-
-        await newOtp.save();
-
-        const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            requireTLS: true,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
-
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: 'Welcome to Zenfoline!',
-            text: `Your OTP for signup (expires in 1 minute): ${otpCode}`,
-        };
-
-        await transporter.sendMail(mailOptions);
-    } catch (error) {
-        console.error('Error sending OTP email:', error);
-        throw new Error('Failed to send OTP email.');
-    }
-};
-
 const verifyRegisterOtp = async (req, res) => {
     try {
         const { otp, email } = req.body;
-      
-        const user = await User.findOne({ email });
+
+        const user = await User.findOne({ email }).lean();
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        const otpRecord = await Otp.findOne({
-            user_id: user._id,
-            otp,
-          
-        });
-
-        if (!otpRecord) {
+        const otpRecord = await Otp.findOne({ user_id: user._id, otp }).lean();
+        if (!otpRecord || new Date(otpRecord.otpExpiry) < Date.now()) {
             return res.status(400).json({ message: 'Invalid or expired OTP.' });
         }
 
-        user.verified = true;
-        await user.save();
-
+        await User.updateOne({ _id: user._id }, { verified: true });
         await Otp.deleteOne({ _id: otpRecord._id });
 
         return res.status(200).json({ message: 'Registration successful. You can now log in.' });
@@ -127,13 +101,9 @@ const userLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).lean();
         if (!user) {
             return res.status(404).json({ message: 'User not found! Please signup to login.' });
-        }
-
-        if (!user.verified) {
-            return res.status(403).json({ message: 'Please verify your email before logging in.' });
         }
 
         const passwordMatch = await bcrypt.compare(password, user.password);
@@ -141,10 +111,7 @@ const userLogin = async (req, res) => {
             return res.status(400).json({ message: 'Email or password incorrect.' });
         }
 
-        return res.status(200).json({
-            message: 'Login successful.',
-            user_id: user._id,
-        });
+        return res.status(200).json({ message: 'Login successful.', user_id: user._id });
     } catch (error) {
         console.error('Error during login:', error);
         return res.status(500).json({ message: 'An error occurred during login.' });
@@ -155,22 +122,26 @@ const resendOTP = async (req, res) => {
     try {
         const { email } = req.body;
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).lean();
         if (!user) {
             return res.status(404).json({ message: 'User not found!' });
         }
 
-        await Otp.deleteMany({ user_id: user._id });
-        await sendOTPVerificationEmail(user);
+        const otpCode = generateOTP();
+        const otpExpire = new Date(Date.now() + 60 * 1000);
 
-        return res.status(200).json({
-            message: 'OTP resent successfully!',
-        });
+        await Otp.updateOne(
+            { user_id: user._id },
+            { otp: otpCode, otpExpiry: otpExpire },
+            { upsert: true }
+        );
+
+        sendOTPVerificationEmail(user, otpCode);
+
+        return res.status(200).json({ message: 'OTP resent successfully!' });
     } catch (error) {
         console.error('Error during OTP resend:', error);
-        return res.status(500).json({
-            message: 'An error occurred during OTP resend.',
-        });
+        return res.status(500).json({ message: 'An error occurred during OTP resend.' });
     }
 };
 
