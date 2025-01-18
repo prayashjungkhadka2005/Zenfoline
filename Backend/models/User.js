@@ -11,7 +11,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
+  selectedTemplate: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Template', 
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

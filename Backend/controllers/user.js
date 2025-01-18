@@ -2,10 +2,13 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const Otp = require('../models/Otp');
+const Admin = require('../models/Admin');
+const Template = require('../models/Templates');
 require('dotenv').config();
 
 const saltRounds = 10;
 const generateOTP = () => Math.floor(9999 + Math.random() * 900);
+
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -27,6 +30,134 @@ const sendOTPVerificationEmail = async (user, otpCode) => {
     };
     await transporter.sendMail(mailOptions);
 };
+
+const addAdmin = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'All fields are required.' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+        const normalizedUsername = username.toLowerCase();
+
+        const existingAdmin = await Admin.findOne({ email: normalizedEmail }).lean();
+        if (existingAdmin) {
+            return res.status(400).json({ message: 'Admin is already registered.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const newAdmin = await Admin.create({
+            username: normalizedUsername,
+            email: normalizedEmail,
+            password: hashedPassword,
+            role: "Admin",
+        });
+
+        return res.status(201).json({
+            message: 'Admin creation successful.',
+            data: {
+                id: newAdmin._id,
+                username: newAdmin.username,
+                email: newAdmin.email,
+                role: newAdmin.role,
+            },
+        });
+    } catch (error) {
+        console.error('Error creating admin:', error);
+        return res.status(500).json({ message: 'An error occurred while creating the admin.' });
+    }
+};
+
+const addTemplate = async (req, res) => {
+    try {
+        const { name, description, image, category, adminId } = req.body;
+
+        if (!name || !image || !category || !adminId) {
+            return res.status(400).json({ message: 'All fields are required: name, image, category, and adminId.' });
+        }
+
+        const admin = await Admin.findById(adminId).lean();
+if (!admin || admin.role !== 'Admin') {
+    return res.status(403).json({ message: 'Only an admin can add templates.' });
+}
+
+
+        const newTemplate = await Template.create({
+            name,
+            description: description || '', 
+            image,
+            category,
+            addedBy: adminId,
+        });
+
+        return res.status(201).json({
+            message: 'Template added successfully.',
+            data: {
+                id: newTemplate._id,
+                name: newTemplate.name,
+                description: newTemplate.description,
+                image: newTemplate.image,
+                category: newTemplate.category,
+                addedBy: adminId,
+                createdAt: newTemplate.createdAt,
+            },
+        });
+    } catch (error) {
+        console.error('Error adding template:', error);
+        return res.status(500).json({ message: 'An error occurred while adding the template.' });
+    }
+};
+
+
+const activateTemplate = async (req, res) => {
+    try {
+        const { userId, templateId } = req.body;
+
+        if (!userId || !templateId) {
+            return res.status(400).json({ message: 'Both userId and templateId are required.' });
+        }
+
+       
+
+        const findUser = await User.findById(userId).lean();
+if (!findUser) {
+    return res.status(403).json({ message: 'User not found.' });
+}
+
+
+        const template = await Template.findById(templateId);
+        if (!template) {
+            return res.status(404).json({ message: 'Template not found.' });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { selectedTemplate: templateId },
+            { new: true }
+        ).populate('selectedTemplate', 'name image category');
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        return res.status(200).json({
+            message: 'Template activated successfully.',
+            data: {
+                userId: user._id,
+                selectedTemplate: user.selectedTemplate,
+            },
+        });
+    } catch (error) {
+        console.error('Error activating template:', error);
+        return res.status(500).json({ message: 'An error occurred while activating the template.' });
+    }
+};
+
+
+
+
 
 const handleSignupMethod = async (req, res) => {
     try {
@@ -244,4 +375,7 @@ module.exports = {
     verifyForgotPasswordOtp,
     updateForgotPassword,
     resendOTP,
+    addTemplate,
+    addAdmin,
+    activateTemplate
 };
