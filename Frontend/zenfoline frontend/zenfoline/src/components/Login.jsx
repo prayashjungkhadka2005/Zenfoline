@@ -1,15 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import InputField from "./InputField";
 import logo from "../assets/logo.png";
 import axios from "axios";
 import "@fortawesome/fontawesome-free";
 
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [Error, setError] = useState(""); 
   const navigate = useNavigate();
+
+
+ 
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -104,7 +108,7 @@ const Login = () => {
                 />
                 <label className="md:text-xs text-[12px]">Remember Me</label>
               </div>
-              <Link to={"/resetpassword"}>
+              <Link to={"/forgotemail"}>
                 <p className="md:text-xs text-[12px] cursor-pointer">
                   Forgot Password?
                 </p>

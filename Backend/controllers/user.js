@@ -12,34 +12,44 @@ const handleSignupMethod = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const existingUser = await User.findOne({ email });
+        if (password.length < 4) {
+            return res.status(400).json({ message: 'Password must be at least 4 characters long.' });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+
+        const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
             return res.status(400).json({ message: 'Email is already registered.' });
         }
 
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, saltRounds).catch(() => {
+            throw new Error('Password hashing failed.');
+        });
 
         const newUser = new User({
-            email,
+            email: normalizedEmail,
             password: hashedPassword,
             verified: false,
         });
 
         await newUser.save();
 
-        await sendOTPVerificationEmail(newUser);
+        sendOTPVerificationEmail(newUser).catch((err) =>
+            console.error('Error sending verification email:', err)
+        );
 
         return res.status(201).json({
             status: 'Pending',
-            message: 'Verification OTP email sent.',
+            message: 'Verification OTP email is being sent.',
             data: {
                 userId: newUser._id,
-                email,
+                email: normalizedEmail,
             },
         });
     } catch (error) {
         console.error('Error during signup:', error);
-        return res.status(500).json({ message: 'An error occurred during signup.' });
+        return res.status(500).json({ message: 'An error occurred. Please try again later.' });
     }
 };
 
@@ -85,7 +95,7 @@ const sendOTPVerificationEmail = async (user) => {
 const verifyRegisterOtp = async (req, res) => {
     try {
         const { otp, email } = req.body;
-
+      
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });

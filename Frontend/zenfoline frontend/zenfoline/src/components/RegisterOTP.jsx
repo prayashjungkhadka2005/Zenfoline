@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { verifyOtp, resendOtp } from '../store/authSlice';
+import React, { useState, useEffect } from 'react';
 import InputField from './InputField';
 import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom'; 
@@ -9,7 +7,11 @@ const RegisterOTP = () => {
   const [otp, setOtp] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate(); 
-  const { loading, error, successMessage, email } = useSelector((state) => state.auth);
+  const {  error, email } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   const handleVerifyOtp = (e) => {
     e.preventDefault();
@@ -38,9 +40,6 @@ const RegisterOTP = () => {
 
         {error && <p className="text-red-500 text-xs text-center">{error}</p>}
 
-        {successMessage && (
-          <p className="text-green-500 text-xs text-center">{successMessage}</p>
-        )}
 
         <div className="w-full p-2 border-b-0 mx-auto">
           <form onSubmit={handleVerifyOtp}>
