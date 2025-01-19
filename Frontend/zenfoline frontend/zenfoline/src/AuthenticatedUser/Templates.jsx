@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import useAuthStore from '../store/userAuthStore'; 
+import useAuthStore from '../store/userAuthStore';
 
 const Templates = () => {
     const [templates, setTemplates] = useState([]);
@@ -7,8 +7,8 @@ const Templates = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
 
-    const userId = useAuthStore((state) => state.userId); 
-    console.log('userId:', userId); 
+    const userId = useAuthStore((state) => state.userId);
+    console.log('userId:', userId);
 
     useEffect(() => {
         const fetchTemplates = async () => {
@@ -18,19 +18,27 @@ const Templates = () => {
                     throw new Error('Failed to fetch templates');
                 }
                 const data = await response.json();
-                setTemplates(data);
-    
+
                 const userResponse = await fetch(`http://localhost:3000/user/getactivetemplate?userId=${userId}`, {
-                    method: 'GET', 
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                 });
-                
-                
+
                 if (userResponse.ok) {
                     const userData = await userResponse.json();
                     setActiveTemplateId(userData.activeTemplateId);
+
+                    // soring active templates to appear at first
+                    const sortedTemplates = data.sort((a, b) => {
+                        if (a._id === userData.activeTemplateId) return -1;
+                        if (b._id === userData.activeTemplateId) return 1;
+                        return 0;
+                    });
+                    setTemplates(sortedTemplates);
+                } else {
+                    setTemplates(data);
                 }
             } catch (err) {
                 setError(err.message);
@@ -38,33 +46,38 @@ const Templates = () => {
                 setLoading(false);
             }
         };
-    
+
         fetchTemplates();
     }, [userId]);
-    
 
     const handleActivate = async (templateId) => {
         try {
-            console.log('Activating Template:', { templateId, userId }); 
+            console.log('Activating Template:', { templateId, userId });
             const response = await fetch('http://localhost:3000/user/activateusertemplate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ templateId, userId }), 
+                body: JSON.stringify({ templateId, userId }),
             });
-    
+
             if (!response.ok) {
                 throw new Error('Failed to activate template');
             }
-    
-           
-            setActiveTemplateId(templateId);
+
+            
+            setActiveTemplateId(templateId); //update active templates 
+            const updatedTemplates = templates.sort((a, b) => { //reorder active templates
+                if (a._id === templateId) return -1;
+                if (b._id === templateId) return 1;
+                return 0;
+            });
+            setTemplates([...updatedTemplates]);
         } catch (err) {
             setError(err.message);
         }
     };
-    
+
     if (loading) {
         return <p>Loading...</p>;
     }
