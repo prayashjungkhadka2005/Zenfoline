@@ -1,5 +1,5 @@
 const express = require('express');
-const { handleSignupMethod, userLogin , verifyRegisterOtp, resendOTP, forgotPasswordOtp, updateForgotPassword, verifyForgotPasswordOtp, addAdmin, addTemplate, activateTemplate, adminLogin, upload} = require('../controllers/user');
+const { handleSignupMethod, userLogin , verifyRegisterOtp, resendOTP, forgotPasswordOtp, updateForgotPassword, verifyForgotPasswordOtp, addAdmin, addTemplate, activateTemplate, adminLogin, upload, activateUserTemplate, getActiveTemplate} = require('../controllers/user');
 const router = express.Router();
 const Template = require('../models/Templates');
 
@@ -24,6 +24,10 @@ router.post('/addtemplate', upload.single('image'), addTemplate);
 router.post('/activatetemplate', activateTemplate);
 
 router.post('/adminlogin', adminLogin);
+
+router.post('/activateusertemplate', activateUserTemplate);
+
+router.get('/getactivetemplate', getActiveTemplate);
 
 router.get('/templates', async (req, res) => {
     try {

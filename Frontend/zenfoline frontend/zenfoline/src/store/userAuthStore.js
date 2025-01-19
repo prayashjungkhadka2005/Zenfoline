@@ -38,27 +38,28 @@ const useAuthStore = create((set) => ({
 
   adminLogin: async (username, password) => {
     try {
-      const response = await fetch('http://localhost:3000/user/adminlogin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+        const response = await fetch('http://localhost:3000/user/adminlogin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'An error occurred during admin login.');
-      }
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'An error occurred during admin login.');
+        }
 
-      const data = await response.json();
-      set({ error: null, username: data.username, adminId: data.admin_id });
-      return data;
+        const data = await response.json();
+        set({ error: null, username: data.username, adminId: data.admin_id });
+        return data;
     } catch (err) {
-      set({ error: err.message, success: null });
-      throw err;
+        set({ error: err.message, success: null });
+        throw err;
     }
-  },
+},
+
 
   addTemplate: async (name, description, image, category) => {
     try {
@@ -162,25 +163,26 @@ const useAuthStore = create((set) => ({
 
 loginUser: async (email, password) => {
   try {
-    const response = await fetch('http://localhost:3000/user/userlogin', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+      const response = await fetch('http://localhost:3000/user/userlogin', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'An error occurred during signup.');
-    }
+      if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'An error occurred during login.');
+      }
 
-    const data = await response.json();
-    set({ error: null, email }); 
-    return data;
+      const data = await response.json();
+    
+      set({ error: null, email: data.email, userId: data.user_id });
+      return data;
   } catch (err) {
-    set({ error: err.message });
-    throw err; 
+      set({ error: err.message });
+      throw err;
   }
 },
 

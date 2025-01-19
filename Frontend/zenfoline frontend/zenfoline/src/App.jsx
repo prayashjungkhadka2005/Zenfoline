@@ -37,7 +37,6 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
             <Route path="templates" element={<Templates />} />
-            {/* Uncomment or add additional dashboard pages */}
             {/* <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} /> */}
           </Route>

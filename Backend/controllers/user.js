@@ -89,6 +89,70 @@ const addTemplate = async (req, res) => {
 
 
 
+const activateUserTemplate = async (req, res) => {
+    try {
+        const { templateId, userId } = req.body;
+
+        if (!templateId || !userId) {
+            return res.status(400).json({ message: 'Template ID and User ID are required.' });
+        }
+
+        const template = await Template.findById(templateId);
+        if (!template) {
+            return res.status(404).json({ message: 'Template not found.' });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { selectedTemplate: templateId },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        return res.status(200).json({
+            message: 'Template activated successfully.',
+            activeTemplateId: updatedUser.selectedTemplate,
+        });
+    } catch (error) {
+        console.error('Error activating template:', error);
+        return res.status(500).json({ message: 'An error occurred while activating the template.' });
+    }
+};
+
+
+
+const getActiveTemplate = async (req, res) => {
+    try {
+        const userId = req.query.userId; // Fetch userId from query parameters
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required.' });
+        }
+
+        const user = await User.findById(userId).populate('selectedTemplate').lean();
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        return res.status(200).json({
+            message: 'Active template retrieved successfully.',
+            activeTemplateId: user.selectedTemplate?._id || null,
+            activeTemplate: user.selectedTemplate || null,
+        });
+    } catch (error) {
+        console.error('Error fetching active template:', error);
+        return res.status(500).json({ message: 'An error occurred while fetching the active template.' });
+    }
+};
+
+
+
+
+
 const addAdmin = async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -469,5 +533,7 @@ module.exports = {
     addAdmin,
     activateTemplate,
     adminLogin,
-    upload
+    upload,
+    activateUserTemplate,
+    getActiveTemplate
 };
