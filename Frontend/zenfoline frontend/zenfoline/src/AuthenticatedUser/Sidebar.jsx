@@ -6,7 +6,7 @@ const Sidebar = () => {
     const menus = [
         { name: 'Home', path: '/dashboard', icon: 'fas fa-home', exact: true },
         { name: 'Templates', path: '/dashboard/templates', icon: 'fas fa-file-alt' },
-        { name: 'Appearance', path: '/dashboard/appearance', icon: 'fas fa-paint-brush' },
+        { name: 'Appearance', path: '/dashboard/themepage', icon: 'fas fa-paint-brush' },
         { name: 'Analytics', path: '/dashboard/analytics', icon: 'fas fa-chart-line' },
         { name: 'Settings', path: '/dashboard/settings', icon: 'fas fa-cog' },
     ];

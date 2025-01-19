@@ -5,14 +5,15 @@ import RegisterOTP from './components/RegisterOTP';
 import ResetPassword from './components/ResetPassword';
 import ForgotEmail from './components/ForgotEmail';
 import ForgotPasswordOTP from './components/ForgotPasswordOTP';
-import Dashboard from './authenticatedUser/Dashboard';
-import Home from './authenticatedUser/Home';
-import Templates from './authenticatedUser/Templates';
+import Dashboard from './AuthenticatedUser/dashboard';
+import Home from './AuthenticatedUser/Home';
+import Templates from './AuthenticatedUser/UserTemplates';
 import AdminSignup from './components/AdminSignup';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './authenticatedAdmin/AdminDashboard';
 import AdminHome from './authenticatedAdmin/AdminHome';
 import AddTemplates from './authenticatedAdmin/AddTemplates';
+import ThemePage from './AuthenticatedUser/ThemePages';
 
 const App = () => {
   return (
@@ -37,6 +38,8 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
             <Route path="templates" element={<Templates />} />
+            <Route path="themepage" element={<ThemePage />} />
+
             {/* <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<Settings />} /> */}
           </Route>
