@@ -1,5 +1,5 @@
 const express = require('express');
-const { handleSignupMethod, userLogin , verifyRegisterOtp, resendOTP, forgotPasswordOtp, updateForgotPassword, verifyForgotPasswordOtp, addAdmin, addTemplate, activateTemplate, adminLogin, upload, activateUserTemplate, getActiveTemplate} = require('../controllers/user');
+const { handleSignupMethod, userLogin , verifyRegisterOtp, resendOTP, forgotPasswordOtp, updateForgotPassword, verifyForgotPasswordOtp, addAdmin, addTemplate, activateTemplate, adminLogin, upload, activateUserTemplate, getActiveTemplate, deleteTemplate} = require('../controllers/user');
 const router = express.Router();
 const Template = require('../models/Templates');
 
@@ -38,6 +38,8 @@ router.get('/templates', async (req, res) => {
         res.status(500).json({ message: 'Error fetching templates' });
     }
 });
+
+router.delete('/deletetemplate/:templateId', deleteTemplate);
 
 
 module.exports = router;

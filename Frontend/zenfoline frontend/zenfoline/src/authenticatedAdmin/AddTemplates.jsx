@@ -1,114 +1,277 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useAuthStore from '../store/userAuthStore';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
-const AddTemplates = () => {
+const AdminTemplates = () => {
+  const [templates, setTemplates] = useState([]);
+  const [showModal, setShowModal] = useState(false); //modal visibiity
+  const [editingTemplate, setEditingTemplate] = useState(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState(null); 
+  const [image, setImage] = useState(null);
   const [category, setCategory] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const adminId = useAuthStore((state) => state.adminId); 
-  const addTemplate = useAuthStore((state) => state.addTemplate); 
+  const [modalError, setModalError] = useState('');
+  const [modalSuccess, setModalSuccess] = useState('');
+  const adminId = useAuthStore((state) => state.adminId);
+  const addTemplate = useAuthStore((state) => state.addTemplate);
+
+
+//fetch templates
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/user/templates');
+        if (!response.ok) {
+          throw new Error('Failed to fetch templates');
+        }
+        const data = await response.json();
+        setTemplates(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setError('');
+      setSuccess('');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [error, success]);
+
+  const resetForm = () => {
+    setName('');
+    setDescription('');
+    setImage(null);
+    setCategory('');
+    setEditingTemplate(null);
+    setModalError('');
+    setModalSuccess('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name || !image || !category || !adminId) {
-      setError('Please fill out all required fields.');
+    if (!name || !category || (!editingTemplate && !image) || !adminId) {
+      setModalError('Please fill out all required fields.');
       return;
     }
 
     try {
+
+      //add templates
       await addTemplate(name, description, image, category);
-      setSuccess('Template added successfully!');
-      setError('');
-      setName('');
-      setDescription('');
-      setImage(null);
-      setCategory('');
+      setModalSuccess(editingTemplate ? 'Template updated successfully!' : 'Template added successfully!');
+      setModalError('');
+      resetForm();
+      setShowModal(false);
+
+      //refresh templates list
+      const response = await fetch('http://localhost:3000/user/templates');
+      const data = await response.json();
+      setTemplates(data);
+      setSuccess(editingTemplate ? 'Template updated successfully!' : 'Template added successfully!');
     } catch (err) {
-      setError(err.message || 'An error occurred while adding the template.');
-      setSuccess('');
+      setModalError(err.message || 'An error occurred while processing the template.');
+      setModalSuccess('');
     }
   };
 
+  const handleEdit = (template) => {
+    resetForm();
+    setEditingTemplate(template);
+    setName(template.name);
+    setDescription(template.description);
+    setCategory(template.category);
+    setShowModal(true);
+  };
+
+  //delete template
+  const handleDelete = async (templateId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/user/deletetemplate/${templateId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.message || 'Failed to delete template.');
+        return;
+      }
+
+      const data = await response.json();
+      setTemplates(templates.filter((template) => template._id !== templateId));
+      setSuccess(data.message);
+    } catch (err) {
+      setError('An unexpected error occurred while deleting the template.');
+    }
+  };
+
+  const handleModalOpen = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    resetForm();
+    setShowModal(false);
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <div className="w-[600px] bg-white shadow-lg rounded-lg p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Add Template</h1>
-
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        {success && <p className="text-green-500 text-sm mb-4">{success}</p>}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Template Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
-              placeholder="Enter template name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
-              placeholder="Enter template description"
-              rows="3"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
-              onChange={(e) => setImage(e.target.files[0])}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category <span className="text-red-500">*</span>
-            </label>
-            <select
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">Select a category</option>
-              <option value="Developer">Developer</option>
-              <option value="Simple">Simple</option>
-              <option value="Expert">Expert</option>
-              <option value="Mixed">Mixed</option>
-              <option value="Extra">Extra</option>
-              <option value="Beginner">Beginner</option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-[#000042] text-white text-lg font-medium py-2 rounded-md hover:bg-[#000061]"
-          >
-            Add Template
-          </button>
-        </form>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-[#000042]">Admin Templates</h1>
+        <button
+          onClick={handleModalOpen}
+          className="bg-[#000042] text-white px-4 py-2 rounded-md hover:bg-[#000061]"
+        >
+          Add New Template
+        </button>
       </div>
+
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+      {success && <p className="text-green-500 text-sm mb-4">{success}</p>}
+
+      <div className="overflow-x-auto rounded-lg shadow-lg bg-white">
+        <table className="w-full border-collapse">
+          <thead className="bg-[#000042] text-white text-left">
+            <tr>
+              <th className="px-6 py-4">S.N.</th>
+              <th className="px-6 py-4">Category</th>
+              <th className="px-6 py-4">Description</th>
+              <th className="px-6 py-4">Image</th>
+              <th className="px-6 py-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {templates.map((template, index) => (
+              <tr
+                key={template._id}
+                className="border-b hover:bg-gray-50 transition-colors"
+              >
+                <td className="px-6 py-4 text-center">{index + 1}</td>
+                <td className="px-6 py-4">{template.category}</td>
+                <td className="px-6 py-4">{template.description}</td>
+                <td className="px-6 py-4">
+                  <img
+                    src={`http://localhost:3000${template.image}`}
+                    alt={template.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => handleEdit(template)}
+                      className="flex items-center text-blue-500 hover:text-blue-700"
+                    >
+                      <FontAwesomeIcon icon={faEdit} className="mr-1" /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(template._id)}
+                      className="flex items-center text-red-500 hover:text-red-700"
+                    >
+                      <FontAwesomeIcon icon={faTrash} className="mr-1" /> Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white w-[600px] shadow-lg rounded-lg p-8 relative">
+            <h1 className="text-2xl font-bold text-[#000042] mb-6">
+              {editingTemplate ? 'Edit Template' : 'Add Template'}
+            </h1>
+
+            {modalError && <p className="text-red-500 text-sm mb-4">{modalError}</p>}
+            {modalSuccess && <p className="text-green-500 text-sm mb-4">{modalSuccess}</p>}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Template Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
+                  placeholder="Enter template name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
+                  placeholder="Enter template description"
+                  rows="3"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Image <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
+                  onChange={(e) => setImage(e.target.files[0])}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="">Select a category</option>
+                  <option value="Developer">Developer</option>
+                  <option value="Simple">Simple</option>
+                  <option value="Expert">Expert</option>
+                  <option value="Mixed">Mixed</option>
+                  <option value="Extra">Extra</option>
+                  <option value="Beginner">Beginner</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-[#000042] text-white text-lg font-medium py-2 rounded-md hover:bg-[#000061]"
+              >
+                {editingTemplate ? 'Update Template' : 'Add Template'}
+              </button>
+            </form>
+
+            <button
+              onClick={handleModalClose}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+            >
+              ✖
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default AddTemplates;
+export default AdminTemplates;

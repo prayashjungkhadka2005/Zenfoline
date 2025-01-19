@@ -9,13 +9,8 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 
-
 const saltRounds = 10;
 const generateOTP = () => Math.floor(9999 + Math.random() * 900);
-
-
-
-
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -53,6 +48,45 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+const deleteTemplate = async (req, res) => {
+    try {
+      const { templateId } = req.params;
+  
+      if (!templateId) {
+        return res.status(400).json({ message: 'Template ID is required.' });
+      }
+
+      const template = await Template.findById(templateId);
+  
+      if (!template) {
+        return res.status(404).json({ message: 'Template not found.' });
+      }
+  
+      //remove the image
+      if (template.image) {
+        const imagePath = path.join(__dirname, '..', template.image);
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
+        }
+      }
+  
+      //delete template using id
+      await Template.findByIdAndDelete(templateId);
+  
+      //update users
+      await User.updateMany(
+        { selectedTemplate: templateId },
+        { $set: { selectedTemplate: null } }
+      );
+  
+      return res.status(200).json({ message: 'Template deleted successfully.' });
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      return res.status(500).json({ message: 'An error occurred while deleting the template.' });
+    }
+  };
+  
 
 const addTemplate = async (req, res) => {
     try {
@@ -126,7 +160,7 @@ const activateUserTemplate = async (req, res) => {
 
 const getActiveTemplate = async (req, res) => {
     try {
-        const userId = req.query.userId; // Fetch userId from query parameters
+        const userId = req.query.userId; //fetch user id from query parameters
 
         if (!userId) {
             return res.status(400).json({ message: 'User ID is required.' });
@@ -148,9 +182,6 @@ const getActiveTemplate = async (req, res) => {
         return res.status(500).json({ message: 'An error occurred while fetching the active template.' });
     }
 };
-
-
-
 
 
 const addAdmin = async (req, res) => {
@@ -535,5 +566,6 @@ module.exports = {
     adminLogin,
     upload,
     activateUserTemplate,
-    getActiveTemplate
+    getActiveTemplate,
+    deleteTemplate
 };

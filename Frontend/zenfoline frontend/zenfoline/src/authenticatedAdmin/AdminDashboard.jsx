@@ -12,7 +12,7 @@ const AdminDashboard = () => {
                 <AdminHeader />
 
                 <main
-                    className="p-6 py-7 bg-gray-100 flex-1 overflow-auto"
+                    className="p-6 mt-[2.8rem] bg-gray-100 flex-1 overflow-auto"
                  
                 >
                     <Outlet />
