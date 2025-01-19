@@ -1,34 +1,62 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-const useAuthStore = create((set) => ({
-  
-  email: '',
-  username: '',
-  adminId: '', 
-  error: null,
-  success: null,
-  setSuccess: (message) => set({ success: message }),
-  setUsername: (username) => set({ username }),
-  setEmail: (email) => set({ email }),
-  setError: (error) => set({ error }),
+const useAuthStore = create(
+  persist(
+    (set) => ({
+      email: '',
+      username: '',
+      adminId: '',
+      userId: '',
+      error: null,
+      success: null,
+      setSuccess: (message) => set({ success: message }),
+      setUsername: (username) => set({ username }),
+      setEmail: (email) => set({ email }),
+      setError: (error) => set({ error }),
 
-  signupAdmin: async (username, email, password) => {
+      signupAdmin: async (username, email, password) => {
+        try {
+          const response = await fetch('http://localhost:3000/user/addadmin', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, email, password }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'An error occurred during admin signup.');
+          }
+
+          const data = await response.json();
+          set({ error: null, success: 'Admin registered successfully' });
+          return data;
+        } catch (err) {
+          set({ error: err.message, success: null });
+          throw err;
+        }
+      },
+
+
+  adminLogin: async (username, password) => {
     try {
-      const response = await fetch('http://localhost:3000/user/addadmin', {
+      const response = await fetch('http://localhost:3000/user/adminlogin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'An error occurred during admin signup.');
+        throw new Error(errorData.message || 'An error occurred during admin login.');
       }
 
       const data = await response.json();
-      set({ error: null, success: 'Admin registered successfully' });
+      set({ error: null, username: data.username, adminId: data.admin_id });
       return data;
     } catch (err) {
       set({ error: err.message, success: null });
@@ -36,58 +64,34 @@ const useAuthStore = create((set) => ({
     }
   },
 
-  adminLogin: async (username, password) => {
-    try {
-        const response = await fetch('http://localhost:3000/user/adminlogin', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-        });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'An error occurred during admin login.');
-        }
+addTemplate: async (name, description, image, category) => {
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description || '');
+    formData.append('image', image);
+    formData.append('category', category);
+    formData.append('adminId', useAuthStore.getState().adminId);
 
-        const data = await response.json();
-        set({ error: null, username: data.username, adminId: data.admin_id });
-        return data;
-    } catch (err) {
-        set({ error: err.message, success: null });
-        throw err;
+    const response = await fetch('http://localhost:3000/user/addtemplate', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'An error occurred while adding the template.');
     }
+
+    const data = await response.json();
+    set({ error: null, success: 'Template added successfully!' });
+    return data;
+  } catch (err) {
+    set({ error: err.message, success: null });
+    throw err;
+  }
 },
-
-
-  addTemplate: async (name, description, image, category) => {
-    try {
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('description', description || ''); 
-      formData.append('image', image); 
-      formData.append('category', category);
-      formData.append('adminId', useAuthStore.getState().adminId); 
-  
-      const response = await fetch('http://localhost:3000/user/addtemplate', {
-        method: 'POST',
-        body: formData, 
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'An error occurred while adding the template.');
-      }
-  
-      const data = await response.json();
-      set({ error: null, success: 'Template added successfully!' });
-      return data;
-    } catch (err) {
-      set({ error: err.message, success: null });
-      throw err;
-    }
-  },
   
   signupUser: async (email, password) => {
     try {
@@ -163,26 +167,25 @@ const useAuthStore = create((set) => ({
 
 loginUser: async (email, password) => {
   try {
-      const response = await fetch('http://localhost:3000/user/userlogin', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch('http://localhost:3000/user/userlogin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'An error occurred during login.');
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'An error occurred during login.');
+    }
 
-      const data = await response.json();
-    
-      set({ error: null, email: data.email, userId: data.user_id });
-      return data;
+    const data = await response.json();
+    set({ error: null, email: data.email, userId: data.user_id });
+    return data;
   } catch (err) {
-      set({ error: err.message });
-      throw err;
+    set({ error: err.message });
+    throw err;
   }
 },
 
@@ -262,10 +265,21 @@ resetPassword: async ({ email, newPassword }) => {
   }
 },
 
+}),
+{
+  //persist middleware  
+  name: 'auth-store',
+  storage: {
+    getItem: (key) => {
+      const storedValue = sessionStorage.getItem(key);
+      return storedValue ? JSON.parse(storedValue) : null;
+    },
+    setItem: (key, value) => sessionStorage.setItem(key, JSON.stringify(value)), 
+    removeItem: (key) => sessionStorage.removeItem(key),
+  },
+}
 
-
-
-
-}));
+)
+);
 
 export default useAuthStore;
