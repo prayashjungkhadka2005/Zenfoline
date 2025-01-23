@@ -1,13 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import useTemplateStore from '../store/templateStore';
+import useAuthStore from '../store/userAuthStore';
 import tem1 from '../assets/tem1.png';
 import tem2 from '../assets/tem2.png';
 import tem3 from '../assets/tem3.png';
 import tem4 from '../assets/tem4.png';
 import tem5 from '../assets/tem5.png';
-import tem6 from '../assets/tem6.png'
+import tem6 from '../assets/tem6.png';
+
 
 
 const ThemePage = () => {
+
+  const { activeTemplateId, templates, fetchTemplates } = useTemplateStore();
+  const userId = useAuthStore((state) => state.userId);
+
+  useEffect(() => {
+    if (userId) {
+      fetchTemplates(userId); // Fetch templates and active template for the user
+    }
+  }, [userId, fetchTemplates]);
+
+  const activeTemplate = templates.find((template) => template._id === activeTemplateId);
+
   const [activeTab, setActiveTab] = useState("appearances"); //track active tab
   const [activeColorMode, setActiveColorMode] = useState("default");
   const [activePresetTheme, setActivePresetTheme] = useState(null);
@@ -58,46 +73,55 @@ const ThemePage = () => {
       <h1 className="text-2xl font-bold text-gray-800 mb-3">Themes</h1>
 
       <div className="mb-3 bg-white rounded-lg shadow-md p-6 flex justify-between items-center">
-        <h2 className="text-lg font-medium text-gray-800">
-          Current template: <span className="font-bold">Developer</span>
-        </h2>
-        <div className="flex items-center gap-4">
+      <h2 className="text-lg font-medium text-gray-800">
+        Current template:{' '}
+        <span className="font-bold">{activeTemplate ? activeTemplate.name : 'None'}</span>
+      </h2>
+      <div className="flex items-center gap-4">
+        {activeTemplate ? (
           <span className="text-green-500 font-medium flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-green-500"></span> Active
           </span>
-          <button className="text-orange-600 border border-orange-600 px-3 py-1 rounded-md">
-            Change
-          </button>
-          <button className="text-orange-600 border border-orange-600 px-3 py-1 rounded-md">
-            View Site
-          </button>
-        </div>
-      </div>
+        ) : (
+          <span className="text-red-500 font-medium">No active template</span>
+        )}
 
-      <div className="mb-3 bg-white rounded-lg shadow-md p-6">
-        <div className="flex gap-4">
-          <button
-            onClick={() => handleTabChange("appearances")}
-            className={`px-6 py-2 border-b-2 ${
-              activeTab === "appearances"
-                ? "border-orange-600 text-orange-600"
-                : "border-transparent text-gray-600"
-            }`}
-          >
-            Appearances
-          </button>
-          <button
-            onClick={() => handleTabChange("developerComponents")}
-            className={`px-6 py-2 border-b-2 ${
-              activeTab === "developerComponents"
-                ? "border-orange-600 text-orange-600"
-                : "border-transparent text-gray-600"
-            }`}
-          >
-            Developer Components
-          </button>
-        </div>
+        <button className="text-orange-600 border border-orange-600 px-3 py-1 rounded-md">
+          View Site
+        </button>
       </div>
+    </div>
+
+    <div className="mb-3 bg-white rounded-lg shadow-md p-6">
+  <div className="flex gap-4">
+  
+    <button
+      onClick={() => handleTabChange("appearances")}
+      className={`px-6 py-2 border-b-2 ${
+        activeTab === "appearances"
+          ? "border-orange-600 text-orange-600"
+          : "border-transparent text-gray-600"
+      }`}
+    >
+      Appearances
+    </button>
+
+    <button
+      onClick={() => activeTemplate && handleTabChange("developerComponents")}
+      className={`px-6 py-2 border-b-2 ${
+        activeTab === "developerComponents"
+          ? "border-orange-600 text-orange-600"
+          : activeTemplate
+          ? "border-transparent text-gray-600"
+          : "border-transparent text-gray-400 cursor-not-allowed"
+      }`}
+      disabled={!activeTemplate} // button will be disabled if no template is active
+    >
+      <span>{activeTemplate ? activeTemplate.category : 'No'} </span>Components
+    </button>
+  </div>
+</div>
+
 
       {activeTab === "appearances" && (
         <div>

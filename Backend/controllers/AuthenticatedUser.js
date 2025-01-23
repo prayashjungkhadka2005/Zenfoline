@@ -13,15 +13,35 @@ const activateUserTemplate = async (req, res) => {
     try {
         const { templateId, userId } = req.body;
 
-        if (!templateId || !userId) {
-            return res.status(400).json({ message: 'Template ID and User ID are required.' });
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required.' });
         }
 
+        if (!templateId) {
+            // Template deactivation
+            const updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { selectedTemplate: null },
+                { new: true }
+            );
+
+            if (!updatedUser) {
+                return res.status(404).json({ message: 'User not found.' });
+            }
+
+            return res.status(200).json({
+                message: 'Template deactivated successfully.',
+                activeTemplateId: updatedUser.selectedTemplate,
+            });
+        }
+
+        
         const template = await Template.findById(templateId);
         if (!template) {
             return res.status(404).json({ message: 'Template not found.' });
         }
 
+        // Activate template
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { selectedTemplate: templateId },
@@ -41,7 +61,6 @@ const activateUserTemplate = async (req, res) => {
         return res.status(500).json({ message: 'An error occurred while activating the template.' });
     }
 };
-
 
 
 const getActiveTemplate = async (req, res) => {

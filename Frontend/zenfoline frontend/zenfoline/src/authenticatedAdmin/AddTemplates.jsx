@@ -52,12 +52,17 @@ const AdminTemplates = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!name || !category || (!editingTemplate && !image)) {
       setModalError('Please fill out all required fields.');
       return;
     }
-
+  
+    if (editingTemplate && !image) {
+      setModalError('Please upload an image.');
+      return;
+    }
+  
     const template = {
       name,
       description,
@@ -65,15 +70,17 @@ const AdminTemplates = () => {
       category,
       _id: editingTemplate?._id,
     };
-
+  
     try {
-      await saveTemplate(template, adminId);
+      await saveTemplate(template, adminId); // Save template using the store
+      setModalSuccess(editingTemplate ? 'Template updated successfully!' : 'Template added successfully!');
       resetForm();
       setShowModal(false);
     } catch (err) {
       setModalError(err.message || 'An error occurred while processing the template.');
     }
   };
+  
 
   const handleEdit = (template) => {
     resetForm();

@@ -24,6 +24,12 @@ const Templates = () => {
     await activateTemplate(templateId, userId); // Activate the selected template
   };
 
+  const handleDeactivate = async () => {
+    if (activeTemplateId) {
+      await activateTemplate(null, userId); // Pass null to deactivate the active template
+    }
+  };
+
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -59,14 +65,18 @@ const Templates = () => {
               <h2 className="text-lg font-bold mb-2">{template.name}</h2>
               <div className="flex justify-between items-center">
                 <button
-                  onClick={() => handleActivate(template._id)}
+                  onClick={() =>
+                    activeTemplateId === template._id
+                      ? handleDeactivate() // Deactivate if the template is active
+                      : handleActivate(template._id) // Activate the selected template
+                  }
                   className={`px-4 py-2 rounded-md text-sm ${
                     activeTemplateId === template._id
-                      ? 'bg-green-500 text-white'
+                      ? 'bg-red-500 text-white'
                       : 'bg-orange-500 text-white'
                   }`}
                 >
-                  {activeTemplateId === template._id ? 'Current' : 'Activate'}
+                  {activeTemplateId === template._id ? 'Deactivate' : 'Activate'}
                 </button>
                 {activeTemplateId === template._id && (
                   <div className="flex items-center gap-2 text-green-500 font-bold">

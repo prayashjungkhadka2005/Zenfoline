@@ -18,7 +18,6 @@ const adminTemplateStore = create(
       templates: [],
       loading: false,
 
-      // Admin actions
       setSuccess: (message) => set({ success: message }),
       setUsername: (username) => set({ username }),
       setEmail: (email) => set({ email }),

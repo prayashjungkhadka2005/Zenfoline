@@ -65,6 +65,60 @@ const deleteTemplate = async (req, res) => {
     }
   };
   
+  const updateTemplate = async (req, res) => {
+    try {
+        const { templateId } = req.params;
+        const { name, description, category } = req.body;
+
+        if (!templateId) {
+            return res.status(400).json({ message: 'Template ID is required.' });
+        }
+
+        
+        const existingTemplate = await Template.findById(templateId);
+        if (!existingTemplate) {
+            return res.status(404).json({ message: 'Template not found.' });
+        }
+
+        // new image
+        let updatedImagePath = existingTemplate.image;
+        if (req.file) {
+            // Deleting old image
+            if (existingTemplate.image) {
+                const oldImagePath = path.join(__dirname, '..', existingTemplate.image);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
+            }
+            updatedImagePath = `/uploads/${req.file.filename}`;
+        }
+
+        // Updating the template
+        const updatedTemplate = await Template.findByIdAndUpdate(
+            templateId,
+            {
+                name: name || existingTemplate.name,
+                description: description || existingTemplate.description,
+                category: category || existingTemplate.category,
+                image: updatedImagePath,
+            },
+            { new: true } 
+        );
+
+        if (!updatedTemplate) {
+            return res.status(500).json({ message: 'Failed to update template.' });
+        }
+
+        return res.status(200).json({
+            message: 'Template updated successfully.',
+            data: updatedTemplate,
+        });
+    } catch (error) {
+        console.error('Error updating template:', error);
+        return res.status(500).json({ message: 'An error occurred while updating the template.' });
+    }
+};
+
 
 const addTemplate = async (req, res) => {
     try {
@@ -105,5 +159,6 @@ module.exports = {
     addTemplate,
     deleteTemplate,
     upload,
-    storage
+    storage,
+    updateTemplate
 }
