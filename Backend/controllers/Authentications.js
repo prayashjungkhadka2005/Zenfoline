@@ -33,155 +33,18 @@ const sendOTPVerificationEmail = async (user, otpCode) => {
     await transporter.sendMail(mailOptions);
 };
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = path.join(__dirname, '../uploads/');
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true }); 
-        }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`); 
-    },
-
-});
-
-const upload = multer({ storage });
-
-const deleteTemplate = async (req, res) => {
-    try {
-      const { templateId } = req.params;
-  
-      if (!templateId) {
-        return res.status(400).json({ message: 'Template ID is required.' });
-      }
-
-      const template = await Template.findById(templateId);
-  
-      if (!template) {
-        return res.status(404).json({ message: 'Template not found.' });
-      }
-  
-      //remove the image
-      if (template.image) {
-        const imagePath = path.join(__dirname, '..', template.image);
-        if (fs.existsSync(imagePath)) {
-          fs.unlinkSync(imagePath);
-        }
-      }
-  
-      //delete template using id
-      await Template.findByIdAndDelete(templateId);
-  
-      //update users
-      await User.updateMany(
-        { selectedTemplate: templateId },
-        { $set: { selectedTemplate: null } }
-      );
-  
-      return res.status(200).json({ message: 'Template deleted successfully.' });
-    } catch (error) {
-      console.error('Error deleting template:', error);
-      return res.status(500).json({ message: 'An error occurred while deleting the template.' });
-    }
-  };
-  
-
-const addTemplate = async (req, res) => {
-    try {
-        const { name, description, category, adminId } = req.body;
-
-        if (!name || !req.file || !category || !adminId) {
-            return res.status(400).json({ message: 'All fields are required!' });
-        }
-
-        const admin = await Admin.findById(adminId).lean();
-        if (!admin || admin.role !== 'Admin') {
-            return res.status(403).json({ message: 'Only an admin can add templates.' });
-        }
-
-        const imagePath = `/uploads/${req.file.filename}`; //relativepath
-
-        const newTemplate = await Template.create({
-            name,
-            description: description || '',
-            image: imagePath, 
-            category,
-            addedBy: adminId,
-        });
-
-        return res.status(201).json({
-            message: 'Template added successfully.',
-            data: newTemplate,
-        });
-    } catch (error) {
-        console.error('Error adding template:', error);
-        return res.status(500).json({ message: 'An error occurred while adding the template.' });
-    }
-};
 
 
+// const getTemplate =  async (req, res) => {
+//     try {
+//         const templates = await Template.find({});
+//         res.status(200).json(templates);
+//     } catch (error) {
+//         console.error('Error fetching templates:', error);
+//         res.status(500).json({ message: 'Error fetching templates' });
+//     }
+// };
 
-const activateUserTemplate = async (req, res) => {
-    try {
-        const { templateId, userId } = req.body;
-
-        if (!templateId || !userId) {
-            return res.status(400).json({ message: 'Template ID and User ID are required.' });
-        }
-
-        const template = await Template.findById(templateId);
-        if (!template) {
-            return res.status(404).json({ message: 'Template not found.' });
-        }
-
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { selectedTemplate: templateId },
-            { new: true }
-        );
-
-        if (!updatedUser) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        return res.status(200).json({
-            message: 'Template activated successfully.',
-            activeTemplateId: updatedUser.selectedTemplate,
-        });
-    } catch (error) {
-        console.error('Error activating template:', error);
-        return res.status(500).json({ message: 'An error occurred while activating the template.' });
-    }
-};
-
-
-
-const getActiveTemplate = async (req, res) => {
-    try {
-        const userId = req.query.userId; //fetch user id from query parameters
-
-        if (!userId) {
-            return res.status(400).json({ message: 'User ID is required.' });
-        }
-
-        const user = await User.findById(userId).populate('selectedTemplate').lean();
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        return res.status(200).json({
-            message: 'Active template retrieved successfully.',
-            activeTemplateId: user.selectedTemplate?._id || null,
-            activeTemplate: user.selectedTemplate || null,
-        });
-    } catch (error) {
-        console.error('Error fetching active template:', error);
-        return res.status(500).json({ message: 'An error occurred while fetching the active template.' });
-    }
-};
 
 
 const addAdmin = async (req, res) => {
@@ -296,49 +159,6 @@ const adminLogin = async (req, res) => {
 // };
 
 
-const activateTemplate = async (req, res) => {
-    try {
-        const { userId, templateId } = req.body;
-
-        if (!userId || !templateId) {
-            return res.status(400).json({ message: 'Both userId and templateId are required.' });
-        }
-
-       
-
-        const findUser = await User.findById(userId).lean();
-if (!findUser) {
-    return res.status(403).json({ message: 'User not found.' });
-}
-
-
-        const template = await Template.findById(templateId);
-        if (!template) {
-            return res.status(404).json({ message: 'Template not found.' });
-        }
-
-        const user = await User.findByIdAndUpdate(
-            userId,
-            { selectedTemplate: templateId },
-            { new: true }
-        ).populate('selectedTemplate', 'name image category');
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        return res.status(200).json({
-            message: 'Template activated successfully.',
-            data: {
-                userId: user._id,
-                selectedTemplate: user.selectedTemplate,
-            },
-        });
-    } catch (error) {
-        console.error('Error activating template:', error);
-        return res.status(500).json({ message: 'An error occurred while activating the template.' });
-    }
-};
 
 
 
@@ -560,12 +380,6 @@ module.exports = {
     verifyForgotPasswordOtp,
     updateForgotPassword,
     resendOTP,
-    addTemplate,
     addAdmin,
-    activateTemplate,
     adminLogin,
-    upload,
-    activateUserTemplate,
-    getActiveTemplate,
-    deleteTemplate
 };

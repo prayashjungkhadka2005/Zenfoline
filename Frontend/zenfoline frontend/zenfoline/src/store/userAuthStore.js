@@ -17,7 +17,7 @@ const useAuthStore = create(
 
       signupAdmin: async (username, email, password) => {
         try {
-          const response = await fetch('http://localhost:3000/user/addadmin', {
+          const response = await fetch('http://localhost:3000/auth/addadmin', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ const useAuthStore = create(
 
   adminLogin: async (username, password) => {
     try {
-      const response = await fetch('http://localhost:3000/user/adminlogin', {
+      const response = await fetch('http://localhost:3000/auth/adminlogin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,37 +65,10 @@ const useAuthStore = create(
   },
 
 
-addTemplate: async (name, description, image, category) => {
-  try {
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description || '');
-    formData.append('image', image);
-    formData.append('category', category);
-    formData.append('adminId', useAuthStore.getState().adminId);
 
-    const response = await fetch('http://localhost:3000/user/addtemplate', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'An error occurred while adding the template.');
-    }
-
-    const data = await response.json();
-    set({ error: null, success: 'Template added successfully!' });
-    return data;
-  } catch (err) {
-    set({ error: err.message, success: null });
-    throw err;
-  }
-},
-  
   signupUser: async (email, password) => {
     try {
-      const response = await fetch('http://localhost:3000/user/registeruser', {
+      const response = await fetch('http://localhost:3000/auth/registeruser', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +92,7 @@ addTemplate: async (name, description, image, category) => {
 
   verifyOtp: async ({ otp, email }) => {
     try {
-      const response = await fetch('http://localhost:3000/user/verifyregisterotp', {
+      const response = await fetch('http://localhost:3000/auth/verifyregisterotp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +116,7 @@ addTemplate: async (name, description, image, category) => {
 
  resendOtp: async (email) => {
   try {
-    const response = await fetch('http://localhost:3000/user/resendotp', {
+    const response = await fetch('http://localhost:3000/auth/resendotp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -167,7 +140,7 @@ addTemplate: async (name, description, image, category) => {
 
 loginUser: async (email, password) => {
   try {
-    const response = await fetch('http://localhost:3000/user/userlogin', {
+    const response = await fetch('http://localhost:3000/auth/userlogin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -191,7 +164,7 @@ loginUser: async (email, password) => {
 
 forgotEmail: async (email) => {
   try {
-    const response = await fetch('http://localhost:3000/user/forgotpassword', {
+    const response = await fetch('http://localhost:3000/auth/forgotpassword', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -219,7 +192,7 @@ forgotEmail: async (email) => {
 
 verifyForgotPasswordOtp: async ({ otp, email }) => {
   try {
-    const response = await fetch('http://localhost:3000/user/verifyforgototp', {
+    const response = await fetch('http://localhost:3000/auth/verifyforgototp', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -243,7 +216,7 @@ verifyForgotPasswordOtp: async ({ otp, email }) => {
 
 resetPassword: async ({ email, newPassword }) => {
   try {
-    const response = await fetch('http://localhost:3000/user/updatepassword', {
+    const response = await fetch('http://localhost:3000/auth/updatepassword', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

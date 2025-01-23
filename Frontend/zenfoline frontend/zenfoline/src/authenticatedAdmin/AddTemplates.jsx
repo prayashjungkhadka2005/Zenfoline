@@ -1,49 +1,44 @@
 import React, { useState, useEffect } from 'react';
+import useAdminTemplateStore from '../store/adminTemplateStore';
 import useAuthStore from '../store/userAuthStore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const AdminTemplates = () => {
-  const [templates, setTemplates] = useState([]);
-  const [showModal, setShowModal] = useState(false); //modal visibiity
+  const {
+    templates,
+    fetchTemplates,
+    saveTemplate,
+    deleteTemplate,
+    error,
+    success,
+    resetMessages,
+  } = useAdminTemplateStore();
+
+  const adminId = useAuthStore((state) => state.adminId);
+
+  const [showModal, setShowModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [category, setCategory] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [modalError, setModalError] = useState('');
   const [modalSuccess, setModalSuccess] = useState('');
-  const adminId = useAuthStore((state) => state.adminId);
-  const addTemplate = useAuthStore((state) => state.addTemplate);
 
-
-//fetch templates
   useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/user/templates');
-        if (!response.ok) {
-          throw new Error('Failed to fetch templates');
-        }
-        const data = await response.json();
-        setTemplates(data);
-      } catch (err) {
-        setError(err.message);
-      }
-    };
-
     fetchTemplates();
-  }, []);
+  }, [fetchTemplates]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setError('');
-      setSuccess('');
+      resetMessages();
+      setModalError('');
+      setModalSuccess('');
     }, 3000);
+
     return () => clearTimeout(timer);
-  }, [error, success]);
+  }, [success, error, resetMessages]);
 
   const resetForm = () => {
     setName('');
@@ -58,28 +53,25 @@ const AdminTemplates = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name || !category || (!editingTemplate && !image) || !adminId) {
+    if (!name || !category || (!editingTemplate && !image)) {
       setModalError('Please fill out all required fields.');
       return;
     }
 
-    try {
+    const template = {
+      name,
+      description,
+      image,
+      category,
+      _id: editingTemplate?._id,
+    };
 
-      //add templates
-      await addTemplate(name, description, image, category);
-      setModalSuccess(editingTemplate ? 'Template updated successfully!' : 'Template added successfully!');
-      setModalError('');
+    try {
+      await saveTemplate(template, adminId);
       resetForm();
       setShowModal(false);
-
-      //refresh templates list
-      const response = await fetch('http://localhost:3000/user/templates');
-      const data = await response.json();
-      setTemplates(data);
-      setSuccess(editingTemplate ? 'Template updated successfully!' : 'Template added successfully!');
     } catch (err) {
       setModalError(err.message || 'An error occurred while processing the template.');
-      setModalSuccess('');
     }
   };
 
@@ -92,24 +84,9 @@ const AdminTemplates = () => {
     setShowModal(true);
   };
 
-  //delete template
   const handleDelete = async (templateId) => {
-    try {
-      const response = await fetch(`http://localhost:3000/user/deletetemplate/${templateId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to delete template.');
-        return;
-      }
-
-      const data = await response.json();
-      setTemplates(templates.filter((template) => template._id !== templateId));
-      setSuccess(data.message);
-    } catch (err) {
-      setError('An unexpected error occurred while deleting the template.');
+    if (window.confirm('Are you sure you want to delete this template?')) {
+      await deleteTemplate(templateId);
     }
   };
 
@@ -195,7 +172,6 @@ const AdminTemplates = () => {
             </h1>
 
             {modalError && <p className="text-red-500 text-sm mb-4">{modalError}</p>}
-            {modalSuccess && <p className="text-green-500 text-sm mb-4">{modalSuccess}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -247,9 +223,6 @@ const AdminTemplates = () => {
                   <option value="Developer">Developer</option>
                   <option value="Simple">Simple</option>
                   <option value="Expert">Expert</option>
-                  <option value="Mixed">Mixed</option>
-                  <option value="Extra">Extra</option>
-                  <option value="Beginner">Beginner</option>
                 </select>
               </div>
 

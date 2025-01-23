@@ -4,25 +4,27 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 
-
-
 dotenv.config();
 
-const user_routes = require('./routes/user');
+const authenticationRoutes = require('./routes/AuthenticationRoutes');
+const authenticatedAdminRoutes = require('./routes/AuthenticatedAdminRoutes');
+const authenticatedUserRoutes = require('./routes/AuthenticatedUserRoutes');
 
 const app = express();
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
 const PORT = 3000; 
-const MONGOURL = process.env.MONGOURL; 
+const MONGOURL = process.env.MONGOURL;
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/user', user_routes);
+app.use('/auth', authenticationRoutes);
+app.use('/authenticated-user', authenticatedUserRoutes);
+app.use('/authenticated-admin', authenticatedAdminRoutes);
 
- mongoose.connect(MONGOURL)
+mongoose.connect(MONGOURL)
   .then(() => {
     console.log('Database connected');
     app.listen(PORT, () => {
