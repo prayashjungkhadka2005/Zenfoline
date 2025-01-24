@@ -3,6 +3,8 @@ import useAdminTemplateStore from '../store/adminTemplateStore';
 import useAuthStore from '../store/userAuthStore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import SimplePortfolioTemplate from '../Templates/SimplePortfolioTemplate';
+
 
 const AdminTemplates = () => {
   const {
@@ -15,11 +17,17 @@ const AdminTemplates = () => {
     resetMessages,
   } = useAdminTemplateStore();
 
+  const templateComponents = {
+    SimplePortfolioTemplate,
+  
+  };
+
   const adminId = useAuthStore((state) => state.adminId);
 
   const [showModal, setShowModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [name, setName] = useState('');
+  const [predefinedTemplate, setPredefinedTemplate] = useState('');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [category, setCategory] = useState('');
@@ -45,6 +53,7 @@ const AdminTemplates = () => {
     setDescription('');
     setImage(null);
     setCategory('');
+    setPredefinedTemplate('');
     setEditingTemplate(null);
     setModalError('');
     setModalSuccess('');
@@ -53,7 +62,7 @@ const AdminTemplates = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (!name || !category || (!editingTemplate && !image)) {
+    if (!name || !category || !predefinedTemplate || (!editingTemplate && !image)) {
       setModalError('Please fill out all required fields.');
       return;
     }
@@ -68,6 +77,7 @@ const AdminTemplates = () => {
       description,
       image,
       category,
+      predefinedTemplate,
       _id: editingTemplate?._id,
     };
   
@@ -88,6 +98,7 @@ const AdminTemplates = () => {
     setName(template.name);
     setDescription(template.description);
     setCategory(template.category);
+    setPredefinedTemplate(template.predefinedTemplate);
     setShowModal(true);
   };
 
@@ -129,6 +140,7 @@ const AdminTemplates = () => {
               <th className="px-6 py-4">S.N.</th>
               <th className="px-6 py-4">Category</th>
               <th className="px-6 py-4">Description</th>
+              <th className="px-6 py-4">Predefined Template</th>
               <th className="px-6 py-4">Image</th>
               <th className="px-6 py-4">Actions</th>
             </tr>
@@ -142,6 +154,7 @@ const AdminTemplates = () => {
                 <td className="px-6 py-4 text-center">{index + 1}</td>
                 <td className="px-6 py-4">{template.category}</td>
                 <td className="px-6 py-4">{template.description}</td>
+                <td className="px-6 py-4">{template.predefinedTemplate}</td>
                 <td className="px-6 py-4">
                   <img
                     src={`http://localhost:3000${template.image}`}
@@ -232,6 +245,23 @@ const AdminTemplates = () => {
                   <option value="Expert">Expert</option>
                 </select>
               </div>
+
+                    <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Predefined Template <span className="text-red-500">*</span>
+        </label>
+        <select
+          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
+          value={predefinedTemplate}
+          onChange={(e) => setPredefinedTemplate(e.target.value)}
+        >
+          <option value="">Select a predefined template</option>
+          <option value="SimplePortfolioTemplate">Simple Portfolio</option>
+          <option value="AdvancedPortfolioTemplate">Advanced Portfolio</option>
+          <option value="MinimalPortfolioTemplate">Minimal Portfolio</option>
+        </select>
+      </div>
+
 
               <button
                 type="submit"

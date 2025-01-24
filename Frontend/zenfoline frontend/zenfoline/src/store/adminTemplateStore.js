@@ -50,6 +50,7 @@ const adminTemplateStore = create(
           formData.append('description', template.description || '');
           formData.append('image', template.image || '');
           formData.append('category', template.category);
+          formData.append('predefinedTemplate', template.predefinedTemplate);
           formData.append('adminId', adminId);
 
           const endpoint = template._id
@@ -89,7 +90,7 @@ const adminTemplateStore = create(
       resetMessages: () => set({ success: null, error: null }),
 
       // Adding template
-      addTemplate: async (name, description, image, category) => {
+      addTemplate: async (name, description, image, category, predefinedTemplate) => {
         try {
           const adminId = useAuthStore.getState().adminId;
           if (!adminId) {
@@ -101,6 +102,7 @@ const adminTemplateStore = create(
           formData.append('description', description || '');
           formData.append('image', image);
           formData.append('category', category);
+          formData.append('predefinedTemplate', predefinedTemplate);
           formData.append('adminId', adminId);
 
           const response = await fetch('http://localhost:3000/authenticated-admin/addtemplate', {

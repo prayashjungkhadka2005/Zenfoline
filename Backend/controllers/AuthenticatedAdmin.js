@@ -68,7 +68,7 @@ const deleteTemplate = async (req, res) => {
   const updateTemplate = async (req, res) => {
     try {
         const { templateId } = req.params;
-        const { name, description, category } = req.body;
+        const { name, description, category, predefinedTemplate } = req.body;
 
         if (!templateId) {
             return res.status(400).json({ message: 'Template ID is required.' });
@@ -99,7 +99,7 @@ const deleteTemplate = async (req, res) => {
             {
                 name: name || existingTemplate.name,
                 description: description || existingTemplate.description,
-                category: category || existingTemplate.category,
+                category: category || existingTemplate.category, predefinedTemplate: predefinedTemplate || existingTemplate.predefinedTemplate,
                 image: updatedImagePath,
             },
             { new: true } 
@@ -122,9 +122,9 @@ const deleteTemplate = async (req, res) => {
 
 const addTemplate = async (req, res) => {
     try {
-        const { name, description, category, adminId } = req.body;
+        const { name, description, category,predefinedTemplate, adminId } = req.body;
 
-        if (!name || !req.file || !category || !adminId) {
+        if (!name || !req.file || !category || !adminId || !predefinedTemplate) {
             return res.status(400).json({ message: 'All fields are required!' });
         }
 
@@ -140,6 +140,7 @@ const addTemplate = async (req, res) => {
             description: description || '',
             image: imagePath, 
             category,
+            predefinedTemplate,
             addedBy: adminId,
         });
 

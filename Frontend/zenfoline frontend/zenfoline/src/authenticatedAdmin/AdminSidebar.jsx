@@ -6,6 +6,7 @@ const AdminSiderbar = () => {
     const menus = [
         { name: 'Home', path: '/admindashboard', icon: 'fas fa-home', exact: true },
         { name: 'Templates', path: '/admindashboard/addtemplates', icon: 'fas fa-file-alt' },
+        { name: 'Components', path: '/admindashboard/managecomponents', icon: 'fas fa-file-alt' },
        
     ];
 

@@ -18,6 +18,10 @@ const templateSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    predefinedTemplate: {
+      type: String,
+      required: true,
+    },
     addedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Admin', 

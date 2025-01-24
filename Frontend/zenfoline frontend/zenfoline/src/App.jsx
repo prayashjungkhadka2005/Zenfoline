@@ -14,12 +14,15 @@ import AdminDashboard from './authenticatedAdmin/AdminDashboard';
 import AdminHome from './authenticatedAdmin/AdminHome';
 import AddTemplates from './authenticatedAdmin/AddTemplates';
 import ThemePage from './AuthenticatedUser/ThemePages';
+import ManageComponents from './authenticatedAdmin/ManageComponents';
+import TemplateRenderer from './RenderedTemplate/TemplateRenderer';
 
 const App = () => {
   return (
     <div>
       <Router>
         <Routes>
+          {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/registerotp" element={<RegisterOTP />} />
@@ -29,20 +32,21 @@ const App = () => {
           <Route path="/adminsignup" element={<AdminSignup />} />
           <Route path="/" element={<AdminLogin />} />
 
+          {/* Admin Routes */}
           <Route path="/admindashboard" element={<AdminDashboard />}>
             <Route index element={<AdminHome />} />
             <Route path="addtemplates" element={<AddTemplates />} />
+            <Route path="managecomponents" element={<ManageComponents />} />
           </Route>
 
-        
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
             <Route path="templates" element={<Templates />} />
             <Route path="themepage" element={<ThemePage />} />
-
-            {/* <Route path="analytics" element={<Analytics />} />
-            <Route path="settings" element={<Settings />} /> */}
           </Route>
+
+          <Route path="/theme" element={<ThemePage />} />
+          <Route path="/template/:templateId" element={<TemplateRenderer />} />
         </Routes>
       </Router>
     </div>

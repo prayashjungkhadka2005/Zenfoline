@@ -37,6 +37,24 @@ const useTemplateStore = create(
         }
       },
 
+      fetchActiveTemplate: async (userId) => {
+        try {
+          const response = await fetch(
+            `http://localhost:3000/authenticated-user/activetemplate?userId=${userId}`
+          );
+          if (!response.ok) {
+            throw new Error('Failed to fetch active template');
+          }
+          const activeTemplate = await response.json();
+          set({ activeTemplateId: activeTemplate._id });
+          return activeTemplate;
+        } catch (err) {
+          console.error(err.message);
+          return null;
+        }
+      },
+      
+
       activateTemplate: async (templateId, userId) => {
         try {
           await fetchAPI('http://localhost:3000/authenticated-user/activateusertemplate', {
