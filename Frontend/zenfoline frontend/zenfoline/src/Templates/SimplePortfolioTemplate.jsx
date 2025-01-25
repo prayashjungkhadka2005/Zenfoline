@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import WebFont from 'webfontloader';
+import React, { useEffect } from "react";
+import WebFont from "webfontloader";
+import profile from "../assets/profile.png";
 
 const SimplePortfolioTemplate = ({ fontStyle }) => {
-
-    console.log("Current font style:", fontStyle);
+  console.log("Current font style:", fontStyle);
 
   useEffect(() => {
     WebFont.load({
@@ -12,110 +12,103 @@ const SimplePortfolioTemplate = ({ fontStyle }) => {
       },
     });
   }, [fontStyle]);
-      
-      
 
   return (
-    <div   style={{
+    <div
+      style={{
         fontFamily: `${fontStyle}, ${
-            ["Inria Serif", "Crimson Text", "Source Serif Pro", "Playfair Display", "Lobster"].includes(
-              fontStyle
-            )
-              ? "serif"
-              : "sans-serif"
-          }`,
-        }}
-        className="min-h-screen bg-gray-100">
-      <header className="bg-blue-600 text-white py-4">
-        <div className="container mx-auto flex justify-between items-center px-4">
-          <h1 className="text-2xl font-bold">My Portfolio</h1>
-          <nav>
-            <ul className="flex gap-6">
-              <li>
-                <a href="#about" className="hover:underline">
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="#projects" className="hover:underline">
-                  Projects
-                </a>
-              </li>
-              <li>
-                <a href="#contact" className="hover:underline">
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </nav>
+          ["Inria Serif", "Crimson Text", "Source Serif Pro", "Playfair Display", "Lobster"].includes(
+            fontStyle
+          )
+            ? "serif"
+            : "sans-serif"
+        }`,
+      }}
+      className="min-h-screen bg-gray-900 text-gray-200 flex flex-col justify-center items-center"
+    >
+      {/* Hero Section */}
+      <section className="py-16 bg-gray-900 flex flex-col items-center text-center">
+        {/* Profile Image */}
+        <div className="mb-6">
+          <img
+            src={profile}
+            alt="Profile"
+            className="w-64 h-64 rounded-full shadow-lg"
+          />
         </div>
-      </header>
 
-      <section className="bg-white text-center py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            Welcome to My Portfolio
-          </h2>
-          <p className="text-lg text-gray-600 mb-6">
-            I am a passionate developer focused on building web applications
-            that solve real-world problems.
+        {/* Name and Details */}
+        <div className="max-w-lg">
+          <h1 className="text-5xl font-bold mb-4">
+            Hi, I am <span className="text-orange-500">Sazzy.</span>
+          </h1>
+          <p className="text-xl text-gray-400 mb-6">
+            A Passionate Software Developer.
           </p>
-          <a
-            href="#contact"
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
-          >
-            Contact Me
-          </a>
+
+          {/* Button */}
+          <button className="px-8 py-3 bg-orange-500 text-white text-lg font-medium rounded-md hover:bg-orange-600">
+            View Projects
+          </button>
         </div>
       </section>
 
-      <section id="about" className="bg-gray-100 py-12">
+      {/* Skills Section */}
+      <section className="py-12 bg-gray-800 w-full">
         <div className="container mx-auto px-4">
-          <h3 className="text-3xl font-bold text-gray-800 mb-4">About Me</h3>
-          <p className="text-lg text-gray-600">
-            Hi! I'm a software developer with expertise in frontend and backend
-            technologies. I love creating intuitive and efficient web
-            applications. In my free time, I contribute to open source projects
-            and write tech blogs.
-          </p>
-        </div>
-      </section>
-
-      <section id="projects" className="bg-white py-12">
-        <div className="container mx-auto px-4">
-          <h3 className="text-3xl font-bold text-gray-800 mb-8">Projects</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-gray-100 p-4 rounded-lg shadow">
-              <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                Project 1
-              </h4>
-              <p className="text-gray-600">
-                A description of your amazing project goes here.
-              </p>
-            </div>
-            <div className="bg-gray-100 p-4 rounded-lg shadow">
-              <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                Project 2
-              </h4>
-              <p className="text-gray-600">
-                A description of your amazing project goes here.
-              </p>
-            </div>
-            <div className="bg-gray-100 p-4 rounded-lg shadow">
-              <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                Project 3
-              </h4>
-              <p className="text-gray-600">
-                A description of your amazing project goes here.
-              </p>
-            </div>
+          <h2 className="text-3xl font-bold text-center mb-6">Skills</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 justify-items-center">
+            {[
+              { name: "Python", icon: "fab fa-python" },
+              { name: "JavaScript", icon: "fab fa-js-square" },
+              { name: "React", icon: "fab fa-react" },
+              { name: "HTML5", icon: "fab fa-html5" },
+              { name: "CSS3", icon: "fab fa-css3-alt" },
+              { name: "Git", icon: "fab fa-git-alt" },
+              { name: "Node.js", icon: "fab fa-node-js" },
+              { name: "Docker", icon: "fab fa-docker" },
+            ].map((skill, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center bg-gray-700 p-4 rounded-lg shadow-md w-24 h-24"
+              >
+                <i className={`${skill.icon} text-3xl text-orange-500 mb-2`}></i>
+                <p className="text-sm">{skill.name}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <footer id="contact" className="bg-blue-600 text-white py-6">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-lg">Contact me: myemail@example.com</p>
+      {/* Projects Section */}
+      <section id="portfolio" className="py-12 bg-gray-900 w-full">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-6">Projects</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[
+              { name: "E-commerce App", icon: "fas fa-shopping-cart" },
+              { name: "Portfolio Website", icon: "fas fa-briefcase" },
+              { name: "Chat Application", icon: "fas fa-comments" },
+              { name: "Weather App", icon: "fas fa-cloud-sun" },
+              { name: "Task Manager", icon: "fas fa-tasks" },
+              { name: "Fitness Tracker", icon: "fas fa-dumbbell" },
+            ].map((project, index) => (
+              <div
+                key={index}
+                className="bg-gray-800 h-40 rounded-lg shadow-md flex flex-col items-center justify-center text-gray-400 text-center p-4"
+              >
+                <i className={`${project.icon} text-4xl text-orange-500 mb-2`}></i>
+                <p className="text-sm">{project.name}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 py-6 w-full">
+        <div className="container mx-auto text-center">
+          <p>Contact me: myemail@example.com</p>
           <p className="text-sm mt-2">&copy; 2025 My Portfolio. All Rights Reserved.</p>
         </div>
       </footer>
