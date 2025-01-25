@@ -1,14 +1,46 @@
 const express = require('express');
-const { activateTemplate, getActiveTemplate, activateUserTemplate } = require('../controllers/AuthenticatedUser');
+const { activateTemplate, getActiveTemplate, activateUserTemplate, updateTheme } = require('../controllers/AuthenticatedUser');
 const router = express.Router();
 const Template = require('../models/Templates');
 const User = require('../models/User');
+const Theme = require('../models/ThemeSchema');
 
 router.post('/activatetemplate', activateTemplate);
 
 router.post('/activateusertemplate', activateUserTemplate);
 
 router.get('/getactivetemplate', getActiveTemplate);
+
+router.post('/updatetheme', updateTheme);
+
+
+
+router.get('/gettheme', async (req, res) => {
+    const { userId } = req.query; // Extract userId from query parameters
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required.' });
+    }
+
+    try {
+        // Find the theme settings for the user
+        const theme = await Theme.findOne({ userId });
+
+        if (!theme) {
+            return res.status(404).json({ message: 'Theme not found for the user.' });
+        }
+
+        return res.status(200).json({
+            message: 'Theme fetched successfully.',
+            theme,
+        });
+    } catch (error) {
+        console.error('Error fetching theme:', error);
+        return res.status(500).json({ message: 'An error occurred while fetching the theme.' });
+    }
+});
+
+
 
 router.get('/templates', async (req, res) => {
     try {

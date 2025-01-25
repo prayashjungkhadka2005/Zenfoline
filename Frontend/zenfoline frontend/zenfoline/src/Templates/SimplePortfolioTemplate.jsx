@@ -1,8 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import WebFont from 'webfontloader';
 
-const SimplePortfolioTemplate = () => {
+const SimplePortfolioTemplate = ({ fontStyle }) => {
+
+    console.log("Current font style:", fontStyle);
+
+  useEffect(() => {
+    WebFont.load({
+      google: {
+        families: [fontStyle],
+      },
+    });
+  }, [fontStyle]);
+      
+      
+
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
+    <div   style={{
+        fontFamily: `${fontStyle}, ${
+            ["Inria Serif", "Crimson Text", "Source Serif Pro", "Playfair Display", "Lobster"].includes(
+              fontStyle
+            )
+              ? "serif"
+              : "sans-serif"
+          }`,
+        }}
+        className="min-h-screen bg-gray-100">
       <header className="bg-blue-600 text-white py-4">
         <div className="container mx-auto flex justify-between items-center px-4">
           <h1 className="text-2xl font-bold">My Portfolio</h1>

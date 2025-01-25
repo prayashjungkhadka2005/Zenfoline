@@ -63,7 +63,7 @@ const useTemplateStore = create(
             body: JSON.stringify({ templateId, userId }),
           });
 
-          // Updating active templates and reordering templates
+          
           set((state) => {
             const updatedTemplates = state.templates.sort((a, b) => {
               if (a._id === templateId) return -1;
@@ -76,6 +76,29 @@ const useTemplateStore = create(
           set({ error: err.message });
         }
       },
+
+      updateTheme: async(templateId, userId) => {
+        try {
+          const response = await fetch('http://localhost:3000/authenticated-user/updatetheme', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId,
+              templateId, 
+            }),
+          });
+    
+          if (!response.ok) {
+            throw new Error('Failed to update theme database.');
+          }
+    
+          console.log('Theme updated successfully');
+        } catch (err) {
+          console.error('Error updating theme:', err.message);
+        }
+      }
     }),
     {
       name: 'user-template-store',

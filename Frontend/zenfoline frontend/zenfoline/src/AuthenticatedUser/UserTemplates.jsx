@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import useTemplateStore from '../store/templateStore';
+import useTemplateStore from '../store/userTemplateStore';
 import useAuthStore from '../store/userAuthStore';
 
 const Templates = () => {
@@ -10,6 +10,7 @@ const Templates = () => {
     error,
     fetchTemplates,
     activateTemplate,
+    updateTheme
   } = useTemplateStore();
 
   const userId = useAuthStore((state) => state.userId);
@@ -21,12 +22,14 @@ const Templates = () => {
   }, [userId, fetchTemplates]);
 
   const handleActivate = async (templateId) => {
-    await activateTemplate(templateId, userId); // Activate the selected template
+    await activateTemplate(templateId, userId); 
+    await updateTheme(templateId, userId);
   };
 
   const handleDeactivate = async () => {
     if (activeTemplateId) {
-      await activateTemplate(null, userId); // Pass null to deactivate the active template
+      await activateTemplate(null, userId); 
+      await updateTheme(null, userId);
     }
   };
 

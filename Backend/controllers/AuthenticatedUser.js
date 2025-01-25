@@ -8,6 +8,39 @@ require('dotenv').config();
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const Theme = require('../models/ThemeSchema');
+
+const updateTheme = async (req, res) => {
+    const { userId, templateId, colorMode, presetTheme, fontStyle, navigationBar, footer } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required.' });
+    }
+
+    try {
+        // Prepare the update object based on provided fields
+        const update = {};
+        if (templateId !== undefined) update.activeTemplateId = templateId;
+        if (colorMode !== undefined) update.colorMode = colorMode;
+        if (presetTheme !== undefined) update.presetTheme = presetTheme;
+        if (fontStyle !== undefined) update.fontStyle = fontStyle;
+        if (navigationBar !== undefined) update.navigationBar = navigationBar;
+        if (footer !== undefined) update.footer = footer;
+
+        // Update the theme settings for the user
+        const theme = await Theme.findOneAndUpdate(
+            { userId },
+            { ...update, userId },
+            { new: true, upsert: true } // Create a new document if it doesn't exist
+        );
+
+        return res.status(200).json({ message: 'Theme updated successfully.', theme });
+    } catch (error) {
+        console.error('Error updating theme:', error);
+        return res.status(500).json({ message: 'An error occurred while updating the theme.' });
+    }
+};
+
 
 const activateUserTemplate = async (req, res) => {
     try {
@@ -136,5 +169,6 @@ if (!findUser) {
 module.exports = {
     activateTemplate,
     getActiveTemplate,
-    activateUserTemplate
+    activateUserTemplate,
+    updateTheme
 }

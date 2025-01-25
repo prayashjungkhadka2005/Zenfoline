@@ -9,7 +9,7 @@ const Login = () => {
   const setEmail = useAuthStore((state) => state.setEmail);
   const setError = useAuthStore((state) => state.setError);
   const loginUser = useAuthStore((state) => state.loginUser);
-  const email = useAuthStore((state) => state.email);
+  const email = useAuthStore((state) => state.email || ""); // Ensure email has a default value
   const error = useAuthStore((state) => state.error);
   const navigate = useNavigate();
 
@@ -28,11 +28,11 @@ const Login = () => {
   }, [error, setError]);
 
   const handleEmailChange = (e) => {
-    setEmail(e.target.value);
+    setEmail(e.target.value || ""); // Ensure value is always defined
   };
 
   const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
+    setPassword(e.target.value || ""); // Ensure value is always defined
   };
 
   const handleLogin = async (e) => {
@@ -72,14 +72,14 @@ const Login = () => {
               label="Email"
               placeholder="Email"
               type="email"
-              value={email}
+              value={email || ""} // Ensure controlled input
               onChange={handleEmailChange}
             />
             <InputField
               label="Password"
               placeholder="Password"
               type="password"
-              value={password}
+              value={password || ""} // Ensure controlled input
               onChange={handlePasswordChange}
             />
 

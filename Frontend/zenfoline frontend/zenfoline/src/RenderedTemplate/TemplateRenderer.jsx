@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import useTemplateStore from '../store/templateStore';
-import useAuthStore from '../store/userAuthStore'; 
+import useTemplateStore from '../store/userTemplateStore';
+import useAuthStore from '../store/userAuthStore';
 import { templateComponents } from './templateComponents';
 
 const TemplateRenderer = () => {
-  const { fetchActiveTemplate } = useTemplateStore(); //fetch active template
-  const { userId } = useAuthStore(); // get userid from auth store
+  const { fetchActiveTemplate } = useTemplateStore(); // Fetch active template
+  const userId = useAuthStore((state) => state.userId);
+  console.log('User ID:', userId);
+
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [fontStyle, setFontStyle] = useState('Poppins'); // Default font style
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTemplate = async () => {
+    const fetchTemplateAndSettings = async () => {
       if (!userId) {
         console.error('User ID is missing.');
         setLoading(false);
@@ -19,17 +22,35 @@ const TemplateRenderer = () => {
 
       setLoading(true);
       try {
+        // Fetch active template
         const activeTemplate = await fetchActiveTemplate(userId);
         setSelectedTemplate(activeTemplate);
+
+        // Fetch font style (from database or API)
+        const response = await fetch(
+          `http://localhost:3000/authenticated-user/gettheme?userId=${userId}`
+        );
+        if (response.ok) {
+          const { theme } = await response.json();
+          console.log('Fetched theme:', theme); // Debugging fetched theme
+          setFontStyle(theme.fontStyle || 'Poppins');
+        } else {
+          console.error('Failed to fetch theme settings');
+        }
       } catch (error) {
-        console.error('Error fetching active template:', error.message);
+        console.error('Error fetching active template or theme:', error.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTemplate();
+    fetchTemplateAndSettings();
   }, [fetchActiveTemplate, userId]);
+
+  // Log when fontStyle changes
+  useEffect(() => {
+    console.log('Updated font style:', fontStyle);
+  }, [fontStyle]);
 
   if (loading) {
     return <p>Loading template...</p>;
@@ -47,7 +68,8 @@ const TemplateRenderer = () => {
 
   return (
     <div>
-      <TemplateComponent />
+      {/* Pass the fontStyle prop to the template */}
+      <TemplateComponent fontStyle={fontStyle} />
     </div>
   );
 };

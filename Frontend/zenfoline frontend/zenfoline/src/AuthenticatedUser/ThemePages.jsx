@@ -1,6 +1,6 @@
 import React, { useState, useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
-import useTemplateStore from "../store/templateStore";
+import useTemplateStore from "../store/userTemplateStore";
 import useAuthStore from "../store/userAuthStore";
 import tem1 from "../assets/tem1.png";
 import tem2 from "../assets/tem2.png";
@@ -13,28 +13,63 @@ const ThemePage = () => {
   const { activeTemplateId, templates, fetchTemplates } = useTemplateStore();
   const userId = useAuthStore((state) => state.userId);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (userId) {
-      fetchTemplates(userId);
-    }
-  }, [userId, fetchTemplates]);
-
-  const activeTemplate = templates.find(
-    (template) => template._id === activeTemplateId
-  );
-
-  
+ 
 
   const [activeTab, setActiveTab] = useState("appearances");
-  const [activeColorMode, setActiveColorMode] = useState("default");
+  const [activeColorMode, setActiveColorMode] = useState(null);
   const [activePresetTheme, setActivePresetTheme] = useState(null);
-  const [activeFontStyle, setActiveFontStyle] = useState("Poppins");
-  const [selectedNavigation, setSelectedNavigation] = useState("Developer Basic Navbar");
+  const [activeFontStyle, setActiveFontStyle] = useState(null);
+  const [selectedNavigation, setSelectedNavigation] = useState(null);
+  const [selectedFooter, setSelectedFooter] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [initialNavigation, setInitialNavigation] = useState("Developer Basic Navbar");
-  const [selectedFooter, setSelectedFooter] = useState("Developer Basic Footer");
   const [initialFooter, setInitialFooter] = useState("Developer Basic Footer");
 
+  const fetchThemeSettings = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `http://localhost:3000/authenticated-user/gettheme?userId=${userId}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch theme settings");
+      }
+      const { theme } = await response.json();
+
+      // Update appearance settings from the fetched theme
+      setActiveColorMode(theme.colorMode || "default");
+      setActivePresetTheme(parseInt(theme.presetTheme, 10) || null);
+      setActiveFontStyle(theme.fontStyle || "Poppins");
+      setSelectedNavigation(theme.navigationBar || "Developer Basic Navbar");
+      setSelectedFooter(theme.footer || "Developer Basic Footer");
+    } catch (error) {
+      console.error("Error fetching theme settings:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  
+  const updateTheme = async (updatedTheme) => {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/authenticated-user/updatetheme",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId, ...updatedTheme }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to update theme");
+      }
+      console.log("Theme updated successfully");
+    } catch (error) {
+      console.error("Error updating theme:", error.message);
+    }
+  };
   const navigationOptions = [
     { label: "Developer Basic Navbar", preview: tem1 },
     { label: "Advanced Navbar", preview: tem2 },
@@ -47,21 +82,12 @@ const ThemePage = () => {
     { label: "Minimal Footer", preview: tem6 },
   ];
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-  };
-
-  const handleColorModeChange = (mode) => {
-    setActiveColorMode(mode);
-  };
-
-  const handlePresetThemeSelect = (theme) => {
-    setActivePresetTheme(theme);
-  };
-
-  const handleFontStyleSelect = (font) => {
-    setActiveFontStyle(font);
-  };
+  useEffect(() => {
+    if (userId) {
+      fetchTemplates(userId);
+      fetchThemeSettings();
+    }
+  }, [userId, fetchTemplates]);
 
   const handleSaveNavigation = () => {
     setInitialNavigation(selectedNavigation);
@@ -71,12 +97,54 @@ const ThemePage = () => {
     setInitialFooter(selectedFooter);
   };
 
+  
+
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
+  const handleColorModeChange = (mode) => {
+    setActiveColorMode(mode);
+    updateTheme({ colorMode: mode });
+  };
+
+  const handlePresetThemeSelect = (themeIndex) => {
+    setActivePresetTheme(themeIndex);
+    updateTheme({ presetTheme: themeIndex });
+  };
+  
+
+  const handleFontStyleSelect = (font) => {
+    setActiveFontStyle(font);
+    updateTheme({ fontStyle: font });
+  };
+
+
+  const handleNavigationChange = (nav) => {
+    setSelectedNavigation(nav);
+    updateTheme({ navigationBar: nav });
+  };
+
+  const handleFooterChange = (footer) => {
+    setSelectedFooter(footer);
+    updateTheme({ footer });
+  };
+
   const handleViewSite = () => {
     if (activeTemplate) {
       const url = `/template/${activeTemplate._id}`;
       window.open(url, "_blank");
     }
   };
+
+  const activeTemplate = templates.find(
+    (template) => template._id === activeTemplateId
+  );
+  
+  if (isLoading) {
+    return <div className="text-center py-10">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen">
@@ -144,93 +212,66 @@ const ThemePage = () => {
      
       {activeTab === "appearances" && (
         <div>
-          {activeTemplate ? (
-            <>
-              {/* Color Mode */}
-              <div className="mb-3 bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Color Mode</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Choose if web appearance should be light, dark, or default.
-                </p>
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => handleColorModeChange("default")}
-                    className={`flex items-center gap-2 px-4 py-2 border rounded-md ${
-                      activeColorMode === "default" ? "bg-orange-100 border-orange-500" : ""
-                    }`}
-                  >
-                    ⚙️ Default
-                  </button>
-                  <button
-                    onClick={() => handleColorModeChange("light")}
-                    className={`flex items-center gap-2 px-4 py-2 border rounded-md ${
-                      activeColorMode === "light" ? "bg-orange-100 border-orange-500" : ""
-                    }`}
-                  >
-                    ☀️ Light mode
-                  </button>
-                  <button
-                    onClick={() => handleColorModeChange("dark")}
-                    className={`flex items-center gap-2 px-4 py-2 border rounded-md ${
-                      activeColorMode === "dark" ? "bg-orange-100 border-orange-500" : ""
-                    }`}
-                  >
-                    🌙 Dark mode
-                  </button>
-                </div>
-              </div>
-
-              {/* Preset Themes */}
-              <div className="mb-3 bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Preset themes</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Choose a preset theme from our theme library.
-                </p>
-                <div className="grid grid-cols-4 gap-4">
-                  {Array.from({ length: 12 }).map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handlePresetThemeSelect(idx)}
-                      className={`px-4 py-2 border rounded-md ${
-                        activePresetTheme === idx ? "bg-orange-100 border-orange-500" : ""
-                      }`}
-                    >
-                      Theme {idx + 1}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Font Style */}
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Font Style</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Choose font family for your template.
-                </p>
-                <div className="grid grid-cols-3 gap-4">
-                  {["Poppins", "Inter", "Inria Serif", "Crimson Text", "Source Serif Pro", "Playfair Display"].map(
-                    (font, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleFontStyleSelect(font)}
-                        className={`px-4 py-2 border rounded-md ${
-                          activeFontStyle === font ? "bg-orange-100 border-orange-500" : ""
-                        }`}
-                      >
-                        {font}
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="text-gray-400 italic">
-              No active template selected for appearances.
+          {/* Color Mode */}
+          <div className="mb-3 bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Color Mode</h3>
+            <div className="flex gap-4">
+              {["default", "light", "dark"].map((mode) => (
+                <button
+                  key={mode}
+                  onClick={() => handleColorModeChange(mode)}
+                  className={`px-4 py-2 border rounded-md ${
+                    activeColorMode === mode ? "bg-orange-100 border-orange-500" : ""
+                  }`}
+                >
+                  {mode === "default" ? "⚙️ Default" : mode === "light" ? "☀️ Light" : "🌙 Dark"}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
+
+          {/* Preset Themes */}
+<div className="mb-3 bg-white rounded-lg shadow-md p-6">
+  <h3 className="text-lg font-semibold text-gray-800 mb-2">Preset Themes</h3>
+  <div className="grid grid-cols-4 gap-4">
+    {Array.from({ length: 12 }).map((_, idx) => (
+      <button
+        key={idx}
+        onClick={() => handlePresetThemeSelect(idx)}
+        className={`px-4 py-2 border rounded-md ${
+          parseInt(activePresetTheme, 10) === idx ? "bg-orange-100 border-orange-500" : ""
+        }`}
+      >
+        Theme {idx + 1}
+        
+      </button>
+    ))}
+  </div>
+</div>
+
+
+          {/* Font Style */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Font Style</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {["Poppins", "Inter", "Inria Serif", "Crimson Text", "Lobster", "Playfair Display"].map(
+                (font) => (
+                  <button
+                    key={font}
+                    onClick={() => handleFontStyleSelect(font)}
+                    className={`px-4 py-2 border rounded-md ${
+                      activeFontStyle === font ? "bg-orange-100 border-orange-500" : ""
+                    }`}
+                  >
+                    {font}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
         </div>
       )}
+
 
       {/* Components */}
       {activeTab === "developerComponents" && (
