@@ -39,7 +39,14 @@ const AdminTemplates = () => {
   }, [fetchTemplates]);
 
   useEffect(() => {
+    useAdminTemplateStore.getState().setSuccess('');
+
+  }, []);
+  
+
+  useEffect(() => {
     const timer = setTimeout(() => {
+      
       resetMessages();
       setModalError('');
       setModalSuccess('');
@@ -82,7 +89,7 @@ const AdminTemplates = () => {
     };
   
     try {
-      await saveTemplate(template, adminId); // Save template using the store
+      await saveTemplate(template, adminId); // Saves template using the store
       setModalSuccess(editingTemplate ? 'Template updated successfully!' : 'Template added successfully!');
       resetForm();
       setShowModal(false);
@@ -185,7 +192,7 @@ const AdminTemplates = () => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md  z-50 flex justify-center items-center">
           <div className="bg-white w-[600px] shadow-lg rounded-lg p-8 relative">
             <h1 className="text-2xl font-bold text-[#000042] mb-6">
               {editingTemplate ? 'Edit Template' : 'Add Template'}

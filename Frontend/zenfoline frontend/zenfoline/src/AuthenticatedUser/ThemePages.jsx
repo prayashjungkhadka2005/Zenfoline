@@ -2,52 +2,149 @@ import React, { useState, useEffect} from "react";
 import { useNavigate } from 'react-router-dom';
 import useTemplateStore from "../store/userTemplateStore";
 import useAuthStore from "../store/userAuthStore";
-import tem1 from "../assets/tem1.png";
-import tem2 from "../assets/tem2.png";
-import tem3 from "../assets/tem3.png";
-import tem4 from "../assets/tem4.png";
-import tem5 from "../assets/tem5.png";
-import tem6 from "../assets/tem6.png";
+import DeveloperHeader from "../TemplateComponents/Developer/DeveloperHeader";
+import SimpleFooter from "../TemplateComponents/Simple/SimpleFooter";
+import DeveloperFooter from "../TemplateComponents/Developer/DeveloperFooter";
+
 
 const ThemePage = () => {
   const { activeTemplateId, templates, fetchTemplates } = useTemplateStore();
   const userId = useAuthStore((state) => state.userId);
-  const navigate = useNavigate();
+  
  
 
   const [activeTab, setActiveTab] = useState("appearances");
   const [activeColorMode, setActiveColorMode] = useState(null);
-  const [activePresetTheme, setActivePresetTheme] = useState(null);
+  const [activePresetTheme, setActivePresetTheme]   = useState(null);
   const [activeFontStyle, setActiveFontStyle] = useState(null);
-  const [selectedNavigation, setSelectedNavigation] = useState(null);
-  const [selectedFooter, setSelectedFooter] = useState(null);
+  const [selectedHeader, setSelectedHeader] = useState(""); // Initially no selection
+  const [selectedFooter, setSelectedFooter] = useState("");
+  
   const [isLoading, setIsLoading] = useState(true);
-  const [initialNavigation, setInitialNavigation] = useState("Developer Basic Navbar");
-  const [initialFooter, setInitialFooter] = useState("Developer Basic Footer");
+  
+  const [previewHeader, setPreviewHeader] = useState(null);
+  const [previewFooter, setPreviewFooter] = useState(null);
 
-  const fetchThemeSettings = async () => {
-    try {
+  const [availableHeaders, setAvailableHeaders] = useState([]);
+  const [availableFooters, setAvailableFooters] = useState([]);
+  const [activeComponents, setActiveComponents] = useState([]);
+  
+   // Predefined component list
+   const predefinedComponents = {
+    Developer: {
+      Header: {
+        "Modern Header": <DeveloperHeader />,
+        "Classic Header": <div>Classic Developer Header</div>,
+        "Minimal Header": <div>Minimal Developer Header</div>,
+      },
+      Footer: {
+        "basic-footer": <DeveloperFooter />,
+        "Modern Footer": <DeveloperFooter />,
+      },
+    },
+    Simple: {
+      Header: {
+        "Basic Header": <div>Basic Simple Header</div>,
+      },
+      Footer: {
+        "Stylish Footer": <SimpleFooter />,
+
+      },
+    },
+  };
+
+
+  const activeTemplate = templates.find(
+    (template) => template._id === activeTemplateId
+  );
+  
+
+
+const normalizedHeader = availableHeaders.length > 0
+  ? (availableHeaders.includes(selectedHeader) ? selectedHeader : availableHeaders[0])
+  : (selectedHeader ? selectedHeader : null); 
+
+const normalizedFooter = availableFooters.length > 0
+  ? (availableFooters.includes(selectedFooter) ? selectedFooter : availableFooters[0])
+  : (selectedFooter ? selectedFooter : null);  
+
+
+  
+  
+useEffect(() => {
+  if (!activeTemplate?.category || !predefinedComponents[activeTemplate.category]) return;
+
+ 
+  // Extract only matching components from fetched active components
+  const validHeaders = activeComponents
+    .filter((comp) => comp.category === activeTemplate.category && comp.componentSubType === "Header")
+    .map((comp) => comp.componentType)
+    .filter((header) => predefinedComponents[activeTemplate.category]?.Header?.[header]);
+
+  const validFooters = activeComponents
+    .filter((comp) => comp.category === activeTemplate.category && comp.componentSubType === "Footer")
+    .map((comp) => comp.componentType)
+    .filter((footer) => predefinedComponents[activeTemplate.category]?.Footer?.[footer]);
+
+ 
+
+  setAvailableHeaders(validHeaders);
+  setAvailableFooters(validFooters);
+}, [activeComponents, activeTemplate]);
+  
+  
+
+  useEffect(() => {
+    if (!availableHeaders || !availableFooters) return;
+
+    setSelectedHeader((prevHeader) =>
+        prevHeader !== "" ? prevHeader : ""
+    );
+
+    setSelectedFooter((prevFooter) =>
+        prevFooter !== "" ? prevFooter : ""
+    );
+}, [availableHeaders, availableFooters]);
+
+
+
+
+
+
+
+useEffect(() => {
+  if (!userId) return;
+
+  console.log("Fetching data for userId:", userId);
+  
+  fetchTemplates(userId);
+  fetchThemeSettings();
+  fetchActiveComponents();
+}, [userId]);
+
+
+
+
+const fetchThemeSettings = async () => {
+  try {
       setIsLoading(true);
       const response = await fetch(
-        `http://localhost:3000/authenticated-user/gettheme?userId=${userId}`
+          `http://localhost:3000/authenticated-user/gettheme?userId=${userId}`
       );
-      if (!response.ok) {
-        throw new Error("Failed to fetch theme settings");
-      }
+      if (!response.ok) throw new Error("Failed to fetch theme settings");
+
       const { theme } = await response.json();
 
-      // Update appearance settings from the fetched theme
       setActiveColorMode(theme.colorMode || "default");
       setActivePresetTheme(parseInt(theme.presetTheme, 10) || null);
       setActiveFontStyle(theme.fontStyle || "Poppins");
-      setSelectedNavigation(theme.navigationBar || "Developer Basic Navbar");
-      setSelectedFooter(theme.footer || "Developer Basic Footer");
-    } catch (error) {
+
+  } catch (error) {
       console.error("Error fetching theme settings:", error.message);
-    } finally {
+  } finally {
       setIsLoading(false);
-    }
-  };
+  }
+};
 
   
   const updateTheme = async (updatedTheme) => {
@@ -70,34 +167,35 @@ const ThemePage = () => {
       console.error("Error updating theme:", error.message);
     }
   };
-  const navigationOptions = [
-    { label: "Developer Basic Navbar", preview: tem1 },
-    { label: "Advanced Navbar", preview: tem2 },
-    { label: "Minimal Navbar", preview: tem3 },
-  ];
 
-  const footerOptions = [
-    { label: "Developer Basic Footer", preview: tem4 },
-    { label: "Advanced Footer", preview: tem5 },
-    { label: "Minimal Footer", preview: tem6 },
-  ];
 
-  useEffect(() => {
-    if (userId) {
-      fetchTemplates(userId);
-      fetchThemeSettings();
+
+  const fetchActiveComponents = async () => {
+    try {
+      console.log("🚀 Fetching active components...");
+
+      const response = await fetch(
+        `http://localhost:3000/authenticated-user/getactivecomponents?userId=${userId}`
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch active components");
+
+      const { components } = await response.json();
+      console.log("API Response Components:", components);
+
+      if (!Array.isArray(components) || components.length === 0) {
+        console.warn("No components found for this user.");
+        return;
+      }
+
+      setActiveComponents(components);
+    } catch (error) {
+      console.error("Error fetching active components:", error.message);
+      setActiveComponents([]);
     }
-  }, [userId, fetchTemplates]);
-
-  const handleSaveNavigation = () => {
-    setInitialNavigation(selectedNavigation);
   };
 
-  const handleSaveFooter = () => {
-    setInitialFooter(selectedFooter);
-  };
 
-  
 
 
   const handleTabChange = (tab) => {
@@ -121,16 +219,43 @@ const ThemePage = () => {
   };
 
 
-  const handleNavigationChange = (nav) => {
-    setSelectedNavigation(nav);
-    updateTheme({ navigationBar: nav });
-  };
+  // const handleHeaderChange = (event) => {
+  //   const selected = event.target.value;
+  //   setSelectedHeader(selected);
+  //   setPreviewHeader(availableComponents[activeTemplate?.category]?.Header?.[selected] || null);
+  // };
+  
+  // const handleFooterChange = (event) => {
+  //   const selected = event.target.value;
+  //   setSelectedFooter(selected);
+  //   setPreviewFooter(availableComponents[activeTemplate?.category]?.Footer?.[selected] || null);
+  // };
+  
+  const handleHeaderChange = (event) => {
+    const selected = event.target.value;
+    setSelectedHeader(selected);
 
-  const handleFooterChange = (footer) => {
-    setSelectedFooter(footer);
-    updateTheme({ footer });
-  };
+    // Show preview only if a valid selection is made
+    if (selected) {
+        setPreviewHeader(predefinedComponents[activeTemplate?.category]?.Header?.[selected] || "Coming Soon");
+    } else {
+        setPreviewHeader(null); //if no selection is made then show nothing
+    }
+};
 
+const handleFooterChange = (event) => {
+    const selected = event.target.value;
+    setSelectedFooter(selected);
+
+    if (selected) {
+        setPreviewFooter(predefinedComponents[activeTemplate?.category]?.Footer?.[selected] || "Coming Soon");
+    } else {
+        setPreviewFooter(null); 
+    }
+};
+
+
+// Opens in anotehr tab
   const handleViewSite = () => {
     if (activeTemplate) {
       const url = `/template/${activeTemplate._id}`;
@@ -138,9 +263,20 @@ const ThemePage = () => {
     }
   };
 
-  const activeTemplate = templates.find(
-    (template) => template._id === activeTemplateId
-  );
+
+  useEffect(() => {
+    console.log("Active Template Category:", activeTemplate?.category);
+    console.log("Available Headers:", availableHeaders);
+    console.log("Available Footers:", availableFooters);
+    console.log("Selected Header:", selectedHeader);
+    console.log("Selected Footer:", selectedFooter);
+    console.log("Normalized Header:", normalizedHeader);
+    console.log("Normalized Footer:", normalizedFooter);
+    console.log("Preview for Header:", previewHeader);
+    console.log("Preview for Footer:", previewFooter);
+  }, [availableHeaders, availableFooters, normalizedHeader, normalizedFooter]);
+  
+
   
   if (isLoading) {
     return <div className="text-center py-10">Loading...</div>;
@@ -273,84 +409,65 @@ const ThemePage = () => {
       )}
 
 
-      {/* Components */}
-      {activeTab === "developerComponents" && (
-        <div>
-          <div className="mb-6 bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-medium text-gray-800 mb-2">Navigation</h2>
-            <div className="flex items-center gap-4 mb-4">
-              <select
-                value={selectedNavigation}
-                onChange={(e) => setSelectedNavigation(e.target.value)}
-                className="flex-grow border border-gray-300 rounded-md px-4 py-2"
-              >
-                {navigationOptions.map((option, idx) => (
-                  <option key={idx} value={option.label}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={handleSaveNavigation}
-                disabled={selectedNavigation === initialNavigation}
-                className={`px-4 py-2 rounded-md ${
-                  selectedNavigation === initialNavigation
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-orange-600 text-white hover:bg-orange-700"
-                }`}
-              >
-                Save
-              </button>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-600 mb-2">Preview</h3>
-              <img
-                src={
-                  navigationOptions.find((option) => option.label === selectedNavigation)?.preview
-                }
-                alt="Navigation Preview"
-                className="rounded shadow-md w-full h-40 object-cover"
-              />
-            </div>
-          </div>
+{activeTab === "developerComponents" && (
+  <div className="bg-white rounded-lg shadow-md p-6">
+    
+    {/* Header Selection */}
+    <div className="mb-6 p-4 bg-white rounded-lg shadow-md">
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Select Header</h3>
+      <select 
+        value={selectedHeader} 
+        onChange={handleHeaderChange} 
+        className="border p-2 rounded-md w-full"
+      >
+        <option value="" disabled>Select a header</option>
+        {availableHeaders.length > 0 ? (
+          availableHeaders.map((header) => (
+            <option key={header} value={header}>{header}</option>
+          ))
+        ) : (
+          <option value="" disabled>Coming Soon</option>
+        )}
+      </select>
+      
+      {/* Header Preview */}
+      <div className="mt-4 p-4 border rounded-lg shadow-md bg-gray-50 flex items-center justify-center h-20 text-gray-600">
+        {previewHeader !== null ? previewHeader : (
+          availableHeaders.length === 0 ? "🚀 Coming Soon" : "🔍 Select a header to preview"
+        )}
+      </div>
+    </div>
 
-          <div className="mb-6 bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-lg font-medium text-gray-800 mb-2">Footer</h2>
-            <div className="flex items-center gap-4 mb-4">
-              <select
-                value={selectedFooter}
-                onChange={(e) => setSelectedFooter(e.target.value)}
-                className="flex-grow border border-gray-300 rounded-md px-4 py-2"
-              >
-                {footerOptions.map((option, idx) => (
-                  <option key={idx} value={option.label}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={handleSaveFooter}
-                disabled={selectedFooter === initialFooter}
-                className={`px-4 py-2 rounded-md ${
-                  selectedFooter === initialFooter
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-orange-600 text-white hover:bg-orange-700"
-                }`}
-              >
-                Save
-              </button>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-600 mb-2">Preview</h3>
-              <img
-                src={footerOptions.find((option) => option.label === selectedFooter)?.preview}
-                alt="Footer Preview"
-                className="rounded shadow-md w-full h-40 object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      )}
+    {/* Footer Selection */}
+    <div className="p-4 bg-white rounded-lg shadow-md">
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Select Footer</h3>
+      <select 
+        value={selectedFooter} 
+        onChange={handleFooterChange} 
+        className="border p-2 rounded-md w-full"
+      >
+        <option value="" disabled>Select a footer</option>
+        {availableFooters.length > 0 ? (
+          availableFooters.map((footer) => (
+            <option key={footer} value={footer}>{footer}</option>
+          ))
+        ) : (
+          <option value="" disabled>Coming Soon</option>
+        )}
+      </select>
+
+      {/* Footer Preview */}
+      <div className="mt-4 p-4 border rounded-lg shadow-md bg-gray-50 flex items-center justify-center h-20 text-gray-600">
+        {previewFooter !== null ? previewFooter : (
+          availableFooters.length === 0 ? "🚀 Coming Soon" : "🔍 Select a footer to preview"
+        )}
+      </div>
+    </div>
+  </div>
+)}
+
+
+
     </div>
   );
 };

@@ -9,6 +9,7 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const Theme = require('../models/ThemeSchema');
+const Component = require('../models/Components');
 
 const updateTheme = async (req, res) => {
     const { userId, templateId, colorMode, presetTheme, fontStyle, navigationBar, footer } = req.body;
@@ -18,7 +19,7 @@ const updateTheme = async (req, res) => {
     }
 
     try {
-        // Prepare the update object based on provided fields
+        // Update object based on provided fields
         const update = {};
         if (templateId !== undefined) update.activeTemplateId = templateId;
         if (colorMode !== undefined) update.colorMode = colorMode;
@@ -31,7 +32,7 @@ const updateTheme = async (req, res) => {
         const theme = await Theme.findOneAndUpdate(
             { userId },
             { ...update, userId },
-            { new: true, upsert: true } // Create a new document if it doesn't exist
+            { new: true, upsert: true } // Creates new document if it doesn't exist
         );
 
         return res.status(200).json({ message: 'Theme updated successfully.', theme });
@@ -98,7 +99,7 @@ const activateUserTemplate = async (req, res) => {
 
 const getActiveTemplate = async (req, res) => {
     try {
-        const userId = req.query.userId; //fetch user id from query parameters
+        const userId = req.query.userId; // Fetch user id from query parameters
 
         if (!userId) {
             return res.status(400).json({ message: 'User ID is required.' });
@@ -165,10 +166,22 @@ if (!findUser) {
     }
 };
 
+const getActiveComponents = async (req, res) => {
+    try {
+      const components = await Component.find({ isActive: true }); // Fetch only active components
+      return res.status(200).json({ components });
+    } catch (error) {
+      console.error("Error fetching active components:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  };
+  
+
 
 module.exports = {
     activateTemplate,
     getActiveTemplate,
     activateUserTemplate,
-    updateTheme
+    updateTheme,
+    getActiveComponents
 }

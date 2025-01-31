@@ -18,7 +18,15 @@ const adminTemplateStore = create(
       templates: [],
       loading: false,
 
-      setSuccess: (message) => set({ success: message }),
+      components: [],
+
+      setSuccess: (message) => {
+        set({ success: message });
+      
+        // Automatically clear the success message after 3 seconds
+        setTimeout(() => set({ success: null }), 3000);
+      },
+      
       setUsername: (username) => set({ username }),
       setEmail: (email) => set({ email }),
       setError: (error) => set({ error }),
@@ -29,6 +37,19 @@ const adminTemplateStore = create(
         try {
           const data = await fetchAPI('http://localhost:3000/authenticated-admin/templates');
           set({ templates: data });
+        } catch (err) {
+          set({ error: err.message });
+        } finally {
+          set({ loading: false });
+        }
+      },
+
+      // Fetching all components
+      fetchComponents: async () => {
+        set({ loading: true, error: null });
+        try {
+          const data = await fetchAPI('http://localhost:3000/authenticated-admin/components');
+          set({ components: data });  // <-- Ensure components are stored correctly
         } catch (err) {
           set({ error: err.message });
         } finally {
@@ -89,6 +110,8 @@ const adminTemplateStore = create(
 
       resetMessages: () => set({ success: null, error: null }),
 
+      
+
       // Adding template
       addTemplate: async (name, description, image, category, predefinedTemplate) => {
         try {
@@ -123,6 +146,59 @@ const adminTemplateStore = create(
           throw err;
         }
       },
+
+      addComponent: async (componentData, adminId) => {
+        set({ loading: true, error: null });
+      
+        try {
+          if (!adminId) {
+            throw new Error("Admin ID is not available. Please log in again.");
+          }
+      
+          const newComponentData = { ...componentData, adminId };
+      
+          // ✅ Send POST request and capture response
+          const response = await fetchAPI("http://localhost:3000/authenticated-admin/addcomponent", {
+            method: "POST",
+            body: JSON.stringify(newComponentData),
+            headers: { "Content-Type": "application/json" },
+          });
+      
+          // ✅ Ensure components is an array before updating state
+          set((state) => ({
+            components: [...(state.components || []), response],
+            success: "Component added successfully!",
+          }));
+      
+          return response; // ✅ Return the response to the frontend
+        } catch (err) {
+          set({ error: err.message });
+          throw err;
+        } finally {
+          set({ loading: false });
+        }
+      },
+      
+
+      // Deleting a component
+      deleteComponent: async (componentId) => {
+        set({ loading: true, error: null });
+        try {
+          await fetchAPI(`http://localhost:3000/authenticated-admin/deletecomponent/${componentId}`, {
+            method: 'DELETE',
+          });
+
+          set((state) => ({
+            components: state.components.filter((comp) => comp._id !== componentId),
+            success: 'Component deleted successfully!',
+          }));
+        } catch (err) {
+          set({ error: err.message });
+        } finally {
+          set({ loading: false });
+        }
+      },
+
     }),
     {
       name: 'admin-template-store',

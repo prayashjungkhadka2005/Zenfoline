@@ -1,5 +1,5 @@
 const express = require('express');
-const { activateTemplate, getActiveTemplate, activateUserTemplate, updateTheme } = require('../controllers/AuthenticatedUser');
+const { activateTemplate, getActiveTemplate, activateUserTemplate, updateTheme, getActiveComponents } = require('../controllers/AuthenticatedUser');
 const router = express.Router();
 const Template = require('../models/Templates');
 const User = require('../models/User');
@@ -12,6 +12,8 @@ router.post('/activateusertemplate', activateUserTemplate);
 router.get('/getactivetemplate', getActiveTemplate);
 
 router.post('/updatetheme', updateTheme);
+
+router.get("/getactivecomponents", getActiveComponents);
 
 
 

@@ -27,11 +27,9 @@ const themeSchema = new mongoose.Schema(
     },
     navigationBar: {
       type: String, 
-      default: 'basic-navbar',
     },
     footer: {
       type: String, 
-      default: 'basic-footer',
     },
     createdAt: {
       type: Date,

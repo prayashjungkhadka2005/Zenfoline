@@ -8,6 +8,7 @@ require('dotenv').config();
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const Component = require('../models/Components');
 
 
 const storage = multer.diskStorage({
@@ -155,11 +156,113 @@ const addTemplate = async (req, res) => {
 };
 
 
+const addComponent = async (req, res) => {
+    try {
+        const { name, category, linkedTemplate, componentType, componentSubType } = req.body;
+
+        // Validate required fields
+        if (!name || !category || !linkedTemplate || !componentType || !componentSubType) {
+            return res.status(400).json({ message: 'All fields are required!' });
+        }
+
+        // Check if the linked template exists
+        const template = await Template.findById(linkedTemplate);
+        if (!template) {
+            return res.status(404).json({ message: 'Linked template not found.' });
+        }
+
+        // Check if the category matches the template category
+        if (template.category !== category) {
+            return res.status(400).json({ message: 'Category mismatch with the linked template.' });
+        }
+
+        // Create a new component
+        const newComponent = await Component.create({
+            name,
+            category,
+            linkedTemplate,
+            componentType,
+            componentSubType,
+            isActive: true, // Default to active
+        });
+
+        return res.status(201).json({
+            message: 'Component added successfully.',
+            data: newComponent,
+        });
+    } catch (error) {
+        console.error('Error adding component:', error);
+        return res.status(500).json({ message: 'An error occurred while adding the component.' });
+    }
+};
+
+
+const updateComponentStatus = async (req, res) => {
+    try {
+        const { componentId } = req.params; // Use componentId instead of id for clarity
+        console.log(componentId);
+        
+        const { isActive } = req.body;
+        console.log(isActive);
+        
+
+        // Ensure `isActive` is provided and is a boolean
+        if (typeof isActive !== 'boolean') {
+            return res.status(400).json({ message: 'Invalid status value. Must be true or false.' });
+        }
+
+        // Find component by ID
+        const component = await Component.findById(componentId);
+        if (!component) {
+            return res.status(404).json({ message: 'Component not found.' });
+        }
+
+        // Toggle the active status
+        component.isActive = isActive;
+        await component.save();
+
+        return res.status(200).json({
+            message: `Component ${isActive ? 'activated' : 'deactivated'} successfully.`,
+            data: component,
+        });
+
+    } catch (error) {
+        console.error('Error updating component status:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+const deleteComponent = async (req, res) => {
+    try {
+        const { componentId } = req.params;
+
+        if (!componentId) {
+            return res.status(400).json({ message: "Component ID is required." });
+        }
+
+        const component = await Component.findById(componentId);
+        if (!component) {
+            return res.status(404).json({ message: "Component not found." });
+        }
+
+        await Component.findByIdAndDelete(componentId);
+
+        return res.status(200).json({ message: "Component deleted successfully." });
+    } catch (error) {
+        console.error("Error deleting component:", error);
+        res.status(500).json({ message: "An error occurred while deleting the component." });
+    }
+};
+
 
 module.exports = {
     addTemplate,
     deleteTemplate,
     upload,
     storage,
-    updateTemplate
+    updateTemplate,
+    addComponent,
+    updateComponentStatus,
+    deleteComponent
 }

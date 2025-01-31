@@ -5,10 +5,10 @@ import logo from "../assets/logo.png";
 const AdminSiderbar = () => {
     const menus = [
         { name: 'Home', path: '/admindashboard', icon: 'fas fa-home', exact: true },
-        { name: 'Templates', path: '/admindashboard/addtemplates', icon: 'fas fa-file-alt' },
-        { name: 'Components', path: '/admindashboard/managecomponents', icon: 'fas fa-file-alt' },
-       
+        { name: 'Templates', path: '/admindashboard/addtemplates', icon: 'fas fa-layer-group' }, // Represents templates or layouts
+        { name: 'Components', path: '/admindashboard/managecomponents', icon: 'fas fa-cogs' }, // Represents settings or component management
     ];
+    
 
     return (
         <div className="w-64 bg-white h-screen fixed flex flex-col shadow-md border-r border-gray-300">
