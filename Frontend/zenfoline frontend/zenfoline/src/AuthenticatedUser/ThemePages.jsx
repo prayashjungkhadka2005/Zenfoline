@@ -259,6 +259,8 @@ const handleFooterChange = (event) => {
   const handleViewSite = () => {
     if (activeTemplate) {
       const url = `/template/${activeTemplate._id}`;
+      console.log(activeTemplate._id);  
+      
       window.open(url, "_blank");
     }
   };
@@ -430,10 +432,14 @@ const handleFooterChange = (event) => {
         )}
       </select>
       
-      {/* Header Preview */}
-      <div className="mt-4 p-4 border rounded-lg shadow-md bg-gray-50 flex items-center justify-center h-20 text-gray-600">
-        {previewHeader !== null ? previewHeader : (
-          availableHeaders.length === 0 ? "🚀 Coming Soon" : "🔍 Select a header to preview"
+      <div className="mt-4 border rounded-lg shadow-md bg-gray-50 flex items-center justify-center min-h-[80px] max-h-auto p-4"  
+      style={{ pointerEvents: "none" }}>
+        {previewHeader ? (
+          <div className="w-full">{previewHeader}</div>
+        ) : (
+          <span className="text-md text-gray-500">
+            {availableHeaders.length === 0 ? "🚀 Coming Soon" : "🔍 Select a header to preview"}
+          </span>
         )}
       </div>
     </div>
@@ -456,15 +462,20 @@ const handleFooterChange = (event) => {
         )}
       </select>
 
-      {/* Footer Preview */}
-      <div className="mt-4 p-4 border rounded-lg shadow-md bg-gray-50 flex items-center justify-center h-20 text-gray-600">
-        {previewFooter !== null ? previewFooter : (
-          availableFooters.length === 0 ? "🚀 Coming Soon" : "🔍 Select a footer to preview"
+      <div className="mt-4 border rounded-lg shadow-md bg-gray-50 flex items-center justify-center min-h-[80px] max-h-auto p-4"
+      style={{ pointerEvents: "none" }}>
+        {previewFooter ? (
+          <div className="w-full">{previewFooter}</div>
+        ) : (
+          <span className="text-md text-gray-500">
+            {availableFooters.length === 0 ? "🚀 Coming Soon" : "🔍 Select a footer to preview"}
+          </span>
         )}
       </div>
     </div>
   </div>
 )}
+
 
 
 
