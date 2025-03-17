@@ -1,13 +1,12 @@
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
-const User = require('../models/User');
 const Otp = require('../models/Otp');
 const Admin = require('../models/Admin');
-const Template = require('../models/Templates');
 require('dotenv').config();
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const User = require('../models/User');
 
 const saltRounds = 10;
 const generateOTP = () => Math.floor(9999 + Math.random() * 900);

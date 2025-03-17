@@ -2,23 +2,27 @@ import React, { useEffect } from "react";
 import WebFont from "webfontloader";
 import profile from "../assets/profile.png";
 
-const SimplePortfolioTemplate = ({ fontStyle }) => {
-  console.log("Current font style:", fontStyle);
+const SimplePortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
+  // Use fontStyle from props or data, with a fallback to 'Poppins'
+  const currentFontStyle = fontStyle || (data?.theme?.fontStyle) || 'Poppins';
+  console.log("Current font style:", currentFontStyle);
 
   useEffect(() => {
-    WebFont.load({
-      google: {
-        families: [fontStyle],
-      },
-    });
-  }, [fontStyle]);
+    if (currentFontStyle) {
+      WebFont.load({
+        google: {
+          families: [currentFontStyle],
+        },
+      });
+    }
+  }, [currentFontStyle]);
 
   return (
     <div
       style={{
-        fontFamily: `${fontStyle}, ${
+        fontFamily: `${currentFontStyle}, ${
           ["Inria Serif", "Crimson Text", "Source Serif Pro", "Playfair Display", "Lobster"].includes(
-            fontStyle
+            currentFontStyle
           )
             ? "serif"
             : "sans-serif"

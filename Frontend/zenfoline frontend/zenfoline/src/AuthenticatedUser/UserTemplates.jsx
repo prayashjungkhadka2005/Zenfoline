@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import useTemplateStore from '../store/userTemplateStore';
 import useAuthStore from '../store/userAuthStore';
+import { useNavigate } from 'react-router-dom';
 
 const Templates = () => {
   const {
@@ -14,10 +15,11 @@ const Templates = () => {
   } = useTemplateStore();
 
   const userId = useAuthStore((state) => state.userId);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userId) {
-      fetchTemplates(userId); // Fetch templates for the logged-in user
+      fetchTemplates(userId);
     }
   }, [userId, fetchTemplates]);
 
@@ -31,6 +33,10 @@ const Templates = () => {
       await activateTemplate(null, userId); 
       await updateTheme(null, userId);
     }
+  };
+
+  const handleEdit = (templateId) => {
+    window.open(`/template-editor/${templateId}`, '_blank');
   };
 
   if (loading) {
@@ -66,12 +72,12 @@ const Templates = () => {
 
             <div className="p-4 py-4">
               <h2 className="text-lg font-bold mb-2">{template.name}</h2>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-3">
                 <button
                   onClick={() =>
                     activeTemplateId === template._id
-                      ? handleDeactivate() // Deactivate if the template is active
-                      : handleActivate(template._id) // Activate the selected template
+                      ? handleDeactivate()
+                      : handleActivate(template._id)
                   }
                   className={`px-4 py-2 rounded-md text-sm ${
                     activeTemplateId === template._id
@@ -87,6 +93,19 @@ const Templates = () => {
                     Active
                   </div>
                 )}
+              </div>
+              <div className="flex justify-between items-center">
+                <button 
+                  onClick={() => handleEdit(template._id)}
+                  className={`px-4 py-2 rounded-md text-sm ${
+                    activeTemplateId === template._id
+                      ? 'bg-blue-500 text-white hover:bg-blue-600'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                  disabled={activeTemplateId !== template._id}
+                >
+                  Edit Template
+                </button>
                 <button className="bg-transparent border border-orange-500 text-orange-500 px-4 py-2 rounded-md text-sm">
                   Live Preview
                 </button>

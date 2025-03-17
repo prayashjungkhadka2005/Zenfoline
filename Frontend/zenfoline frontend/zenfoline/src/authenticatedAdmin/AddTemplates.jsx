@@ -4,7 +4,7 @@ import useAuthStore from '../store/userAuthStore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import SimplePortfolioTemplate from '../Templates/SimplePortfolioTemplate';
-
+import ExpertPortfolioTemplate from '../Templates/ExpertPortfolioTemplate';
 
 const AdminTemplates = () => {
   const {
@@ -19,7 +19,7 @@ const AdminTemplates = () => {
 
   const templateComponents = {
     SimplePortfolioTemplate,
-  
+    ExpertPortfolioTemplate,
   };
 
   const adminId = useAuthStore((state) => state.adminId);
@@ -40,13 +40,10 @@ const AdminTemplates = () => {
 
   useEffect(() => {
     useAdminTemplateStore.getState().setSuccess('');
-
   }, []);
-  
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      
       resetMessages();
       setModalError('');
       setModalSuccess('');
@@ -68,17 +65,17 @@ const AdminTemplates = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!name || !category || !predefinedTemplate || (!editingTemplate && !image)) {
       setModalError('Please fill out all required fields.');
       return;
     }
-  
+
     if (editingTemplate && !image) {
       setModalError('Please upload an image.');
       return;
     }
-  
+
     const template = {
       name,
       description,
@@ -87,9 +84,9 @@ const AdminTemplates = () => {
       predefinedTemplate,
       _id: editingTemplate?._id,
     };
-  
+
     try {
-      await saveTemplate(template, adminId); // Saves template using the store
+      await saveTemplate(template, adminId);
       setModalSuccess(editingTemplate ? 'Template updated successfully!' : 'Template added successfully!');
       resetForm();
       setShowModal(false);
@@ -97,7 +94,6 @@ const AdminTemplates = () => {
       setModalError(err.message || 'An error occurred while processing the template.');
     }
   };
-  
 
   const handleEdit = (template) => {
     resetForm();
@@ -192,7 +188,7 @@ const AdminTemplates = () => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md  z-50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-md z-50 flex justify-center items-center">
           <div className="bg-white w-[600px] shadow-lg rounded-lg p-8 relative">
             <h1 className="text-2xl font-bold text-[#000042] mb-6">
               {editingTemplate ? 'Edit Template' : 'Add Template'}
@@ -247,28 +243,29 @@ const AdminTemplates = () => {
                   onChange={(e) => setCategory(e.target.value)}
                 >
                   <option value="">Select a category</option>
-                  <option value="Developer">Developer</option>
-                  <option value="Simple">Simple</option>
-                  <option value="Expert">Expert</option>
+                  <option value="developer">Developer</option>
+                  <option value="expert">Expert</option>
+                  <option value="student">Student</option>
+                  <option value="content-creator">Content Creator</option>
+                  <option value="designer">Designer</option>
+                  <option value="lawyer">Lawyer</option>
                 </select>
               </div>
 
-                    <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Predefined Template <span className="text-red-500">*</span>
-        </label>
-        <select
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
-          value={predefinedTemplate}
-          onChange={(e) => setPredefinedTemplate(e.target.value)}
-        >
-          <option value="">Select a predefined template</option>
-          <option value="SimplePortfolioTemplate">Simple Portfolio</option>
-          <option value="AdvancedPortfolioTemplate">Advanced Portfolio</option>
-          <option value="MinimalPortfolioTemplate">Minimal Portfolio</option>
-        </select>
-      </div>
-
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Predefined Template <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#000042]"
+                  value={predefinedTemplate}
+                  onChange={(e) => setPredefinedTemplate(e.target.value)}
+                >
+                  <option value="">Select a predefined template</option>
+                  <option value="SimplePortfolioTemplate">Simple Portfolio</option>
+                  <option value="ExpertPortfolioTemplate">Expert Portfolio</option>
+                </select>
+              </div>
 
               <button
                 type="submit"

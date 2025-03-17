@@ -16,6 +16,11 @@ const userSchema = new mongoose.Schema({
     ref: 'Template', 
     default: null,
   },
+  portfolioData: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PortfolioData',
+    default: null,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -26,6 +31,16 @@ const userSchema = new mongoose.Schema({
   },
   verified: {
     type: Boolean,
+    default: false,
+  },
+  lastLogin: {
+    type: Date,
+    default: Date.now,
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'suspended'],
+    default: 'active'
   }
 });
 

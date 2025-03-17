@@ -16,6 +16,7 @@ import AddTemplates from './authenticatedAdmin/AddTemplates';
 import ThemePage from './AuthenticatedUser/ThemePages';
 import ManageComponents from './authenticatedAdmin/ManageComponents';
 import TemplateRenderer from './RenderedTemplate/TemplateRenderer';
+import TemplateEditor from './AuthenticatedUser/TemplateEditor';
 
 const App = () => {
   return (
@@ -47,6 +48,7 @@ const App = () => {
 
           <Route path="/theme" element={<ThemePage />} />
           <Route path="/template/:templateId" element={<TemplateRenderer />} />
+          <Route path="/template-editor/:templateId" element={<TemplateEditor />} />
         </Routes>
       </Router>
     </div>
@@ -54,3 +56,4 @@ const App = () => {
 };
 
 export default App;
+  

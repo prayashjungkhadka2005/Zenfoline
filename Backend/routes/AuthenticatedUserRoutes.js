@@ -1,21 +1,20 @@
 const express = require('express');
-const { activateTemplate, getActiveTemplate, activateUserTemplate, updateTheme, getActiveComponents } = require('../controllers/AuthenticatedUser');
 const router = express.Router();
-const Template = require('../models/Templates');
-const User = require('../models/User');
+const authenticatedUser = require('../controllers/AuthenticatedUser');
 const Theme = require('../models/ThemeSchema');
+const portfolioController = require('../controllers/PortfolioController');
+const Templates = require('../models/Templates');
+const User = require('../models/User');
 
-router.post('/activatetemplate', activateTemplate);
+router.post('/activatetemplate', authenticatedUser.activateTemplate);
 
-router.post('/activateusertemplate', activateUserTemplate);
+router.post('/activateusertemplate', authenticatedUser.activateUserTemplate);
 
-router.get('/getactivetemplate', getActiveTemplate);
+router.get('/getactivetemplate', authenticatedUser.getActiveTemplate);
 
-router.post('/updatetheme', updateTheme);
+router.post('/updatetheme', authenticatedUser.updateTheme);
 
-router.get("/getactivecomponents", getActiveComponents);
-
-
+router.get("/getactivecomponents", authenticatedUser.getActiveComponents);
 
 router.get('/gettheme', async (req, res) => {
     const { userId } = req.query; // Extract userId from query parameters
@@ -42,11 +41,9 @@ router.get('/gettheme', async (req, res) => {
     }
 });
 
-
-
 router.get('/templates', async (req, res) => {
     try {
-        const templates = await Template.find({});
+        const templates = await Templates.find({});
         res.status(200).json(templates);
     } catch (error) {
         console.error('Error fetching templates:', error);
@@ -69,6 +66,13 @@ router.get('/activetemplate', async (req, res) => {
   });
   
 
+// Portfolio routes
+router.post('/portfolio/initialize', portfolioController.initializePortfolio);
+router.get('/portfolio/:userId', portfolioController.getPortfolioData);
+router.patch('/portfolio/:userId/type', portfolioController.updatePortfolioType);
+router.patch('/portfolio/:userId/sections/order', portfolioController.updateSectionOrder);
 
+// Portfolio section routes
+router.use('/portfolio', require('./portfolioRoutes'));
 
 module.exports = router;

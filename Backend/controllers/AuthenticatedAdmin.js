@@ -1,14 +1,13 @@
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
-const User = require('../models/User');
 const Otp = require('../models/Otp');
 const Admin = require('../models/Admin');
-const Template = require('../models/Templates');
 require('dotenv').config();
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const Component = require('../models/Components');
+const Templates = require('../models/Templates');
 
 
 const storage = multer.diskStorage({
@@ -36,7 +35,7 @@ const deleteTemplate = async (req, res) => {
         return res.status(400).json({ message: 'Template ID is required.' });
       }
 
-      const template = await Template.findById(templateId);
+      const template = await Templates.findById(templateId);
   
       if (!template) {
         return res.status(404).json({ message: 'Template not found.' });
@@ -51,7 +50,7 @@ const deleteTemplate = async (req, res) => {
       }
   
       //delete template using id
-      await Template.findByIdAndDelete(templateId);
+      await Templates.findByIdAndDelete(templateId);
   
       //update users
       await User.updateMany(
@@ -76,7 +75,7 @@ const deleteTemplate = async (req, res) => {
         }
 
         
-        const existingTemplate = await Template.findById(templateId);
+        const existingTemplate = await Templates.findById(templateId);
         if (!existingTemplate) {
             return res.status(404).json({ message: 'Template not found.' });
         }
@@ -95,7 +94,7 @@ const deleteTemplate = async (req, res) => {
         }
 
         // Updating the template
-        const updatedTemplate = await Template.findByIdAndUpdate(
+        const updatedTemplate = await Templates.findByIdAndUpdate(
             templateId,
             {
                 name: name || existingTemplate.name,
@@ -136,7 +135,7 @@ const addTemplate = async (req, res) => {
 
         const imagePath = `/uploads/${req.file.filename}`; //relativepath
 
-        const newTemplate = await Template.create({
+        const newTemplate = await Templates.create({
             name,
             description: description || '',
             image: imagePath, 
@@ -166,7 +165,7 @@ const addComponent = async (req, res) => {
         }
 
         // Check if the linked template exists
-        const template = await Template.findById(linkedTemplate);
+        const template = await Templates.findById(linkedTemplate);
         if (!template) {
             return res.status(404).json({ message: 'Linked template not found.' });
         }

@@ -1,15 +1,16 @@
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
-const User = require('../models/User');
 const Otp = require('../models/Otp');
 const Admin = require('../models/Admin');
-const Template = require('../models/Templates');
 require('dotenv').config();
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const Theme = require('../models/ThemeSchema');
 const Component = require('../models/Components');
+const User = require('../models/User');
+const Templates = require('../models/Templates');
+
 
 const updateTheme = async (req, res) => {
     const { userId, templateId, colorMode, presetTheme, fontStyle, navigationBar, footer } = req.body;
@@ -70,7 +71,7 @@ const activateUserTemplate = async (req, res) => {
         }
 
         
-        const template = await Template.findById(templateId);
+        const template = await Templates.findById(templateId);
         if (!template) {
             return res.status(404).json({ message: 'Template not found.' });
         }
@@ -138,7 +139,7 @@ if (!findUser) {
 }
 
 
-        const template = await Template.findById(templateId);
+        const template = await Templates.findById(templateId);
         if (!template) {
             return res.status(404).json({ message: 'Template not found.' });
         }
