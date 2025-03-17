@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import useTemplateStore from '../store/userTemplateStore';
 import useAuthStore from '../store/userAuthStore';
 import { templateComponents } from '../RenderedTemplate/templateComponents';
-import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool, FiSettings } from 'react-icons/fi';
+import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool, FiSettings, FiTrash2 } from 'react-icons/fi';
 import { FaCode, FaServer, FaDatabase, FaTools, FaCloud, FaEnvelope, FaMapMarkerAlt, FaPhone, FaGlobe } from 'react-icons/fa';
 import profile from "../assets/profile.png";
 
@@ -21,7 +21,7 @@ const TemplateEditor = () => {
     infoText: "text-sm text-blue-700",
     grid: "grid grid-cols-2 gap-6",
     itemCard: "bg-white rounded-lg border border-gray-200 p-6 relative",
-    removeButton: "absolute top-4 right-4 text-red-500 hover:text-red-700",
+    removeButton: "inline-flex items-center justify-center p-1 text-red-500 hover:text-red-700 transition-colors",
     addButton: "w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
   };
 
@@ -533,9 +533,9 @@ const TemplateEditor = () => {
                         const newHighlights = formData.about.highlights.filter((_, i) => i !== index);
                         handleInputChange('about', 'highlights', newHighlights);
                       }}
-                      className="text-red-500 hover:text-red-700"
+                      className={commonClasses.removeButton}
                     >
-                      <FiFileText className="w-5 h-5" />
+                      <FiTrash2 className="w-5 h-5" />
                     </button>
                   </div>
                 ))}
@@ -596,9 +596,9 @@ const TemplateEditor = () => {
                         const newSkills = formData.skills.technical.filter((_, i) => i !== index);
                         handleInputChange('skills', 'technical', newSkills);
                       }}
-                      className={commonClasses.removeButton}
+                      className="p-2 text-red-500 hover:text-red-700 transition-colors"
                     >
-                      <FiFileText className="w-5 h-5" />
+                      <FiTrash2 className="w-5 h-5" />
                     </button>
                   </div>
                 ))}
@@ -647,9 +647,9 @@ const TemplateEditor = () => {
                         const newSkills = formData.skills.soft.filter((_, i) => i !== index);
                         handleInputChange('skills', 'soft', newSkills);
                       }}
-                      className={commonClasses.removeButton}
+                      className="p-2 text-red-500 hover:text-red-700 transition-colors"
                     >
-                      <FiFileText className="w-5 h-5" />
+                      <FiTrash2 className="w-5 h-5" />
                     </button>
                   </div>
                 ))}
