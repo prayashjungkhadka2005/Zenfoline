@@ -3,9 +3,66 @@ import { useParams } from 'react-router-dom';
 import useTemplateStore from '../store/userTemplateStore';
 import useAuthStore from '../store/userAuthStore';
 import { templateComponents } from '../RenderedTemplate/templateComponents';
-import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool, FiSettings, FiTrash2 } from 'react-icons/fi';
+import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool, FiSettings, FiTrash2, FiCheck, FiX } from 'react-icons/fi';
 import { FaCode, FaServer, FaDatabase, FaTools, FaCloud, FaEnvelope, FaMapMarkerAlt, FaPhone, FaGlobe } from 'react-icons/fa';
 import profile from "../assets/profile.png";
+
+const showNotification = (message, type = 'success') => {
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '50%';
+    notification.style.left = '50%';
+    notification.style.transform = 'translate(-50%, -50%)';
+    notification.style.backgroundColor = type === 'success' ? 'rgba(0, 0, 0, 0.8)' : '#f44336';
+    notification.style.color = 'white';
+    notification.style.padding = '20px 40px';
+    notification.style.borderRadius = '8px';
+    notification.style.zIndex = '1000';
+    notification.style.display = 'flex';
+    notification.style.alignItems = 'center';
+    notification.style.gap = '12px';
+    notification.style.fontSize = '16px';
+    notification.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    notification.style.minWidth = '300px';
+    notification.style.textAlign = 'center';
+    notification.style.animation = 'fadeInOut 2.5s forwards';
+
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -40%); }
+            15% { opacity: 1; transform: translate(-50%, -50%); }
+            85% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -60%); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Create icon element
+    const icon = document.createElement('span');
+    icon.innerHTML = type === 'success' 
+        ? '<svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+        : '<svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="24" width="24" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+    
+    // Create message element
+    const messageElement = document.createElement('span');
+    messageElement.textContent = message;
+
+    notification.appendChild(icon);
+    notification.appendChild(messageElement);
+    document.body.appendChild(notification);
+
+    // Remove the notification and style after animation
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+        if (document.head.contains(style)) {
+            document.head.removeChild(style);
+        }
+    }, 2500);
+};
 
 const TemplateEditor = () => {
   const { templateId } = useParams();
@@ -85,24 +142,26 @@ const TemplateEditor = () => {
 
   // Fetch template data and theme on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      if (userId) {
-        // Fetch templates
-        await fetchTemplates(userId);
-        const template = templates.find(t => t._id === templateId);
-        if (template) {
-          setActiveTemplate(template);
-          if (template.data) {
-            setFormData(template.data);
-          }
-        }
+    let isMounted = true;
 
-        // Fetch theme settings
+    const fetchData = async () => {
+      if (userId && templateId) {
         try {
+          // Fetch templates
+          await fetchTemplates(userId);
+          const template = templates.find(t => t._id === templateId);
+          if (template && isMounted) {
+            setActiveTemplate(template);
+            if (template.data) {
+              setFormData(template.data);
+            }
+          }
+
+          // Fetch theme settings
           const response = await fetch(
             `http://localhost:3000/authenticated-user/gettheme?userId=${userId}`
           );
-          if (response.ok) {
+          if (response.ok && isMounted) {
             const { theme } = await response.json();
             console.log('Fetched theme:', theme);
             const themeFontStyle = theme.fontStyle || 'Poppins';
@@ -116,12 +175,25 @@ const TemplateEditor = () => {
             }));
           }
         } catch (error) {
-          console.error('Error fetching theme:', error);
+          console.error('Error fetching data:', error);
         }
       }
     };
+
     fetchData();
-  }, [userId, templateId, templates, fetchTemplates]);
+
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, templateId]); // Remove templates and fetchTemplates from dependencies
+
+  // Add a separate useEffect for handling template updates
+  useEffect(() => {
+    if (activeTemplate && activeTemplate.data) {
+      setFormData(activeTemplate.data);
+    }
+  }, [activeTemplate]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -175,58 +247,144 @@ const TemplateEditor = () => {
   // Add save function
   const handleSaveSection = async (section) => {
     try {
-      let response;
-      
-      if (section === 'Basic Info') {
-        // Save basic info to the backend
-        response = await fetch(`http://localhost:3000/portfolio/template/${userId}/basics`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: formData.basics.name,
-            role: formData.basics.role,
-            bio: formData.basics.bio,
-            email: formData.basics.email,
-            phone: formData.basics.phone,
-            location: formData.basics.location,
-            profileImage: formData.basics.profileImage,
-            socialLinks: formData.basics.socialLinks
-          }),
-        });
-      } else {
-        // Handle other sections (existing code)
-        response = await fetch(`http://localhost:3000/authenticated-user/updatetemplate/${templateId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ data: formData }),
-        });
-      }
+        let response;
+        console.log('Saving section:', section);
+        console.log('Current userId:', userId);
 
-      if (response.ok) {
-        const result = await response.json();
-        // Show success message or notification
-        alert(`${section} saved successfully!`);
-      } else {
-        throw new Error('Failed to save changes');
-      }
+        if (!userId) {
+            throw new Error('User ID is not available');
+        }
+        
+        if (section === 'Basic Info') {
+            const basicData = {
+                name: formData.basics.name || '',
+                role: formData.basics.role || '',
+                bio: formData.basics.bio || '',
+                email: formData.basics.email || '',
+                phone: formData.basics.phone || '',
+                location: formData.basics.location || '',
+                profileImage: formData.basics.profileImage || null,
+                socialLinks: formData.basics.socialLinks || {}
+            };
+            console.log('Sending basic info data:', basicData);
+
+            response = await fetch(`http://localhost:3000/portfolio/template/${userId}/basics`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(basicData),
+            });
+
+            const data = await response.json();
+            console.log('Response from server:', data);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to save changes');
+            }
+
+            // Update formData without causing a full re-render
+            setFormData(prev => ({
+                ...prev,
+                basics: {
+                    ...prev.basics,
+                    ...data.data.basics
+                },
+                socialLinks: {
+                    ...prev.socialLinks,
+                    ...data.data.socialLinks
+                }
+            }));
+        } else {
+            response = await fetch(`http://localhost:3000/authenticated-user/updatetemplate/${templateId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ data: formData }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || 'Failed to save changes');
+            }
+
+            // Update formData without causing a full re-render
+            const updatedData = await response.json();
+            setFormData(prev => ({
+                ...prev,
+                ...updatedData.data
+            }));
+        }
     } catch (error) {
-      console.error('Error saving changes:', error);
-      alert('Failed to save changes. Please try again.');
+        console.error('Error saving changes:', error);
+        throw error;
     }
-  };
+};
 
-  const SaveButton = ({ section }) => (
-    <button
-      onClick={() => handleSaveSection(section)}
-      className="mt-6 w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-    >
-      Save {section}
-    </button>
-  );
+  const SaveButton = ({ section }) => {
+    const [status, setStatus] = useState(null);
+    const [message, setMessage] = useState('');
+
+    const handleClick = async () => {
+      try {
+        setStatus('saving');
+        await handleSaveSection(section);
+        setStatus('success');
+        setMessage('Saved!');
+        // Reset status after 2 seconds without causing a re-render
+        setTimeout(() => {
+          setStatus(null);
+          setMessage('');
+        }, 2000);
+      } catch (error) {
+        setStatus('error');
+        setMessage('Failed to save');
+        setTimeout(() => {
+          setStatus(null);
+          setMessage('');
+        }, 2000);
+      }
+    };
+
+    const getButtonStyles = () => {
+      const baseStyles = "mt-6 w-full py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 ";
+      
+      switch (status) {
+        case 'saving':
+          return baseStyles + "bg-gray-400 text-white cursor-wait";
+        case 'success':
+          return baseStyles + "bg-green-500 text-white";
+        case 'error':
+          return baseStyles + "bg-red-500 text-white";
+        default:
+          return baseStyles + "bg-blue-600 hover:bg-blue-700 text-white";
+      }
+    };
+
+    return (
+      <button
+        onClick={handleClick}
+        disabled={status === 'saving'}
+        className={getButtonStyles()}
+      >
+        {status === 'saving' && (
+          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        )}
+        {status === 'success' && <FiCheck className="w-5 h-5" />}
+        {status === 'error' && <FiX className="w-5 h-5" />}
+        <span>
+          {status === 'saving' ? 'Saving...' :
+           status === 'success' ? 'Saved!' :
+           status === 'error' ? 'Failed to save' :
+           `Save ${section}`}
+        </span>
+      </button>
+    );
+  };
 
   // Add section toggle handler
   const handleSectionToggle = (sectionId) => {
