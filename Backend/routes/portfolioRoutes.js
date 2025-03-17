@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+const PortfolioData = require('../models/PortfolioData');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -205,6 +206,88 @@ router.post('/portfolio/:userId/:section/:itemId/upload', upload.array('images',
     } catch (error) {
         console.error('Error uploading images:', error);
         res.status(500).json({ message: 'Error uploading images' });
+    }
+});
+
+// Update template basic information
+router.put('/template/:userId/basics', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        console.log('Received userId:', userId);
+        console.log('Received data:', req.body);
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        const {
+            name,
+            role,
+            bio,
+            email,
+            phone,
+            location,
+            profileImage,
+            socialLinks
+        } = req.body;
+
+        // Find or create portfolio data
+        let portfolio = await PortfolioData.findOne({ userId });
+        console.log('Existing portfolio:', portfolio);
+        
+        if (!portfolio) {
+            console.log('Creating new portfolio for user:', userId);
+            portfolio = new PortfolioData({
+                userId,
+                portfolioType: 'developer', // Default type for expert template
+                basics: {
+                    isVisible: true
+                }
+            });
+        }
+
+        // Update basic information
+        portfolio.basics = {
+            ...portfolio.basics,
+            name,
+            title: role, // Map role to title in the schema
+            summary: bio, // Map bio to summary in the schema
+            email,
+            phone,
+            location,
+            profileImage,
+            isVisible: true
+        };
+
+        // Update social links
+        if (socialLinks) {
+            portfolio.socialLinks = Object.entries(socialLinks).map(([platform, url]) => ({
+                platform,
+                url,
+                isVisible: true
+            }));
+        }
+
+        console.log('Saving portfolio:', portfolio);
+
+        // Save the updated portfolio
+        await portfolio.save();
+
+        console.log('Portfolio saved successfully');
+
+        res.status(200).json({
+            message: 'Basic information updated successfully',
+            data: {
+                basics: portfolio.basics,
+                socialLinks: portfolio.socialLinks
+            }
+        });
+    } catch (error) {
+        console.error('Error updating basic information:', error);
+        res.status(500).json({ 
+            message: 'Error updating basic information',
+            error: error.message 
+        });
     }
 });
 

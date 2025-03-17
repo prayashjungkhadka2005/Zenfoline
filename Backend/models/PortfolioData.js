@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 
 const portfolioDataSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',
+    type: String,
     required: true,
   },
   // Basic Information

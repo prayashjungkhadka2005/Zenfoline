@@ -175,17 +175,41 @@ const TemplateEditor = () => {
   // Add save function
   const handleSaveSection = async (section) => {
     try {
-      const response = await fetch(`http://localhost:3000/authenticated-user/updatetemplate/${templateId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ data: formData }),
-      });
+      let response;
+      
+      if (section === 'Basic Info') {
+        // Save basic info to the backend
+        response = await fetch(`http://localhost:3000/portfolio/template/${userId}/basics`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.basics.name,
+            role: formData.basics.role,
+            bio: formData.basics.bio,
+            email: formData.basics.email,
+            phone: formData.basics.phone,
+            location: formData.basics.location,
+            profileImage: formData.basics.profileImage,
+            socialLinks: formData.basics.socialLinks
+          }),
+        });
+      } else {
+        // Handle other sections (existing code)
+        response = await fetch(`http://localhost:3000/authenticated-user/updatetemplate/${templateId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ data: formData }),
+        });
+      }
 
       if (response.ok) {
+        const result = await response.json();
         // Show success message or notification
-        alert(`${section} section saved successfully!`);
+        alert(`${section} saved successfully!`);
       } else {
         throw new Error('Failed to save changes');
       }
