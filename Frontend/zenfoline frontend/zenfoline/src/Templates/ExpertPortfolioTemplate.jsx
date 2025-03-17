@@ -131,7 +131,8 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 animate-gradient"></div>
-        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-10"></div>
+        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 relative z-10">
           <div className="md:w-1/2 text-center md:text-left">
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               {data?.basics?.name || 'Full Stack'} <span className="text-orange-500 break-words">{data?.basics?.role || 'Developer'}</span>
@@ -141,11 +142,13 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
             </p>
             <div className="flex gap-4 justify-center md:justify-start">
               {isSectionEnabled('projects') && data?.projects?.length > 0 && (
-                <a href="#projects" className="px-8 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors">
+                <a href="#projects" className="px-8 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors flex items-center gap-2">
+                  <FaCode className="w-5 h-5" />
                   View Projects
                 </a>
               )}
-              <a href="#contact" className="px-8 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all">
+              <a href="#contact" className="px-8 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all flex items-center gap-2">
+                <FaEnvelope className="w-5 h-5" />
                 Contact Me
               </a>
             </div>
@@ -153,12 +156,12 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
           <div className="md:w-1/2 relative">
             <div className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-orange-500 shadow-2xl transform hover:scale-105 transition-transform">
               <img
-                src={data?.basics?.profileImage || profile}
+                src={data?.basics?.profileImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'}
                 alt={data?.basics?.name || 'Profile'}
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = profile;
+                  e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
                 }}
               />
             </div>
@@ -168,17 +171,18 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
 
       {/* About Section */}
       {isSectionEnabled('about') && data?.about?.description && (
-        <section id="about" className="py-20 bg-black bg-opacity-50">
-          <div className="container mx-auto px-6">
+        <section id="about" className="py-20 bg-black bg-opacity-50 relative">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
+          <div className="container mx-auto px-6 relative z-10">
             <h2 className="text-4xl font-bold text-center mb-12">About Me</h2>
             <div className="max-w-3xl mx-auto">
               <p className="text-lg text-gray-300 mb-8">{data.about.description}</p>
               {data.about.highlights?.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {data.about.highlights.map((highlight, index) => (
-                    <div key={index} className="flex items-center space-x-3">
+                    <div key={index} className="flex items-center space-x-3 bg-gray-800 p-4 rounded-lg">
                       <FaCode className="text-orange-500 w-5 h-5" />
-                      <span>{highlight.text}</span>
+                      <span className="text-gray-300">{highlight.text}</span>
                     </div>
                   ))}
                 </div>
@@ -190,10 +194,11 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
 
       {/* Skills Section */}
       {isSectionEnabled('skills') && (data?.skills?.technical?.length > 0 || data?.skills?.soft?.length > 0) && (
-        <section id="skills" className="py-20">
-          <div className="container mx-auto px-6">
+        <section id="skills" className="py-20 relative">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555066931-bf19f8e1083d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
+          <div className="container mx-auto px-6 relative z-10">
             <h2 className="text-4xl font-bold text-center mb-12">Technical Expertise</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
               {/* Technical Skills */}
               {data.skills.technical?.length > 0 && (
                 <div>
@@ -202,7 +207,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                     {data.skills.technical.map((skill, index) => (
                       <div key={index} className="bg-gray-800 p-4 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">{skill.name}</span>
+                          <span className="font-medium text-gray-300">{skill.name}</span>
                           <span className="text-orange-500">{skill.level}</span>
                         </div>
                         <div className="w-full bg-gray-700 h-2 rounded-full">
@@ -225,7 +230,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                     {data.skills.soft.map((skill, index) => (
                       <div key={index} className="bg-gray-800 p-4 rounded-lg">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">{skill.name}</span>
+                          <span className="font-medium text-gray-300">{skill.name}</span>
                           <span className="text-orange-500">{skill.level}</span>
                         </div>
                         <div className="w-full bg-gray-700 h-2 rounded-full">
@@ -246,48 +251,62 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
 
       {/* Projects Section */}
       {isSectionEnabled('projects') && data?.projects?.length > 0 && (
-        <section id="projects" className="py-20 bg-black bg-opacity-50">
-          <div className="container mx-auto px-6">
+        <section id="projects" className="py-20 bg-black bg-opacity-50 relative">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
+          <div className="container mx-auto px-6 relative z-10">
             <h2 className="text-4xl font-bold text-center mb-12">Featured Projects</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
               {data.projects.map((project, index) => (
                 <div
                   key={index}
                   className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300"
                 >
-                  {project.image && (
-                    <div className="h-48 overflow-hidden">
-                      <img
-                        src={project.image}
-                        alt={project.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="p-6">
+                  <div className="relative h-56 overflow-hidden">
+                    <img
+                      src={project.image || [
+                        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                        'https://images.unsplash.com/photo-1555066931-bf19f8e1083d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                        'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                        'https://images.unsplash.com/photo-1504639725590-34d0984388bd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+                      ][index % 4]}
+                      alt={project.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = [
+                          'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                          'https://images.unsplash.com/photo-1555066931-bf19f8e1083d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                          'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                          'https://images.unsplash.com/photo-1504639725590-34d0984388bd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+                        ][index % 4];
+                      }}
+                    />
+                  </div>
+                  <div className="p-8">
                     <h3 className="text-2xl font-bold mb-4">{project.title}</h3>
-                    <p className="text-gray-400 mb-4">{project.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <p className="text-gray-400 mb-6 line-clamp-3 text-lg">{project.description}</p>
+                    <div className="flex flex-wrap gap-2 mb-6">
                       {(Array.isArray(project.technologies) 
                         ? project.technologies 
                         : project.technologies?.split(',').map(tech => tech.trim())
                       )?.map((tech, i) => (
                         <span
                           key={i}
-                          className="px-3 py-1 bg-orange-500 bg-opacity-20 text-orange-500 rounded-full text-sm"
+                          className="px-4 py-2 bg-orange-500 bg-opacity-20 text-orange-500 rounded-full text-sm"
                         >
                           {tech}
                         </span>
                       ))}
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-6">
                       {project.liveLink && (
                         <a
                           href={project.liveLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-orange-500 hover:text-orange-400"
+                          className="text-orange-500 hover:text-orange-400 flex items-center gap-2 text-lg"
                         >
+                          <FaGlobe className="w-5 h-5" />
                           Live Demo
                         </a>
                       )}
@@ -296,8 +315,9 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                           href={project.sourceCode}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-orange-500 hover:text-orange-400"
+                          className="text-orange-500 hover:text-orange-400 flex items-center gap-2 text-lg"
                         >
+                          <FaCode className="w-5 h-5" />
                           Source Code
                         </a>
                       )}
@@ -312,12 +332,13 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
 
       {/* Experience Section */}
       {isSectionEnabled('experience') && data?.experience?.length > 0 && (
-        <section id="experience" className="py-20">
-          <div className="container mx-auto px-6">
+        <section id="experience" className="py-20 relative">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
+          <div className="container mx-auto px-6 relative z-10">
             <h2 className="text-4xl font-bold text-center mb-12">Work Experience</h2>
             <div className="max-w-3xl mx-auto space-y-8">
               {data.experience.map((exp, index) => (
-                <div key={index} className="bg-gray-800 p-6 rounded-lg">
+                <div key={index} className="bg-gray-800 p-6 rounded-lg hover:transform hover:scale-102 transition-all duration-300">
                   <h3 className="text-2xl font-bold mb-2">{exp.title}</h3>
                   <div className="text-orange-500 mb-4">{exp.company} | {exp.location}</div>
                   <div className="text-gray-400 mb-4">
@@ -332,8 +353,9 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
       )}
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-black bg-opacity-50">
-        <div className="container mx-auto px-6 text-center">
+      <section id="contact" className="py-20 bg-black bg-opacity-50 relative">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
+        <div className="container mx-auto px-6 text-center relative z-10">
           <h2 className="text-4xl font-bold mb-8">Let's Connect</h2>
           <p className="text-xl text-gray-400 mb-8">
             Ready to start your next project? Get in touch!

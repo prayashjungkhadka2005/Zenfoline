@@ -781,6 +781,34 @@ const TemplateEditor = () => {
 
                 <div className={commonClasses.grid}>
                   <div className="col-span-2">
+                    <label className={commonClasses.label}>Project Image</label>
+                    <div className="flex items-center space-x-4">
+                      <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
+                        <img
+                          src={project.image || 'https://via.placeholder.com/150'}
+                          alt={project.title || 'Project preview'}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              handleInputChange('projects', 'image', reader.result, index);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="col-span-2">
                     <label className={commonClasses.label}>Project Title</label>
                     <input
                       type="text"
