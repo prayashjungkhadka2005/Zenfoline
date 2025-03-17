@@ -55,7 +55,7 @@ const TemplateEditor = () => {
     },
     about: {
       description: '',
-      highlights: [{ text: '', icon: 'FaCode' }]
+      highlights: [{ text: '' }]
     },
     skills: {
       technical: [{ name: '', level: 'Beginner' }],
@@ -70,39 +70,14 @@ const TemplateEditor = () => {
       current: false,
       description: ''
     }],
-    education: [{
-      degree: '',
-      institution: '',
-      location: '',
-      startDate: '',
-      endDate: '',
-      description: ''
-    }],
     projects: [{
       title: '',
       description: '',
       technologies: [],
+      newTech: '',
       image: null,
       liveLink: '',
       sourceCode: ''
-    }],
-    certifications: [{
-      name: '',
-      issuer: '',
-      date: '',
-      link: ''
-    }],
-    publications: [{
-      title: '',
-      publisher: '',
-      date: '',
-      link: '',
-      description: ''
-    }],
-    services: [{
-      title: '',
-      description: '',
-      icon: ''
     }]
   });
 
@@ -259,7 +234,8 @@ const TemplateEditor = () => {
         { id: 'basics', label: 'Basic Info', icon: <FiUser className="w-5 h-5" />, required: true },
         { id: 'about', label: 'About', icon: <FiInfo className="w-5 h-5" />, required: false },
         { id: 'projects', label: 'Projects', icon: <FiFileText className="w-5 h-5" />, required: false }
-      ]
+      ],
+      // Add more templates here as needed
     };
 
     const sections = templateSections[activeTemplate.predefinedTemplate] || [];
@@ -787,320 +763,6 @@ const TemplateEditor = () => {
           </div>
         );
 
-      case 'education':
-        return (
-          <div className={commonClasses.section}>
-            <div className={commonClasses.infoBox}>
-              <p className={commonClasses.infoText}>Add your educational background and qualifications.</p>
-            </div>
-
-            {formData.education.map((edu, index) => (
-              <div key={index} className={commonClasses.itemCard}>
-                <button
-                  onClick={() => removeItem('education', index)}
-                  className={commonClasses.removeButton}
-                >
-                  <FiFileText className="w-5 h-5" />
-                </button>
-
-                <div className={commonClasses.grid}>
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Degree</label>
-                    <input
-                      type="text"
-                      value={edu.degree}
-                      onChange={(e) => handleInputChange('education', 'degree', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="e.g., Bachelor of Science in Computer Science"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={commonClasses.label}>Institution</label>
-                    <input
-                      type="text"
-                      value={edu.institution}
-                      onChange={(e) => handleInputChange('education', 'institution', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="School/University name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={commonClasses.label}>Location</label>
-                    <input
-                      type="text"
-                      value={edu.location}
-                      onChange={(e) => handleInputChange('education', 'location', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="City, Country"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={commonClasses.label}>Start Date</label>
-                    <input
-                      type="date"
-                      value={edu.startDate}
-                      onChange={(e) => handleInputChange('education', 'startDate', e.target.value, index)}
-                      className={commonClasses.input}
-                    />
-                  </div>
-
-                  <div>
-                    <label className={commonClasses.label}>End Date</label>
-                    <input
-                      type="date"
-                      value={edu.endDate}
-                      onChange={(e) => handleInputChange('education', 'endDate', e.target.value, index)}
-                      className={commonClasses.input}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Description</label>
-                    <textarea
-                      value={edu.description}
-                      onChange={(e) => handleInputChange('education', 'description', e.target.value, index)}
-                      rows="3"
-                      className={commonClasses.input}
-                      placeholder="Add any relevant details about your studies..."
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <button
-              onClick={() => addItem('education')}
-              className={commonClasses.addButton}
-            >
-              + Add Education
-            </button>
-            <SaveButton section="Education" />
-          </div>
-        );
-
-      case 'certifications':
-        return (
-          <div className={commonClasses.section}>
-            <div className={commonClasses.infoBox}>
-              <p className={commonClasses.infoText}>Add your professional certifications and achievements.</p>
-            </div>
-
-            {formData.certifications.map((cert, index) => (
-              <div key={index} className={commonClasses.itemCard}>
-                <button
-                  onClick={() => removeItem('certifications', index)}
-                  className={commonClasses.removeButton}
-                >
-                  <FiFileText className="w-5 h-5" />
-                </button>
-
-                <div className={commonClasses.grid}>
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Certification Name</label>
-                    <input
-                      type="text"
-                      value={cert.name}
-                      onChange={(e) => handleInputChange('certifications', 'name', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="e.g., AWS Certified Solutions Architect"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={commonClasses.label}>Issuing Organization</label>
-                    <input
-                      type="text"
-                      value={cert.issuer}
-                      onChange={(e) => handleInputChange('certifications', 'issuer', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="e.g., Amazon Web Services"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={commonClasses.label}>Date Issued</label>
-                    <input
-                      type="date"
-                      value={cert.date}
-                      onChange={(e) => handleInputChange('certifications', 'date', e.target.value, index)}
-                      className={commonClasses.input}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Certificate URL</label>
-                    <input
-                      type="url"
-                      value={cert.link}
-                      onChange={(e) => handleInputChange('certifications', 'link', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="Link to verify certification"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <button
-              onClick={() => addItem('certifications')}
-              className={commonClasses.addButton}
-            >
-              + Add Certification
-            </button>
-            <SaveButton section="Certifications" />
-          </div>
-        );
-
-      case 'publications':
-        return (
-          <div className={commonClasses.section}>
-            <div className={commonClasses.infoBox}>
-              <p className={commonClasses.infoText}>Add your published works, articles, or research papers.</p>
-            </div>
-
-            {formData.publications.map((pub, index) => (
-              <div key={index} className={commonClasses.itemCard}>
-                <button
-                  onClick={() => removeItem('publications', index)}
-                  className={commonClasses.removeButton}
-                >
-                  <FiFileText className="w-5 h-5" />
-                </button>
-
-                <div className={commonClasses.grid}>
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Title</label>
-                    <input
-                      type="text"
-                      value={pub.title}
-                      onChange={(e) => handleInputChange('publications', 'title', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="Publication title"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={commonClasses.label}>Publisher</label>
-                    <input
-                      type="text"
-                      value={pub.publisher}
-                      onChange={(e) => handleInputChange('publications', 'publisher', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="Publisher name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className={commonClasses.label}>Publication Date</label>
-                    <input
-                      type="date"
-                      value={pub.date}
-                      onChange={(e) => handleInputChange('publications', 'date', e.target.value, index)}
-                      className={commonClasses.input}
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Description</label>
-                    <textarea
-                      value={pub.description}
-                      onChange={(e) => handleInputChange('publications', 'description', e.target.value, index)}
-                      rows="3"
-                      className={commonClasses.input}
-                      placeholder="Brief description of the publication..."
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Link</label>
-                    <input
-                      type="url"
-                      value={pub.link}
-                      onChange={(e) => handleInputChange('publications', 'link', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="URL to the publication"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <button
-              onClick={() => addItem('publications')}
-              className={commonClasses.addButton}
-            >
-              + Add Publication
-            </button>
-            <SaveButton section="Publications" />
-          </div>
-        );
-
-      case 'services':
-        return (
-          <div className={commonClasses.section}>
-            <div className={commonClasses.infoBox}>
-              <p className={commonClasses.infoText}>List the professional services you offer.</p>
-            </div>
-
-            {formData.services.map((service, index) => (
-              <div key={index} className={commonClasses.itemCard}>
-                <button
-                  onClick={() => removeItem('services', index)}
-                  className={commonClasses.removeButton}
-                >
-                  <FiFileText className="w-5 h-5" />
-                </button>
-
-                <div className={commonClasses.grid}>
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Service Title</label>
-                    <input
-                      type="text"
-                      value={service.title}
-                      onChange={(e) => handleInputChange('services', 'title', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="e.g., Web Development"
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Description</label>
-                    <textarea
-                      value={service.description}
-                      onChange={(e) => handleInputChange('services', 'description', e.target.value, index)}
-                      rows="3"
-                      className={commonClasses.input}
-                      placeholder="Describe the service you offer..."
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className={commonClasses.label}>Icon</label>
-                    <input
-                      type="text"
-                      value={service.icon}
-                      onChange={(e) => handleInputChange('services', 'icon', e.target.value, index)}
-                      className={commonClasses.input}
-                      placeholder="Icon name or URL"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <button
-              onClick={() => addItem('services')}
-              className={commonClasses.addButton}
-            >
-              + Add Service
-            </button>
-            <SaveButton section="Services" />
-          </div>
-        );
-
       case 'projects':
         return (
           <div className={commonClasses.section}>
@@ -1141,17 +803,61 @@ const TemplateEditor = () => {
                   </div>
 
                   <div className="col-span-2">
-                    <label className={commonClasses.label}>Technologies Used (comma-separated)</label>
-                    <input
-                      type="text"
-                      value={Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies || ''}
-                      onChange={(e) => {
-                        const techArray = e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech);
-                        handleInputChange('projects', 'technologies', techArray, index);
-                      }}
-                      className={commonClasses.input}
-                      placeholder="e.g. React, Node.js, MongoDB"
-                    />
+                    <label className={commonClasses.label}>Technologies Used</label>
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {project.technologies?.map((tech, techIndex) => (
+                          <span
+                            key={techIndex}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                          >
+                            {tech}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newTechs = project.technologies.filter((_, i) => i !== techIndex);
+                                handleInputChange('projects', 'technologies', newTechs, index);
+                              }}
+                              className="ml-2 text-blue-600 hover:text-blue-800"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={project.newTech || ''}
+                          onChange={(e) => {
+                            handleInputChange('projects', 'newTech', e.target.value, index);
+                          }}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && project.newTech?.trim()) {
+                              e.preventDefault();
+                              const newTechs = [...(project.technologies || []), project.newTech.trim()];
+                              handleInputChange('projects', 'technologies', newTechs, index);
+                              handleInputChange('projects', 'newTech', '', index);
+                            }
+                          }}
+                          className={commonClasses.input}
+                          placeholder="Type a technology and press Enter"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (project.newTech?.trim()) {
+                              const newTechs = [...(project.technologies || []), project.newTech.trim()];
+                              handleInputChange('projects', 'technologies', newTechs, index);
+                              handleInputChange('projects', 'newTech', '', index);
+                            }
+                          }}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <div>

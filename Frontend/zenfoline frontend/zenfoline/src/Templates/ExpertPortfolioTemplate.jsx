@@ -157,7 +157,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 alt={data?.basics?.name || 'Profile'}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.onerror = null; // Prevent infinite loop
+                  e.target.onerror = null;
                   e.target.src = profile;
                 }}
               />
@@ -177,13 +177,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {data.about.highlights.map((highlight, index) => (
                     <div key={index} className="flex items-center space-x-3">
-                      {highlight.icon ? (
-                        React.createElement(getIconComponent(highlight.icon), {
-                          className: "text-orange-500 w-5 h-5"
-                        })
-                      ) : (
-                        <FaCode className="text-orange-500 w-5 h-5" />
-                      )}
+                      <FaCode className="text-orange-500 w-5 h-5" />
                       <span>{highlight.text}</span>
                     </div>
                   ))}
@@ -350,13 +344,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 href={`mailto:${data.basics.email}`}
                 className="flex items-center gap-2 px-6 py-3 bg-orange-500 rounded-full hover:bg-orange-600 transition-colors"
               >
-                {data.basics.socialIcons?.email ? (
-                  React.createElement(getIconComponent(data.basics.socialIcons.email), {
-                    className: "w-5 h-5"
-                  })
-                ) : (
-                  <FaEnvelope className="w-5 h-5" />
-                )}
+                <FaEnvelope className="w-5 h-5" />
                 Email Me
               </a>
             )}
@@ -367,13 +355,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
               >
-                {data.basics.socialIcons?.linkedin ? (
-                  React.createElement(getIconComponent(data.basics.socialIcons.linkedin), {
-                    className: "w-5 h-5"
-                  })
-                ) : (
-                  <FaLinkedin className="w-5 h-5" />
-                )}
+                <FaLinkedin className="w-5 h-5" />
                 LinkedIn
               </a>
             )}
@@ -384,13 +366,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
               >
-                {data.basics.socialIcons?.github ? (
-                  React.createElement(getIconComponent(data.basics.socialIcons.github), {
-                    className: "w-5 h-5"
-                  })
-                ) : (
-                  <FaGithub className="w-5 h-5" />
-                )}
+                <FaGithub className="w-5 h-5" />
                 GitHub
               </a>
             )}
@@ -399,13 +375,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 href={`tel:${data.basics.phone}`}
                 className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
               >
-                {data.basics.socialIcons?.phone ? (
-                  React.createElement(getIconComponent(data.basics.socialIcons.phone), {
-                    className: "w-5 h-5"
-                  })
-                ) : (
-                  <FaPhone className="w-5 h-5" />
-                )}
+                <FaPhone className="w-5 h-5" />
                 Call Me
               </a>
             )}
