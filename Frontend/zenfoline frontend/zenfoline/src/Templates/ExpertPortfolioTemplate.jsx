@@ -156,6 +156,10 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 src={data?.basics?.profileImage || profile}
                 alt={data?.basics?.name || 'Profile'}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.onerror = null; // Prevent infinite loop
+                  e.target.src = profile;
+                }}
               />
             </div>
           </div>

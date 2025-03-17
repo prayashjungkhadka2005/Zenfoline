@@ -5,6 +5,7 @@ import useAuthStore from '../store/userAuthStore';
 import { templateComponents } from '../RenderedTemplate/templateComponents';
 import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool, FiSettings } from 'react-icons/fi';
 import { FaCode, FaServer, FaDatabase, FaTools, FaCloud, FaEnvelope, FaMapMarkerAlt, FaPhone, FaGlobe } from 'react-icons/fa';
+import profile from "../assets/profile.png";
 
 const TemplateEditor = () => {
   const { templateId } = useParams();
@@ -147,35 +148,20 @@ const TemplateEditor = () => {
     fetchData();
   }, [userId, templateId, templates, fetchTemplates]);
 
-  const handleImageUpload = async (e, section, index = null) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    try {
-      const response = await fetch('http://localhost:3000/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (response.ok) {
-        const { imagePath } = await response.json();
-        // Update the appropriate section with the new image path
-        if (section === 'basics') {
-          setFormData(prev => ({
-            ...prev,
-            basics: { ...prev.basics, profileImage: imagePath }
-          }));
-        } else if (section === 'projects' && index !== null) {
-          const newProjects = [...formData.projects];
-          newProjects[index] = { ...newProjects[index], image: imagePath };
-          setFormData(prev => ({ ...prev, projects: newProjects }));
-        }
-      }
-    } catch (error) {
-      console.error('Error uploading image:', error);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          basics: {
+            ...prev.basics,
+            profileImage: reader.result
+          }
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -374,18 +360,22 @@ const TemplateEditor = () => {
               <div className="col-span-2">
                 <label className={commonClasses.label}>Profile Image</label>
                 <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 rounded-full bg-gray-100 border flex items-center justify-center overflow-hidden">
-                    {formData.basics.profileImage ? (
-                      <img src={formData.basics.profileImage} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <FiUser className="w-8 h-8 text-gray-400" />
-                    )}
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-orange-500">
+                    <img
+                      src={formData.basics.profileImage || profile}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = profile;
+                      }}
+                    />
                   </div>
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleImageUpload(e, 'basics')}
-                    className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    onChange={handleImageUpload}
+                    className="flex-1"
                   />
                 </div>
               </div>
