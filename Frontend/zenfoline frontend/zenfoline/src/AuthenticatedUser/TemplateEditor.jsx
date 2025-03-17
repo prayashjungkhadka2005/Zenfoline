@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 import useTemplateStore from '../store/userTemplateStore';
 import useAuthStore from '../store/userAuthStore';
 import { templateComponents } from '../RenderedTemplate/templateComponents';
-import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool } from 'react-icons/fi';
+import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool, FiSettings } from 'react-icons/fi';
+import { FaCode, FaServer, FaDatabase, FaTools, FaCloud, FaEnvelope, FaMapMarkerAlt, FaPhone, FaGlobe } from 'react-icons/fa';
 
 const TemplateEditor = () => {
   const { templateId } = useParams();
@@ -17,6 +18,12 @@ const TemplateEditor = () => {
   const [formData, setFormData] = useState({
     theme: {
       fontStyle: 'Poppins',
+      enabledSections: {
+        about: true,
+        skills: true,
+        experience: true,
+        projects: true
+      }
     },
     basics: {
       name: '',
@@ -60,7 +67,7 @@ const TemplateEditor = () => {
     projects: [{
       title: '',
       description: '',
-      technologies: [''],
+      technologies: [],
       image: null,
       liveLink: '',
       sourceCode: ''
@@ -84,6 +91,8 @@ const TemplateEditor = () => {
       icon: ''
     }]
   });
+
+  const [showSettings, setShowSettings] = useState(false);
 
   // Fetch template data and theme on component mount
   useEffect(() => {
@@ -221,6 +230,90 @@ const TemplateEditor = () => {
     </button>
   );
 
+  // Add section toggle handler
+  const handleSectionToggle = (sectionId) => {
+    setFormData(prev => ({
+      ...prev,
+      theme: {
+        ...prev.theme,
+        enabledSections: {
+          ...prev.theme.enabledSections,
+          [sectionId]: !prev.theme.enabledSections[sectionId]
+        }
+      }
+    }));
+  };
+
+  // Update sections based on template and visibility
+  const getTemplateSections = () => {
+    if (!activeTemplate) return [];
+    
+    const templateSections = {
+      ExpertPortfolioTemplate: [
+        { id: 'basics', label: 'Basic Info', icon: <FiUser className="w-5 h-5" />, required: true },
+        { id: 'about', label: 'About', icon: <FiInfo className="w-5 h-5" />, required: false },
+        { id: 'skills', label: 'Skills', icon: <FiCode className="w-5 h-5" />, required: false },
+        { id: 'experience', label: 'Experience', icon: <FiBriefcase className="w-5 h-5" />, required: false },
+        { id: 'projects', label: 'Projects', icon: <FiFileText className="w-5 h-5" />, required: false }
+      ],
+      SimplePortfolioTemplate: [
+        { id: 'basics', label: 'Basic Info', icon: <FiUser className="w-5 h-5" />, required: true },
+        { id: 'about', label: 'About', icon: <FiInfo className="w-5 h-5" />, required: false },
+        { id: 'projects', label: 'Projects', icon: <FiFileText className="w-5 h-5" />, required: false }
+      ]
+    };
+
+    const sections = templateSections[activeTemplate.predefinedTemplate] || [];
+    
+    // Add settings section at the end
+    return [
+      ...sections,
+      { id: 'settings', label: 'Settings', icon: <FiSettings className="w-5 h-5" />, required: true }
+    ];
+  };
+
+  // Get visible sections for navigation
+  const getVisibleSections = () => {
+    return sections.filter(section => 
+      section.required || formData.theme.enabledSections[section.id]
+    );
+  };
+
+  // Update the navigation rendering
+  const renderNavigation = () => {
+    const visibleSections = getVisibleSections();
+    
+    return visibleSections.map((section) => (
+      <div key={section.id} className="mb-2">
+        <button
+          onClick={() => setActiveSection(section.id)}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors ${
+            activeSection === section.id
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          <div className="flex items-center space-x-3">
+            {section.icon}
+            <span className="text-sm font-medium">{section.label}</span>
+          </div>
+          {section.id === 'settings' && (
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-gray-500">
+                {Object.values(formData.theme.enabledSections).filter(Boolean).length} visible
+              </span>
+            </div>
+          )}
+        </button>
+      </div>
+    ));
+  };
+
+  const sections = getTemplateSections();
+
+  const TemplateComponent = activeTemplate ? templateComponents[activeTemplate.predefinedTemplate] : null;
+
+  // Update the sections rendering to include toggles
   const renderFormSection = () => {
     const commonClasses = {
       input: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
@@ -233,6 +326,40 @@ const TemplateEditor = () => {
       removeButton: "absolute top-4 right-4 text-red-500 hover:text-red-700",
       addButton: "w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
     };
+
+    if (activeSection === 'settings') {
+      return (
+        <div className="space-y-6">
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-700">Customize which sections appear in your portfolio.</p>
+          </div>
+          
+          <div className="space-y-4">
+            {sections.filter(section => !section.required).map((section) => (
+              <div key={section.id} className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
+                <div className="flex items-center space-x-3">
+                  {section.icon}
+                  <span className="text-sm font-medium text-gray-700">{section.label}</span>
+                </div>
+                <button
+                  onClick={() => handleSectionToggle(section.id)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                    formData.theme.enabledSections[section.id] ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      formData.theme.enabledSections[section.id] ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+          <SaveButton section="Settings" />
+        </div>
+      );
+    }
 
     switch (activeSection) {
       case 'basics':
@@ -990,12 +1117,15 @@ const TemplateEditor = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className={commonClasses.label}>Technologies Used</label>
+                  <div className="col-span-2">
+                    <label className={commonClasses.label}>Technologies Used (comma-separated)</label>
                     <input
                       type="text"
-                      value={project.technologies}
-                      onChange={(e) => handleInputChange('projects', 'technologies', e.target.value, index)}
+                      value={Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies || ''}
+                      onChange={(e) => {
+                        const techArray = e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech);
+                        handleInputChange('projects', 'technologies', techArray, index);
+                      }}
                       className={commonClasses.input}
                       placeholder="e.g. React, Node.js, MongoDB"
                     />
@@ -1007,6 +1137,17 @@ const TemplateEditor = () => {
                       type="url"
                       value={project.liveLink}
                       onChange={(e) => handleInputChange('projects', 'liveLink', e.target.value, index)}
+                      className={commonClasses.input}
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className={commonClasses.label}>Source Code URL</label>
+                    <input
+                      type="url"
+                      value={project.sourceCode}
+                      onChange={(e) => handleInputChange('projects', 'sourceCode', e.target.value, index)}
                       className={commonClasses.input}
                       placeholder="https://..."
                     />
@@ -1030,19 +1171,39 @@ const TemplateEditor = () => {
     }
   };
 
-  const sections = [
-    { id: 'basics', label: 'Basic Info', icon: <FiUser className="w-5 h-5" /> },
-    { id: 'about', label: 'About', icon: <FiInfo className="w-5 h-5" /> },
-    { id: 'skills', label: 'Skills', icon: <FiCode className="w-5 h-5" /> },
-    { id: 'experience', label: 'Experience', icon: <FiBriefcase className="w-5 h-5" /> },
-    { id: 'education', label: 'Education', icon: <FiBook className="w-5 h-5" /> },
-    { id: 'certifications', label: 'Certifications', icon: <FiAward className="w-5 h-5" /> },
-    { id: 'projects', label: 'Projects', icon: <FiFileText className="w-5 h-5" /> },
-    { id: 'publications', label: 'Publications', icon: <FiStar className="w-5 h-5" /> },
-    { id: 'services', label: 'Services', icon: <FiTool className="w-5 h-5" /> }
-  ];
+  // Add icon selection component
+  const IconSelector = ({ value, onChange }) => {
+    const icons = {
+      FaCode: <FaCode className="w-5 h-5" />,
+      FaServer: <FaServer className="w-5 h-5" />,
+      FaDatabase: <FaDatabase className="w-5 h-5" />,
+      FaTools: <FaTools className="w-5 h-5" />,
+      FaCloud: <FaCloud className="w-5 h-5" />,
+      FaEnvelope: <FaEnvelope className="w-5 h-5" />,
+      FaMapMarkerAlt: <FaMapMarkerAlt className="w-5 h-5" />,
+      FaPhone: <FaPhone className="w-5 h-5" />,
+      FaGlobe: <FaGlobe className="w-5 h-5" />
+    };
 
-  const TemplateComponent = activeTemplate ? templateComponents[activeTemplate.predefinedTemplate] : null;
+    return (
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={commonClasses.input}
+        >
+          {Object.keys(icons).map((iconName) => (
+            <option key={iconName} value={iconName}>
+              {iconName}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+          {icons[value] || <FaCode className="w-5 h-5" />}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -1053,20 +1214,7 @@ const TemplateEditor = () => {
           <p className="text-sm text-gray-500 mt-1">Customize your portfolio</p>
         </div>
         <nav className="px-4 pb-6">
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => setActiveSection(section.id)}
-              className={`w-full flex items-center space-x-3 px-4 py-3 mb-1 rounded-lg transition-colors ${
-                activeSection === section.id
-                  ? 'bg-blue-50 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50'
-              }`}
-            >
-              {section.icon}
-              <span className="text-sm font-medium">{section.label}</span>
-            </button>
-          ))}
+          {renderNavigation()}
         </nav>
       </div>
 
