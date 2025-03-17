@@ -11,6 +11,19 @@ const TemplateEditor = () => {
   const { templates, fetchTemplates } = useTemplateStore();
   const userId = useAuthStore((state) => state.userId);
 
+  // Move commonClasses to component level
+  const commonClasses = {
+    input: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+    label: "block text-sm font-medium text-gray-700 mb-2",
+    section: "space-y-6",
+    infoBox: "bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6",
+    infoText: "text-sm text-blue-700",
+    grid: "grid grid-cols-2 gap-6",
+    itemCard: "bg-white rounded-lg border border-gray-200 p-6 relative",
+    removeButton: "absolute top-4 right-4 text-red-500 hover:text-red-700",
+    addButton: "w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
+  };
+
   const [activeTemplate, setActiveTemplate] = useState(null);
   const [activeSection, setActiveSection] = useState('basics');
   const [fontStyle, setFontStyle] = useState('Poppins');
@@ -41,7 +54,7 @@ const TemplateEditor = () => {
     },
     about: {
       description: '',
-      highlights: ['']
+      highlights: [{ text: '', icon: 'FaCode' }]
     },
     skills: {
       technical: [{ name: '', level: 'Beginner' }],
@@ -315,18 +328,6 @@ const TemplateEditor = () => {
 
   // Update the sections rendering to include toggles
   const renderFormSection = () => {
-    const commonClasses = {
-      input: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
-      label: "block text-sm font-medium text-gray-700 mb-2",
-      section: "space-y-6",
-      infoBox: "bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6",
-      infoText: "text-sm text-blue-700",
-      grid: "grid grid-cols-2 gap-6",
-      itemCard: "bg-white rounded-lg border border-gray-200 p-6 relative",
-      removeButton: "absolute top-4 right-4 text-red-500 hover:text-red-700",
-      addButton: "w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-colors"
-    };
-
     if (activeSection === 'settings') {
       return (
         <div className="space-y-6">
@@ -463,8 +464,19 @@ const TemplateEditor = () => {
                     <input
                       type="url"
                       value={formData.basics.socialLinks.linkedin}
-                      onChange={(e) => handleInputChange('basics', 'socialLinks.linkedin', e.target.value)}
-                      className={commonClasses.input}
+                      onChange={(e) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          basics: {
+                            ...prev.basics,
+                            socialLinks: {
+                              ...prev.basics.socialLinks,
+                              linkedin: e.target.value
+                            }
+                          }
+                        }));
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="LinkedIn profile URL"
                     />
                   </div>
@@ -473,19 +485,40 @@ const TemplateEditor = () => {
                     <input
                       type="url"
                       value={formData.basics.socialLinks.github}
-                      onChange={(e) => handleInputChange('basics', 'socialLinks.github', e.target.value)}
-                      className={commonClasses.input}
+                      onChange={(e) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          basics: {
+                            ...prev.basics,
+                            socialLinks: {
+                              ...prev.basics.socialLinks,
+                              github: e.target.value
+                            }
+                          }
+                        }));
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="GitHub profile URL"
                     />
                   </div>
                   <div className="flex items-center space-x-4">
-                    <span className="text-gray-500 w-24">Twitter:</span>
+                    <span className="text-gray-500 w-24">Email:</span>
                     <input
-                      type="url"
-                      value={formData.basics.socialLinks.twitter}
-                      onChange={(e) => handleInputChange('basics', 'socialLinks.twitter', e.target.value)}
-                      className={commonClasses.input}
-                      placeholder="Twitter profile URL"
+                      type="email"
+                      value={formData.basics.email}
+                      onChange={(e) => handleInputChange('basics', 'email', e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-gray-500 w-24">Phone:</span>
+                    <input
+                      type="tel"
+                      value={formData.basics.phone}
+                      onChange={(e) => handleInputChange('basics', 'phone', e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Your phone number"
                     />
                   </div>
                 </div>
@@ -520,10 +553,10 @@ const TemplateEditor = () => {
                   <div key={index} className="flex items-center space-x-2 mb-2">
                     <input
                       type="text"
-                      value={highlight}
+                      value={highlight.text}
                       onChange={(e) => {
                         const newHighlights = [...formData.about.highlights];
-                        newHighlights[index] = e.target.value;
+                        newHighlights[index] = { ...highlight, text: e.target.value };
                         handleInputChange('about', 'highlights', newHighlights);
                       }}
                       className={commonClasses.input}
@@ -542,7 +575,7 @@ const TemplateEditor = () => {
                 ))}
                 <button
                   onClick={() => {
-                    const newHighlights = [...formData.about.highlights, ''];
+                    const newHighlights = [...formData.about.highlights, { text: '' }];
                     handleInputChange('about', 'highlights', newHighlights);
                   }}
                   className={commonClasses.addButton}
@@ -1171,35 +1204,40 @@ const TemplateEditor = () => {
     }
   };
 
-  // Add icon selection component
+  // Update IconSelector component
   const IconSelector = ({ value, onChange }) => {
     const icons = {
-      FaCode: <FaCode className="w-5 h-5" />,
-      FaServer: <FaServer className="w-5 h-5" />,
-      FaDatabase: <FaDatabase className="w-5 h-5" />,
-      FaTools: <FaTools className="w-5 h-5" />,
-      FaCloud: <FaCloud className="w-5 h-5" />,
-      FaEnvelope: <FaEnvelope className="w-5 h-5" />,
-      FaMapMarkerAlt: <FaMapMarkerAlt className="w-5 h-5" />,
-      FaPhone: <FaPhone className="w-5 h-5" />,
-      FaGlobe: <FaGlobe className="w-5 h-5" />
+      FaCode: { component: FaCode, label: 'Code' },
+      FaServer: { component: FaServer, label: 'Server' },
+      FaDatabase: { component: FaDatabase, label: 'Database' },
+      FaTools: { component: FaTools, label: 'Tools' },
+      FaCloud: { component: FaCloud, label: 'Cloud' },
+      FaEnvelope: { component: FaEnvelope, label: 'Envelope' },
+      FaMapMarkerAlt: { component: FaMapMarkerAlt, label: 'Location' },
+      FaPhone: { component: FaPhone, label: 'Phone' },
+      FaGlobe: { component: FaGlobe, label: 'Globe' }
     };
 
+    const IconComponent = icons[value]?.component || FaCode;
+
     return (
-      <div className="relative">
+      <div className="relative w-32">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={commonClasses.input}
+          className="w-full h-10 pl-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white cursor-pointer"
         >
-          {Object.keys(icons).map((iconName) => (
+          {Object.entries(icons).map(([iconName, { label }]) => (
             <option key={iconName} value={iconName}>
-              {iconName}
+              {label}
             </option>
           ))}
         </select>
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-          {icons[value] || <FaCode className="w-5 h-5" />}
+        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none flex items-center space-x-2">
+          <IconComponent className="w-5 h-5 text-gray-600" />
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
     );
