@@ -167,7 +167,19 @@ const TemplateEditor = () => {
                 skills: template.data.skills || prev.skills,
                 experience: template.data.experience || prev.experience,
                 projects: template.data.projects || prev.projects,
-                theme: template.data.theme || prev.theme
+                theme: {
+                  ...prev.theme,
+                  fontStyle: template.data.theme?.fontStyle || prev.theme.fontStyle,
+                  enabledSections: {
+                    ...prev.theme.enabledSections,
+                    ...(template.data.theme?.enabledSections || {
+                      about: true,
+                      skills: true,
+                      experience: true,
+                      projects: true
+                    })
+                  }
+                }
               }));
             }
           }
@@ -186,7 +198,10 @@ const TemplateEditor = () => {
               theme: {
                 ...prev.theme,
                 fontStyle: themeFontStyle,
-                enabledSections: theme.enabledSections || prev.theme.enabledSections
+                enabledSections: {
+                  ...prev.theme.enabledSections,
+                  ...(theme.enabledSections || {})
+                }
               }
             }));
           }
@@ -203,7 +218,7 @@ const TemplateEditor = () => {
     return () => {
       isMounted = false;
     };
-  }, [userId, templateId]); // Remove templates and fetchTemplates from dependencies
+  }, [userId, templateId]);
 
   // Add a separate useEffect for handling template updates
   useEffect(() => {
@@ -375,35 +390,40 @@ const TemplateEditor = () => {
             console.log('Template update response:', templateUpdateData);
 
             if (templateUpdateData.data) {
-                setFormData(prev => ({
-                    ...prev,
-                    basics: {
-                        ...(prev.basics || {}),
-                        ...(templateUpdateData.data.basics || {}),
-                        socialLinks: {
-                            ...(prev.basics?.socialLinks || {}),
-                            ...(templateUpdateData.data.basics?.socialLinks || {})
+                setFormData(prev => {
+                    // Preserve the current enabled sections
+                    const currentEnabledSections = prev.theme?.enabledSections || {
+                        about: true,
+                        skills: true,
+                        experience: true,
+                        projects: true
+                    };
+
+                    return {
+                        ...prev,
+                        basics: {
+                            ...(prev.basics || {}),
+                            ...(templateUpdateData.data.basics || {}),
+                            socialLinks: {
+                                ...(prev.basics?.socialLinks || {}),
+                                ...(templateUpdateData.data.basics?.socialLinks || {})
+                            }
+                        },
+                        about: templateUpdateData.data.about || prev.about || {},
+                        skills: templateUpdateData.data.skills || prev.skills || {},
+                        experience: templateUpdateData.data.experience || prev.experience || [],
+                        projects: templateUpdateData.data.projects || prev.projects || [],
+                        theme: {
+                            ...(prev.theme || {}),
+                            ...(templateUpdateData.data.theme || {}),
+                            fontStyle: templateUpdateData.data.theme?.fontStyle || prev.theme?.fontStyle || 'Poppins',
+                            enabledSections: {
+                                ...currentEnabledSections,
+                                ...(templateUpdateData.data.theme?.enabledSections || {})
+                            }
                         }
-                    },
-                    about: templateUpdateData.data.about || prev.about || {},
-                    skills: templateUpdateData.data.skills || prev.skills || {},
-                    experience: templateUpdateData.data.experience || prev.experience || [],
-                    projects: templateUpdateData.data.projects || prev.projects || [],
-                    theme: {
-                        ...(prev.theme || {}),
-                        ...(templateUpdateData.data.theme || {}),
-                        fontStyle: templateUpdateData.data.theme?.fontStyle || prev.theme?.fontStyle || 'Poppins',
-                        enabledSections: {
-                            ...(prev.theme?.enabledSections || {}),
-                            ...(templateUpdateData.data.theme?.enabledSections || {
-                                about: true,
-                                skills: true,
-                                experience: true,
-                                projects: true
-                            })
-                        }
-                    }
-                }));
+                    };
+                });
 
                 // Update active template if it exists
                 if (activeTemplate) {
@@ -493,16 +513,32 @@ const TemplateEditor = () => {
 
   // Add section toggle handler
   const handleSectionToggle = (sectionId) => {
-    setFormData(prev => ({
-      ...prev,
-      theme: {
+    setFormData(prev => {
+      // Get current enabled sections with defaults
+      const currentEnabledSections = prev.theme?.enabledSections || {
+        about: true,
+        skills: true,
+        experience: true,
+        projects: true
+      };
+
+      // Create new theme state
+      const newTheme = {
         ...(prev.theme || {}),
+        fontStyle: prev.theme?.fontStyle || 'Poppins',
         enabledSections: {
-          ...(prev.theme?.enabledSections || {}),
-          [sectionId]: !(prev.theme?.enabledSections?.[sectionId] ?? true)
+          ...currentEnabledSections,
+          [sectionId]: !currentEnabledSections[sectionId]
         }
-      }
-    }));
+      };
+
+      console.log('Toggling section:', sectionId, 'New enabled sections:', newTheme.enabledSections);
+
+      return {
+        ...prev,
+        theme: newTheme
+      };
+    });
   };
 
   // Get visible sections for navigation
