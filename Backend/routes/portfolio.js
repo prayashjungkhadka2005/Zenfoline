@@ -17,6 +17,8 @@ router.get('/template/:userId', async (req, res) => {
         if (!template) {
             // If no user-specific template, try to get the template from user's selected template
             const user = await User.findById(userId).populate('selectedTemplate');
+            console.log('Found user:', user ? 'Yes' : 'No');
+            console.log('User has selectedTemplate:', user?.selectedTemplate ? 'Yes' : 'No');
             if (user && user.selectedTemplate) {
                 return res.json({
                     success: true,
