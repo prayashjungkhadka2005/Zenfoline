@@ -98,6 +98,30 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
     return data?.socialLinks?.find(link => link.platform === platform)?.url || '';
   };
 
+  // Helper function to check if a section has meaningful data
+  const hasSectionData = (sectionId) => {
+    switch (sectionId) {
+      case 'basics':
+        return data?.basics?.name || data?.basics?.title || data?.basics?.summary;
+      case 'about':
+        return data?.about?.description && data?.about?.description.trim() !== '';
+      case 'skills':
+        return (data?.skills?.technical?.some(skill => skill.name && skill.name.trim() !== '') ||
+                data?.skills?.soft?.some(skill => skill.name && skill.name.trim() !== ''));
+      case 'experience':
+        return data?.experience?.some(exp => exp.title || exp.company || exp.description);
+      case 'projects':
+        return data?.projects?.some(project => project.title || project.description);
+      default:
+        return false;
+    }
+  };
+
+  // Helper function to check if a section is enabled and has data
+  const shouldShowSection = (sectionId) => {
+    return isSectionEnabled(sectionId) && hasSectionData(sectionId);
+  };
+
   return (
     <div
       style={{
@@ -116,68 +140,72 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">{data?.basics?.name || 'Developer Portfolio'}</h1>
           <div className="flex gap-6">
-            {isSectionEnabled('about') && data?.about?.description && (
+            {shouldShowSection('about') && (
               <a href="#about" className="hover:text-orange-500 transition-colors">About</a>
             )}
-            {isSectionEnabled('skills') && (data?.skills?.technical?.length > 0 || data?.skills?.soft?.length > 0) && (
+            {shouldShowSection('skills') && (
               <a href="#skills" className="hover:text-orange-500 transition-colors">Skills</a>
             )}
-            {isSectionEnabled('projects') && data?.projects?.length > 0 && (
+            {shouldShowSection('projects') && (
               <a href="#projects" className="hover:text-orange-500 transition-colors">Projects</a>
             )}
-            {isSectionEnabled('experience') && data?.experience?.length > 0 && (
+            {shouldShowSection('experience') && (
               <a href="#experience" className="hover:text-orange-500 transition-colors">Experience</a>
             )}
-            <a href="#contact" className="hover:text-orange-500 transition-colors">Contact</a>
+            {hasSectionData('basics') && (
+              <a href="#contact" className="hover:text-orange-500 transition-colors">Contact</a>
+            )}
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 animate-gradient"></div>
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-10"></div>
-        <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 relative z-10">
-          <div className="md:w-1/2 text-center md:text-left">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              {data?.basics?.name || 'Full Stack'}
-              <br />
-              <span className="text-orange-500 break-words">{data?.basics?.title || 'Developer'}</span>
-            </h1>
-            <p className="text-xl text-gray-300 mb-8">
-              {data?.basics?.summary || 'Crafting exceptional digital experiences with cutting-edge technology'}
-            </p>
-            <div className="flex gap-4 justify-center md:justify-start">
-              {isSectionEnabled('projects') && data?.projects?.length > 0 && (
-                <a href="#projects" className="px-8 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors flex items-center gap-2">
-                  <FaCode className="w-5 h-5" />
-                  View Projects
+      {hasSectionData('basics') && (
+        <section className="relative h-screen flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 animate-gradient"></div>
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-10"></div>
+          <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 relative z-10">
+            <div className="md:w-1/2 text-center md:text-left">
+              <h1 className="text-5xl md:text-7xl font-bold mb-6">
+                {data?.basics?.name || 'Full Stack'}
+                <br />
+                <span className="text-orange-500 break-words">{data?.basics?.title || 'Developer'}</span>
+              </h1>
+              <p className="text-xl text-gray-300 mb-8">
+                {data?.basics?.summary || 'Crafting exceptional digital experiences with cutting-edge technology'}
+              </p>
+              <div className="flex gap-4 justify-center md:justify-start">
+                {shouldShowSection('projects') && data?.projects?.length > 0 && (
+                  <a href="#projects" className="px-8 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors flex items-center gap-2">
+                    <FaCode className="w-5 h-5" />
+                    View Projects
+                  </a>
+                )}
+                <a href="#contact" className="px-8 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all flex items-center gap-2">
+                  <FaEnvelope className="w-5 h-5" />
+                  Contact Me
                 </a>
-              )}
-              <a href="#contact" className="px-8 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all flex items-center gap-2">
-                <FaEnvelope className="w-5 h-5" />
-                Contact Me
-              </a>
+              </div>
+            </div>
+            <div className="md:w-1/2 relative">
+              <div className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-orange-500 shadow-2xl transform hover:scale-105 transition-transform">
+                <img
+                  src={data?.basics?.profileImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'}
+                  alt={data?.basics?.name || 'Profile'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+                  }}
+                />
+              </div>
             </div>
           </div>
-          <div className="md:w-1/2 relative">
-            <div className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden border-4 border-orange-500 shadow-2xl transform hover:scale-105 transition-transform">
-              <img
-                src={data?.basics?.profileImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'}
-                alt={data?.basics?.name || 'Profile'}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* About Section */}
-      {isSectionEnabled('about') && data?.about?.description && (
+      {shouldShowSection('about') && data?.about?.description && (
         <section id="about" className="py-20 bg-black bg-opacity-50 relative">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
           <div className="container mx-auto px-6 relative z-10">
@@ -200,7 +228,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
       )}
 
       {/* Skills Section */}
-      {isSectionEnabled('skills') && (data?.skills?.technical?.length > 0 || data?.skills?.soft?.length > 0) && (
+      {shouldShowSection('skills') && (data?.skills?.technical?.length > 0 || data?.skills?.soft?.length > 0) && (
         <section id="skills" className="py-20 relative">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1555066931-bf19f8e1083d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
           <div className="container mx-auto px-6 relative z-10">
@@ -257,7 +285,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
       )}
 
       {/* Projects Section */}
-      {isSectionEnabled('projects') && data?.projects?.length > 0 && (
+      {shouldShowSection('projects') && data?.projects?.length > 0 && (
         <section id="projects" className="py-20 bg-black bg-opacity-50 relative">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
           <div className="container mx-auto px-6 relative z-10">
@@ -338,7 +366,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
       )}
 
       {/* Experience Section */}
-      {isSectionEnabled('experience') && data?.experience?.length > 0 && (
+      {shouldShowSection('experience') && data?.experience?.length > 0 && (
         <section id="experience" className="py-20 relative">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
           <div className="container mx-auto px-6 relative z-10">
@@ -360,57 +388,59 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
       )}
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-black bg-opacity-50 relative">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
-        <div className="container mx-auto px-6 text-center relative z-10">
-          <h2 className="text-4xl font-bold mb-8">Let's Connect</h2>
-          <p className="text-xl text-gray-400 mb-8">
-            Ready to start your next project? Get in touch!
-          </p>
-          <div className="flex flex-wrap justify-center gap-6">
-            {data?.basics?.email && (
-              <a
-                href={`mailto:${data.basics.email}`}
-                className="flex items-center gap-2 px-6 py-3 bg-orange-500 rounded-full hover:bg-orange-600 transition-colors"
-              >
-                <FaEnvelope className="w-5 h-5" />
-                Email Me
-              </a>
-            )}
-            {getSocialLink('linkedin') && (
-              <a
-                href={`https://linkedin.com/in/${getSocialLink('linkedin')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
-              >
-                <FaLinkedin className="w-5 h-5" />
-                LinkedIn
-              </a>
-            )}
-            {getSocialLink('github') && (
-              <a
-                href={`https://github.com/${getSocialLink('github')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
-              >
-                <FaGithub className="w-5 h-5" />
-                GitHub
-              </a>
-            )}
-            {data?.basics?.phone && (
-              <a
-                href={`tel:${data.basics.phone}`}
-                className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
-              >
-                <FaPhone className="w-5 h-5" />
-                Call Me
-              </a>
-            )}
+      {hasSectionData('basics') && (
+        <section id="contact" className="py-20 bg-black bg-opacity-50 relative">
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
+          <div className="container mx-auto px-6 text-center relative z-10">
+            <h2 className="text-4xl font-bold mb-8">Let's Connect</h2>
+            <p className="text-xl text-gray-400 mb-8">
+              Ready to start your next project? Get in touch!
+            </p>
+            <div className="flex flex-wrap justify-center gap-6">
+              {data?.basics?.email && (
+                <a
+                  href={`mailto:${data.basics.email}`}
+                  className="flex items-center gap-2 px-6 py-3 bg-orange-500 rounded-full hover:bg-orange-600 transition-colors"
+                >
+                  <FaEnvelope className="w-5 h-5" />
+                  Email Me
+                </a>
+              )}
+              {getSocialLink('linkedin') && (
+                <a
+                  href={`https://linkedin.com/in/${getSocialLink('linkedin')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
+                >
+                  <FaLinkedin className="w-5 h-5" />
+                  LinkedIn
+                </a>
+              )}
+              {getSocialLink('github') && (
+                <a
+                  href={`https://github.com/${getSocialLink('github')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
+                >
+                  <FaGithub className="w-5 h-5" />
+                  GitHub
+                </a>
+              )}
+              {data?.basics?.phone && (
+                <a
+                  href={`tel:${data.basics.phone}`}
+                  className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
+                >
+                  <FaPhone className="w-5 h-5" />
+                  Call Me
+                </a>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="py-8 bg-black">
