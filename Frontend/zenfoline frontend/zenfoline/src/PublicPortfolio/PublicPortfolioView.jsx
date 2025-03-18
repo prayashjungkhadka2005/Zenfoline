@@ -7,25 +7,32 @@ const PublicPortfolioView = () => {
   const { userId } = useParams();
   const [portfolioData, setPortfolioData] = useState(null);
   const [template, setTemplate] = useState(null);
+  const [themeSettings, setThemeSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchPortfolioData = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch both portfolio data and template information
-        const [portfolioResponse, templateResponse] = await Promise.all([
+        // Fetch portfolio data, template information, and theme settings
+        const [portfolioResponse, templateResponse, themeResponse] = await Promise.all([
           axios.get(`http://localhost:3000/portfolio/${userId}`),
-          axios.get(`http://localhost:3000/portfolio/template/${userId}`)
+          axios.get(`http://localhost:3000/portfolio/template/${userId}`),
+          axios.get(`http://localhost:3000/authenticated-user/gettheme?userId=${userId}`)
         ]);
 
         if (portfolioResponse.data.success && templateResponse.data.success) {
           setPortfolioData(portfolioResponse.data.data);
           setTemplate(templateResponse.data.data);
-          setLoading(false);
+          
+          // Set theme settings from the response
+          if (themeResponse.data.theme) {
+            setThemeSettings(themeResponse.data.theme);
+          }
         } else {
           throw new Error(portfolioResponse.data.message || templateResponse.data.message);
         }
+        setLoading(false);
       } catch (err) {
         console.error('Error fetching portfolio:', err);
         setError(err.response?.data?.message || 'Failed to load portfolio');
@@ -34,7 +41,7 @@ const PublicPortfolioView = () => {
     };
 
     if (userId) {
-      fetchPortfolioData();
+      fetchData();
     }
   }, [userId]);
 
@@ -81,15 +88,27 @@ const PublicPortfolioView = () => {
     );
   }
 
+  // Merge theme settings with portfolio data
+  const enhancedData = {
+    ...portfolioData,
+    theme: {
+      ...portfolioData.theme,
+      ...themeSettings,
+      fontStyle: themeSettings?.fontStyle || 'Poppins',
+      colorMode: themeSettings?.colorMode || 'default',
+      presetTheme: themeSettings?.presetTheme || 0
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <TemplateComponent
         template={template}
-        data={portfolioData}
-        fontStyle={portfolioData.theme?.fontStyle || 'Poppins'}
+        data={enhancedData}
+        fontStyle={themeSettings?.fontStyle || 'Poppins'}
       />
     </div>
   );
 };
 
-export default PublicPortfolioView; 
+export default PublicPortfolioView;

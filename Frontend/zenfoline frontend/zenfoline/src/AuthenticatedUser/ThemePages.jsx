@@ -255,15 +255,13 @@ const handleFooterChange = (event) => {
 };
 
 
-// Opens in anotehr tab
-  const handleViewSite = () => {
-    if (activeTemplate) {
-      const url = `/template/${activeTemplate._id}`;
-      console.log(activeTemplate._id);  
-      
-      window.open(url, "_blank");
-    }
-  };
+// Opens in another tab
+const handleViewSite = () => {
+  if (userId) {
+    const portfolioUrl = `${window.location.origin}/portfolio/${userId}`;
+    window.open(portfolioUrl, "_blank");
+  }
+};
 
 
   useEffect(() => {
