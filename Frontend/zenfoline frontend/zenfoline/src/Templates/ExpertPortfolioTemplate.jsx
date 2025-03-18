@@ -93,6 +93,11 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
     return data?.theme?.enabledSections?.[sectionId] !== false;
   };
 
+  // Helper function to get social link URL
+  const getSocialLink = (platform) => {
+    return data?.socialLinks?.find(link => link.platform === platform)?.url || '';
+  };
+
   return (
     <div
       style={{
@@ -135,10 +140,10 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 relative z-10">
           <div className="md:w-1/2 text-center md:text-left">
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              {data?.basics?.name || 'Full Stack'} <span className="text-orange-500 break-words">{data?.basics?.role || 'Developer'}</span>
+              {data?.basics?.name || 'Full Stack'} <span className="text-orange-500 break-words">{data?.basics?.title || 'Developer'}</span>
             </h1>
             <p className="text-xl text-gray-300 mb-8">
-              {data?.basics?.bio || 'Crafting exceptional digital experiences with cutting-edge technology'}
+              {data?.basics?.summary || 'Crafting exceptional digital experiences with cutting-edge technology'}
             </p>
             <div className="flex gap-4 justify-center md:justify-start">
               {isSectionEnabled('projects') && data?.projects?.length > 0 && (
@@ -370,9 +375,9 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 Email Me
               </a>
             )}
-            {data?.basics?.socialLinks?.linkedin && (
+            {getSocialLink('linkedin') && (
               <a
-                href={data.basics.socialLinks.linkedin}
+                href={`https://linkedin.com/in/${getSocialLink('linkedin')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
@@ -381,9 +386,9 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
                 LinkedIn
               </a>
             )}
-            {data?.basics?.socialLinks?.github && (
+            {getSocialLink('github') && (
               <a
-                href={data.basics.socialLinks.github}
+                href={`https://github.com/${getSocialLink('github')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
