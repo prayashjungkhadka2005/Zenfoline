@@ -140,7 +140,9 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data }) => {
         <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 relative z-10">
           <div className="md:w-1/2 text-center md:text-left">
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              {data?.basics?.name || 'Full Stack'} <span className="text-orange-500 break-words">{data?.basics?.title || 'Developer'}</span>
+              {data?.basics?.name || 'Full Stack'}
+              <br />
+              <span className="text-orange-500 break-words">{data?.basics?.title || 'Developer'}</span>
             </h1>
             <p className="text-xl text-gray-300 mb-8">
               {data?.basics?.summary || 'Crafting exceptional digital experiences with cutting-edge technology'}

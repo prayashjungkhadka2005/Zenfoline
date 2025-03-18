@@ -217,6 +217,23 @@ const TemplateEditor = () => {
       const newData = { ...prev };
       if (index !== null && Array.isArray(newData[section])) {
         newData[section][index] = { ...newData[section][index], [field]: value };
+      } else if (section === 'basics') {
+        // Special handling for basics section to ensure proper data structure
+        if (field === 'role') {
+          newData[section] = {
+            ...newData[section],
+            title: value, // Update both role and title to maintain compatibility
+            role: value
+          };
+        } else if (field === 'bio') {
+          newData[section] = {
+            ...newData[section],
+            summary: value, // Update both bio and summary to maintain compatibility
+            bio: value
+          };
+        } else {
+          newData[section] = { ...newData[section], [field]: value };
+        }
       } else if (typeof newData[section] === 'object') {
         newData[section] = { ...newData[section], [field]: value };
       }
@@ -283,20 +300,17 @@ const TemplateEditor = () => {
                 throw new Error(data.message || 'Failed to save changes');
             }
 
-            // Update formData without causing a full re-render
+            // Update formData with the response data
             setFormData(prev => ({
                 ...prev,
                 basics: {
                     ...prev.basics,
                     ...data.data.basics
-                },
-                socialLinks: {
-                    ...prev.socialLinks,
-                    ...data.data.socialLinks
                 }
             }));
-        } else {
-            response = await fetch(`http://localhost:3000/authenticated-user/updatetemplate/${templateId}`, {
+
+            // Save template data
+            const templateResponse = await fetch(`http://localhost:3000/authenticated-user/updatetemplate/${templateId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -304,17 +318,20 @@ const TemplateEditor = () => {
                 body: JSON.stringify({ data: formData }),
             });
 
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.message || 'Failed to save changes');
+            if (!templateResponse.ok) {
+                const templateData = await templateResponse.json();
+                throw new Error(templateData.message || 'Failed to save template changes');
             }
 
-            // Update formData without causing a full re-render
-            const updatedData = await response.json();
+            // Update formData with template response
+            const templateUpdateData = await templateResponse.json();
             setFormData(prev => ({
                 ...prev,
-                ...updatedData.data
+                ...templateUpdateData.data
             }));
+
+            // Force a re-render of the preview
+            setActiveSection(activeSection);
         }
     } catch (error) {
         console.error('Error saving changes:', error);
