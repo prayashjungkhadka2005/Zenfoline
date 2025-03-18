@@ -274,20 +274,62 @@ router.put('/template/:userId/basics', async (req, res) => {
         await portfolio.save();
 
         console.log('Portfolio saved successfully');
-
         res.status(200).json({
             message: 'Basic information updated successfully',
-            data: {
-                basics: portfolio.basics,
-                socialLinks: portfolio.socialLinks
-            }
+            data: portfolio
         });
     } catch (error) {
-        console.error('Error updating basic information:', error);
-        res.status(500).json({ 
-            message: 'Error updating basic information',
-            error: error.message 
+        console.error('Error updating basic info:', error);
+        res.status(500).json({ message: 'Error updating basic information' });
+    }
+});
+
+// Update complete template data
+router.put('/template/:userId/data', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        console.log('Received userId for template data update:', userId);
+        console.log('Received template data:', req.body);
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        const { data } = req.body;
+        if (!data) {
+            return res.status(400).json({ message: 'Template data is required' });
+        }
+
+        // Find or create portfolio data
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            portfolio = new PortfolioData({
+                userId,
+                portfolioType: 'developer'
+            });
+        }
+
+        // Update all sections with the provided data
+        portfolio.basics = data.basics;
+        portfolio.about = data.about;
+        portfolio.skills = data.skills;
+        portfolio.experience = data.experience;
+        portfolio.projects = data.projects;
+        portfolio.theme = data.theme;
+
+        console.log('Saving complete template data:', portfolio);
+
+        // Save the updated portfolio
+        await portfolio.save();
+
+        console.log('Template data saved successfully');
+        res.status(200).json({
+            message: 'Template data updated successfully',
+            data: portfolio
         });
+    } catch (error) {
+        console.error('Error updating template data:', error);
+        res.status(500).json({ message: 'Error updating template data' });
     }
 });
 

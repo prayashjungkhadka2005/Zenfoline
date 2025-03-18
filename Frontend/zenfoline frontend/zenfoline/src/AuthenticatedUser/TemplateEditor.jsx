@@ -147,13 +147,28 @@ const TemplateEditor = () => {
     const fetchData = async () => {
       if (userId && templateId) {
         try {
+          console.log('Fetching initial data...');
+          
           // Fetch templates
           await fetchTemplates(userId);
           const template = templates.find(t => t._id === templateId);
+          
           if (template && isMounted) {
+            console.log('Found template:', template);
             setActiveTemplate(template);
+            
+            // Initialize form data with template data or default structure
             if (template.data) {
-              setFormData(template.data);
+              console.log('Setting form data from template:', template.data);
+              setFormData(prev => ({
+                ...prev,
+                basics: template.data.basics || prev.basics,
+                about: template.data.about || prev.about,
+                skills: template.data.skills || prev.skills,
+                experience: template.data.experience || prev.experience,
+                projects: template.data.projects || prev.projects,
+                theme: template.data.theme || prev.theme
+              }));
             }
           }
 
@@ -170,12 +185,14 @@ const TemplateEditor = () => {
               ...prev,
               theme: {
                 ...prev.theme,
-                fontStyle: themeFontStyle
+                fontStyle: themeFontStyle,
+                enabledSections: theme.enabledSections || prev.theme.enabledSections
               }
             }));
           }
         } catch (error) {
           console.error('Error fetching data:', error);
+          showNotification('Error loading template data', 'error');
         }
       }
     };
@@ -273,15 +290,20 @@ const TemplateEditor = () => {
         }
         
         if (section === 'Basic Info') {
+            // Ensure proper data structure
             const basicData = {
-                name: formData.basics.name || '',
-                role: formData.basics.role || '',
-                bio: formData.basics.bio || '',
-                email: formData.basics.email || '',
-                phone: formData.basics.phone || '',
-                location: formData.basics.location || '',
-                profileImage: formData.basics.profileImage || null,
-                socialLinks: formData.basics.socialLinks || {}
+                name: formData.basics?.name || '',
+                role: formData.basics?.role || '',
+                bio: formData.basics?.bio || '',
+                email: formData.basics?.email || '',
+                phone: formData.basics?.phone || '',
+                location: formData.basics?.location || '',
+                profileImage: formData.basics?.profileImage || null,
+                socialLinks: {
+                    linkedin: formData.basics?.socialLinks?.linkedin || '',
+                    github: formData.basics?.socialLinks?.github || '',
+                    twitter: formData.basics?.socialLinks?.twitter || ''
+                }
             };
             console.log('Sending basic info data:', basicData);
 
@@ -300,22 +322,47 @@ const TemplateEditor = () => {
                 throw new Error(data.message || 'Failed to save changes');
             }
 
-            // Update formData with the response data
+            // Update formData with the response data, ensuring proper structure
             setFormData(prev => ({
                 ...prev,
                 basics: {
                     ...prev.basics,
-                    ...data.data.basics
+                    ...(data.data.basics || {}),
+                    socialLinks: {
+                        ...(prev.basics?.socialLinks || {}),
+                        ...(data.data.basics?.socialLinks || {})
+                    }
                 }
             }));
 
-            // Save template data
-            const templateResponse = await fetch(`http://localhost:3000/authenticated-user/updatetemplate/${templateId}`, {
+            // Save template data with proper structure
+            const templateData = {
+                ...formData,
+                theme: {
+                    ...(formData.theme || {}),
+                    fontStyle: formData.theme?.fontStyle || 'Poppins',
+                    enabledSections: {
+                        ...(formData.theme?.enabledSections || {
+                            about: true,
+                            skills: true,
+                            experience: true,
+                            projects: true
+                        })
+                    }
+                },
+                basics: {
+                    ...(formData.basics || {}),
+                    socialLinks: formData.basics?.socialLinks || {}
+                }
+            };
+            
+            console.log('Sending template data:', templateData);
+            const templateResponse = await fetch(`http://localhost:3000/portfolio-save/template/${userId}/data`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ data: formData }),
+                body: JSON.stringify({ data: templateData }),
             });
 
             if (!templateResponse.ok) {
@@ -325,16 +372,57 @@ const TemplateEditor = () => {
 
             // Update formData with template response
             const templateUpdateData = await templateResponse.json();
-            setFormData(prev => ({
-                ...prev,
-                ...templateUpdateData.data
-            }));
+            console.log('Template update response:', templateUpdateData);
 
-            // Force a re-render of the preview
-            setActiveSection(activeSection);
+            if (templateUpdateData.data) {
+                setFormData(prev => ({
+                    ...prev,
+                    basics: {
+                        ...(prev.basics || {}),
+                        ...(templateUpdateData.data.basics || {}),
+                        socialLinks: {
+                            ...(prev.basics?.socialLinks || {}),
+                            ...(templateUpdateData.data.basics?.socialLinks || {})
+                        }
+                    },
+                    about: templateUpdateData.data.about || prev.about || {},
+                    skills: templateUpdateData.data.skills || prev.skills || {},
+                    experience: templateUpdateData.data.experience || prev.experience || [],
+                    projects: templateUpdateData.data.projects || prev.projects || [],
+                    theme: {
+                        ...(prev.theme || {}),
+                        ...(templateUpdateData.data.theme || {}),
+                        fontStyle: templateUpdateData.data.theme?.fontStyle || prev.theme?.fontStyle || 'Poppins',
+                        enabledSections: {
+                            ...(prev.theme?.enabledSections || {}),
+                            ...(templateUpdateData.data.theme?.enabledSections || {
+                                about: true,
+                                skills: true,
+                                experience: true,
+                                projects: true
+                            })
+                        }
+                    }
+                }));
+
+                // Update active template if it exists
+                if (activeTemplate) {
+                    setActiveTemplate(prev => ({
+                        ...prev,
+                        data: templateUpdateData.data
+                    }));
+                }
+            }
+
+            // Force a re-render of the preview by toggling the active section
+            setActiveSection(prev => prev);
+            
+            // Show success notification
+            showNotification('Changes saved successfully!', 'success');
         }
     } catch (error) {
         console.error('Error saving changes:', error);
+        showNotification(error.message || 'Failed to save changes', 'error');
         throw error;
     }
 };
@@ -408,13 +496,20 @@ const TemplateEditor = () => {
     setFormData(prev => ({
       ...prev,
       theme: {
-        ...prev.theme,
+        ...(prev.theme || {}),
         enabledSections: {
-          ...prev.theme.enabledSections,
-          [sectionId]: !prev.theme.enabledSections[sectionId]
+          ...(prev.theme?.enabledSections || {}),
+          [sectionId]: !(prev.theme?.enabledSections?.[sectionId] ?? true)
         }
       }
     }));
+  };
+
+  // Get visible sections for navigation
+  const getVisibleSections = () => {
+    return sections.filter(section => 
+      section.required || formData?.theme?.enabledSections?.[section.id] || false
+    );
   };
 
   // Update sections based on template and visibility
@@ -446,13 +541,6 @@ const TemplateEditor = () => {
     ];
   };
 
-  // Get visible sections for navigation
-  const getVisibleSections = () => {
-    return sections.filter(section => 
-      section.required || formData.theme.enabledSections[section.id]
-    );
-  };
-
   // Update the navigation rendering
   const renderNavigation = () => {
     const visibleSections = getVisibleSections();
@@ -474,7 +562,7 @@ const TemplateEditor = () => {
           {section.id === 'settings' && (
             <div className="flex items-center space-x-2">
               <span className="text-xs text-gray-500">
-                {Object.values(formData.theme.enabledSections).filter(Boolean).length} visible
+                {Object.values(formData?.theme?.enabledSections || {}).filter(Boolean).length} visible
               </span>
             </div>
           )}
@@ -506,12 +594,12 @@ const TemplateEditor = () => {
                 <button
                   onClick={() => handleSectionToggle(section.id)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    formData.theme.enabledSections[section.id] ? 'bg-blue-600' : 'bg-gray-200'
+                    formData?.theme?.enabledSections?.[section.id] ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      formData.theme.enabledSections[section.id] ? 'translate-x-6' : 'translate-x-1'
+                      formData?.theme?.enabledSections?.[section.id] ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
                 </button>
@@ -559,7 +647,7 @@ const TemplateEditor = () => {
                 <label className={commonClasses.label}>Name</label>
                 <input
                   type="text"
-                  value={formData.basics.name}
+                  value={formData.basics?.name || ''}
                   onChange={(e) => handleInputChange('basics', 'name', e.target.value)}
                   className={commonClasses.input}
                   placeholder="Enter your full name"
@@ -570,7 +658,7 @@ const TemplateEditor = () => {
                 <label className={commonClasses.label}>Role</label>
                 <input
                   type="text"
-                  value={formData.basics.role}
+                  value={formData.basics?.role || ''}
                   onChange={(e) => handleInputChange('basics', 'role', e.target.value)}
                   className={commonClasses.input}
                   placeholder="e.g. Full Stack Developer"
@@ -581,7 +669,7 @@ const TemplateEditor = () => {
                 <label className={commonClasses.label}>Email</label>
                 <input
                   type="email"
-                  value={formData.basics.email}
+                  value={formData.basics?.email || ''}
                   onChange={(e) => handleInputChange('basics', 'email', e.target.value)}
                   className={commonClasses.input}
                   placeholder="your@email.com"
@@ -591,7 +679,7 @@ const TemplateEditor = () => {
               <div className="col-span-2">
                 <label className={commonClasses.label}>Bio</label>
                 <textarea
-                  value={formData.basics.bio}
+                  value={formData.basics?.bio || ''}
                   onChange={(e) => handleInputChange('basics', 'bio', e.target.value)}
                   rows="4"
                   className={commonClasses.input}
@@ -603,7 +691,7 @@ const TemplateEditor = () => {
                 <label className={commonClasses.label}>Phone</label>
                 <input
                   type="tel"
-                  value={formData.basics.phone}
+                  value={formData.basics?.phone || ''}
                   onChange={(e) => handleInputChange('basics', 'phone', e.target.value)}
                   className={commonClasses.input}
                   placeholder="Your phone number"
@@ -614,7 +702,7 @@ const TemplateEditor = () => {
                 <label className={commonClasses.label}>Location</label>
                 <input
                   type="text"
-                  value={formData.basics.location}
+                  value={formData.basics?.location || ''}
                   onChange={(e) => handleInputChange('basics', 'location', e.target.value)}
                   className={commonClasses.input}
                   placeholder="City, Country"
@@ -628,14 +716,14 @@ const TemplateEditor = () => {
                     <span className="text-gray-500 w-24">LinkedIn:</span>
                     <input
                       type="url"
-                      value={formData.basics.socialLinks.linkedin}
+                      value={formData.basics?.socialLinks?.linkedin || ''}
                       onChange={(e) => {
                         setFormData(prev => ({
                           ...prev,
                           basics: {
                             ...prev.basics,
                             socialLinks: {
-                              ...prev.basics.socialLinks,
+                              ...(prev.basics?.socialLinks || {}),
                               linkedin: e.target.value
                             }
                           }
@@ -649,14 +737,14 @@ const TemplateEditor = () => {
                     <span className="text-gray-500 w-24">GitHub:</span>
                     <input
                       type="url"
-                      value={formData.basics.socialLinks.github}
+                      value={formData.basics?.socialLinks?.github || ''}
                       onChange={(e) => {
                         setFormData(prev => ({
                           ...prev,
                           basics: {
                             ...prev.basics,
                             socialLinks: {
-                              ...prev.basics.socialLinks,
+                              ...(prev.basics?.socialLinks || {}),
                               github: e.target.value
                             }
                           }
@@ -670,7 +758,7 @@ const TemplateEditor = () => {
                     <span className="text-gray-500 w-24">Email:</span>
                     <input
                       type="email"
-                      value={formData.basics.email}
+                      value={formData.basics?.email || ''}
                       onChange={(e) => handleInputChange('basics', 'email', e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="your@email.com"
@@ -680,7 +768,7 @@ const TemplateEditor = () => {
                     <span className="text-gray-500 w-24">Phone:</span>
                     <input
                       type="tel"
-                      value={formData.basics.phone}
+                      value={formData.basics?.phone || ''}
                       onChange={(e) => handleInputChange('basics', 'phone', e.target.value)}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Your phone number"
@@ -704,7 +792,7 @@ const TemplateEditor = () => {
               <div className="col-span-2">
                 <label className={commonClasses.label}>About Me</label>
                 <textarea
-                  value={formData.about.description}
+                  value={formData.about?.description || ''}
                   onChange={(e) => handleInputChange('about', 'description', e.target.value)}
                   rows="6"
                   className={commonClasses.input}
@@ -714,13 +802,13 @@ const TemplateEditor = () => {
 
               <div className="col-span-2">
                 <label className={commonClasses.label}>Key Highlights</label>
-                {formData.about.highlights.map((highlight, index) => (
+                {formData.about?.highlights?.map((highlight, index) => (
                   <div key={index} className="flex items-center space-x-2 mb-2">
                     <input
                       type="text"
-                      value={highlight.text}
+                      value={highlight?.text || ''}
                       onChange={(e) => {
-                        const newHighlights = [...formData.about.highlights];
+                        const newHighlights = [...(formData.about?.highlights || [])];
                         newHighlights[index] = { ...highlight, text: e.target.value };
                         handleInputChange('about', 'highlights', newHighlights);
                       }}
@@ -729,7 +817,7 @@ const TemplateEditor = () => {
                     />
                     <button
                       onClick={() => {
-                        const newHighlights = formData.about.highlights.filter((_, i) => i !== index);
+                        const newHighlights = (formData.about?.highlights || []).filter((_, i) => i !== index);
                         handleInputChange('about', 'highlights', newHighlights);
                       }}
                       className={commonClasses.removeButton}
@@ -740,7 +828,7 @@ const TemplateEditor = () => {
                 ))}
                 <button
                   onClick={() => {
-                    const newHighlights = [...formData.about.highlights, { text: '' }];
+                    const newHighlights = [...(formData.about?.highlights || []), { text: '' }];
                     handleInputChange('about', 'highlights', newHighlights);
                   }}
                   className={commonClasses.addButton}
@@ -763,13 +851,13 @@ const TemplateEditor = () => {
             <div className="space-y-8">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Technical Skills</h3>
-                {formData.skills.technical.map((skill, index) => (
+                {formData.skills?.technical?.map((skill, index) => (
                   <div key={index} className="flex items-center space-x-4 mb-4">
                     <input
                       type="text"
-                      value={skill.name}
+                      value={skill?.name || ''}
                       onChange={(e) => {
-                        const newSkills = [...formData.skills.technical];
+                        const newSkills = [...(formData.skills?.technical || [])];
                         newSkills[index] = { ...skill, name: e.target.value };
                         handleInputChange('skills', 'technical', newSkills);
                       }}
@@ -777,9 +865,9 @@ const TemplateEditor = () => {
                       placeholder="Skill name (e.g., JavaScript)"
                     />
                     <select
-                      value={skill.level}
+                      value={skill?.level || 'Beginner'}
                       onChange={(e) => {
-                        const newSkills = [...formData.skills.technical];
+                        const newSkills = [...(formData.skills?.technical || [])];
                         newSkills[index] = { ...skill, level: e.target.value };
                         handleInputChange('skills', 'technical', newSkills);
                       }}
@@ -792,7 +880,7 @@ const TemplateEditor = () => {
                     </select>
                     <button
                       onClick={() => {
-                        const newSkills = formData.skills.technical.filter((_, i) => i !== index);
+                        const newSkills = (formData.skills?.technical || []).filter((_, i) => i !== index);
                         handleInputChange('skills', 'technical', newSkills);
                       }}
                       className="p-2 text-red-500 hover:text-red-700 transition-colors"
@@ -803,7 +891,7 @@ const TemplateEditor = () => {
                 ))}
                 <button
                   onClick={() => {
-                    const newSkills = [...formData.skills.technical, { name: '', level: 'Beginner' }];
+                    const newSkills = [...(formData.skills?.technical || []), { name: '', level: 'Beginner' }];
                     handleInputChange('skills', 'technical', newSkills);
                   }}
                   className={commonClasses.addButton}
@@ -814,13 +902,13 @@ const TemplateEditor = () => {
 
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Soft Skills</h3>
-                {formData.skills.soft.map((skill, index) => (
+                {formData.skills?.soft?.map((skill, index) => (
                   <div key={index} className="flex items-center space-x-4 mb-4">
                     <input
                       type="text"
-                      value={skill.name}
+                      value={skill?.name || ''}
                       onChange={(e) => {
-                        const newSkills = [...formData.skills.soft];
+                        const newSkills = [...(formData.skills?.soft || [])];
                         newSkills[index] = { ...skill, name: e.target.value };
                         handleInputChange('skills', 'soft', newSkills);
                       }}
@@ -828,9 +916,9 @@ const TemplateEditor = () => {
                       placeholder="Skill name (e.g., Leadership)"
                     />
                     <select
-                      value={skill.level}
+                      value={skill?.level || 'Beginner'}
                       onChange={(e) => {
-                        const newSkills = [...formData.skills.soft];
+                        const newSkills = [...(formData.skills?.soft || [])];
                         newSkills[index] = { ...skill, level: e.target.value };
                         handleInputChange('skills', 'soft', newSkills);
                       }}
@@ -843,7 +931,7 @@ const TemplateEditor = () => {
                     </select>
                     <button
                       onClick={() => {
-                        const newSkills = formData.skills.soft.filter((_, i) => i !== index);
+                        const newSkills = (formData.skills?.soft || []).filter((_, i) => i !== index);
                         handleInputChange('skills', 'soft', newSkills);
                       }}
                       className="p-2 text-red-500 hover:text-red-700 transition-colors"
@@ -854,7 +942,7 @@ const TemplateEditor = () => {
                 ))}
                 <button
                   onClick={() => {
-                    const newSkills = [...formData.skills.soft, { name: '', level: 'Beginner' }];
+                    const newSkills = [...(formData.skills?.soft || []), { name: '', level: 'Beginner' }];
                     handleInputChange('skills', 'soft', newSkills);
                   }}
                   className={commonClasses.addButton}
@@ -874,7 +962,7 @@ const TemplateEditor = () => {
               <p className={commonClasses.infoText}>Add your work experience, including current and previous positions.</p>
             </div>
 
-            {formData.experience.map((exp, index) => (
+            {formData.experience?.map((exp, index) => (
               <div key={index} className={commonClasses.itemCard}>
                 <button
                   onClick={() => removeItem('experience', index)}
@@ -888,7 +976,7 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>Job Title</label>
                     <input
                       type="text"
-                      value={exp.title}
+                      value={exp?.title || ''}
                       onChange={(e) => handleInputChange('experience', 'title', e.target.value, index)}
                       className={commonClasses.input}
                       placeholder="e.g., Senior Software Engineer"
@@ -899,7 +987,7 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>Company</label>
                     <input
                       type="text"
-                      value={exp.company}
+                      value={exp?.company || ''}
                       onChange={(e) => handleInputChange('experience', 'company', e.target.value, index)}
                       className={commonClasses.input}
                       placeholder="Company name"
@@ -910,7 +998,7 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>Location</label>
                     <input
                       type="text"
-                      value={exp.location}
+                      value={exp?.location || ''}
                       onChange={(e) => handleInputChange('experience', 'location', e.target.value, index)}
                       className={commonClasses.input}
                       placeholder="City, Country"
@@ -921,7 +1009,7 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>Start Date</label>
                     <input
                       type="date"
-                      value={exp.startDate}
+                      value={exp?.startDate || ''}
                       onChange={(e) => handleInputChange('experience', 'startDate', e.target.value, index)}
                       className={commonClasses.input}
                     />
@@ -931,17 +1019,17 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>End Date</label>
                     <input
                       type="date"
-                      value={exp.endDate}
+                      value={exp?.endDate || ''}
                       onChange={(e) => handleInputChange('experience', 'endDate', e.target.value, index)}
                       className={commonClasses.input}
-                      disabled={exp.current}
+                      disabled={exp?.current}
                     />
                   </div>
 
                   <div className="col-span-2">
                     <label className={commonClasses.label}>Description</label>
                     <textarea
-                      value={exp.description}
+                      value={exp?.description || ''}
                       onChange={(e) => handleInputChange('experience', 'description', e.target.value, index)}
                       rows="4"
                       className={commonClasses.input}
@@ -969,7 +1057,7 @@ const TemplateEditor = () => {
               <p className={commonClasses.infoText}>Add your notable projects here. Include details about technologies used and your role.</p>
             </div>
 
-            {formData.projects.map((project, index) => (
+            {formData.projects?.map((project, index) => (
               <div key={index} className={commonClasses.itemCard}>
                 <button
                   onClick={() => removeItem('projects', index)}
@@ -984,8 +1072,8 @@ const TemplateEditor = () => {
                     <div className="flex items-center space-x-4">
                       <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
                         <img
-                          src={project.image || 'https://via.placeholder.com/150'}
-                          alt={project.title || 'Project preview'}
+                          src={project?.image || 'https://via.placeholder.com/150'}
+                          alt={project?.title || 'Project preview'}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -1011,7 +1099,7 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>Project Title</label>
                     <input
                       type="text"
-                      value={project.title}
+                      value={project?.title || ''}
                       onChange={(e) => handleInputChange('projects', 'title', e.target.value, index)}
                       className={commonClasses.input}
                       placeholder="Project name"
@@ -1021,7 +1109,7 @@ const TemplateEditor = () => {
                   <div className="col-span-2">
                     <label className={commonClasses.label}>Description</label>
                     <textarea
-                      value={project.description}
+                      value={project?.description || ''}
                       onChange={(e) => handleInputChange('projects', 'description', e.target.value, index)}
                       rows="3"
                       className={commonClasses.input}
@@ -1033,7 +1121,7 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>Technologies Used</label>
                     <div className="space-y-2">
                       <div className="flex flex-wrap gap-2 mb-2">
-                        {project.technologies?.map((tech, techIndex) => (
+                        {project?.technologies?.map((tech, techIndex) => (
                           <span
                             key={techIndex}
                             className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
@@ -1042,7 +1130,7 @@ const TemplateEditor = () => {
                             <button
                               type="button"
                               onClick={() => {
-                                const newTechs = project.technologies.filter((_, i) => i !== techIndex);
+                                const newTechs = (project?.technologies || []).filter((_, i) => i !== techIndex);
                                 handleInputChange('projects', 'technologies', newTechs, index);
                               }}
                               className="ml-2 text-blue-600 hover:text-blue-800"
@@ -1055,14 +1143,14 @@ const TemplateEditor = () => {
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          value={project.newTech || ''}
+                          value={project?.newTech || ''}
                           onChange={(e) => {
                             handleInputChange('projects', 'newTech', e.target.value, index);
                           }}
                           onKeyPress={(e) => {
-                            if (e.key === 'Enter' && project.newTech?.trim()) {
+                            if (e.key === 'Enter' && project?.newTech?.trim()) {
                               e.preventDefault();
-                              const newTechs = [...(project.technologies || []), project.newTech.trim()];
+                              const newTechs = [...(project?.technologies || []), project.newTech.trim()];
                               handleInputChange('projects', 'technologies', newTechs, index);
                               handleInputChange('projects', 'newTech', '', index);
                             }
@@ -1073,8 +1161,8 @@ const TemplateEditor = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            if (project.newTech?.trim()) {
-                              const newTechs = [...(project.technologies || []), project.newTech.trim()];
+                            if (project?.newTech?.trim()) {
+                              const newTechs = [...(project?.technologies || []), project.newTech.trim()];
                               handleInputChange('projects', 'technologies', newTechs, index);
                               handleInputChange('projects', 'newTech', '', index);
                             }
@@ -1091,7 +1179,7 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>Project URL</label>
                     <input
                       type="url"
-                      value={project.liveLink}
+                      value={project?.liveLink || ''}
                       onChange={(e) => handleInputChange('projects', 'liveLink', e.target.value, index)}
                       className={commonClasses.input}
                       placeholder="https://..."
@@ -1102,7 +1190,7 @@ const TemplateEditor = () => {
                     <label className={commonClasses.label}>Source Code URL</label>
                     <input
                       type="url"
-                      value={project.sourceCode}
+                      value={project?.sourceCode || ''}
                       onChange={(e) => handleInputChange('projects', 'sourceCode', e.target.value, index)}
                       className={commonClasses.input}
                       placeholder="https://..."
