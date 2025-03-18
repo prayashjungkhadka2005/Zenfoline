@@ -26,7 +26,12 @@ const templateSchema = new mongoose.Schema(
     addedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Admin', 
-      required: true,
+      required: false,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: false,
     },
     // Section Configuration
     sectionConfiguration: {

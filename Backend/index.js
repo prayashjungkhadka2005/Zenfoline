@@ -9,7 +9,9 @@ dotenv.config();
 const authenticationRoutes = require('./routes/AuthenticationRoutes');
 const authenticatedAdminRoutes = require('./routes/AuthenticatedAdminRoutes');
 const authenticatedUserRoutes = require('./routes/AuthenticatedUserRoutes');
-const portfolioRoutes = require('./routes/portfolioRoutes');
+const portfolioRoutes = require('./routes/portfolio');
+const portfolioSaveRoutes = require('./routes/portfolioRoutes');
+
 
 const app = express();
 
@@ -25,6 +27,7 @@ app.use('/auth', authenticationRoutes);
 app.use('/authenticated-user', authenticatedUserRoutes);
 app.use('/authenticated-admin', authenticatedAdminRoutes);
 app.use('/portfolio', portfolioRoutes);
+app.use('/portfolio-save', portfolioSaveRoutes);
 
 mongoose.connect(MONGOURL)
   .then(() => {

@@ -131,24 +131,42 @@ const activateTemplate = async (req, res) => {
             return res.status(400).json({ message: 'Both userId and templateId are required.' });
         }
 
-       
-
         const findUser = await User.findById(userId).lean();
-if (!findUser) {
-    return res.status(403).json({ message: 'User not found.' });
-}
+        if (!findUser) {
+            return res.status(403).json({ message: 'User not found.' });
+        }
 
-
-        const template = await Templates.findById(templateId);
-        if (!template) {
+        // Find the original template
+        const originalTemplate = await Templates.findById(templateId);
+        if (!originalTemplate) {
             return res.status(404).json({ message: 'Template not found.' });
         }
 
+        // Check if user already has this template
+        let userTemplate = await Templates.findOne({ 
+            userId: userId,
+            predefinedTemplate: originalTemplate.predefinedTemplate 
+        });
+
+        if (!userTemplate) {
+            // Create a new template instance for the user
+            userTemplate = await Templates.create({
+                name: originalTemplate.name,
+                description: originalTemplate.description,
+                image: originalTemplate.image,
+                category: originalTemplate.category,
+                predefinedTemplate: originalTemplate.predefinedTemplate,
+                userId: userId, // Add userId to associate template with user
+                sectionConfiguration: originalTemplate.sectionConfiguration
+            });
+        }
+
+        // Update user's selected template
         const user = await User.findByIdAndUpdate(
             userId,
-            { selectedTemplate: templateId },
+            { selectedTemplate: userTemplate._id },
             { new: true }
-        ).populate('selectedTemplate', 'name image category');
+        ).populate('selectedTemplate');
 
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });

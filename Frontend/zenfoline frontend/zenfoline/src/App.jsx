@@ -17,6 +17,7 @@ import ThemePage from './AuthenticatedUser/ThemePages';
 import ManageComponents from './authenticatedAdmin/ManageComponents';
 import TemplateRenderer from './RenderedTemplate/TemplateRenderer';
 import TemplateEditor from './AuthenticatedUser/TemplateEditor';
+import PublicPortfolioView from './PublicPortfolio/PublicPortfolioView';
 
 const App = () => {
   return (
@@ -49,6 +50,7 @@ const App = () => {
           <Route path="/theme" element={<ThemePage />} />
           <Route path="/template/:templateId" element={<TemplateRenderer />} />
           <Route path="/template-editor/:templateId" element={<TemplateEditor />} />
+          <Route path="/portfolio/:userId" element={<PublicPortfolioView />} />
         </Routes>
       </Router>
     </div>
