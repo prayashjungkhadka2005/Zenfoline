@@ -309,13 +309,40 @@ router.put('/template/:userId/data', async (req, res) => {
             });
         }
 
-        // Update all sections with the provided data
-        portfolio.basics = data.basics;
-        portfolio.about = data.about;
-        portfolio.skills = data.skills;
-        portfolio.experience = data.experience;
-        portfolio.projects = data.projects;
-        portfolio.theme = data.theme;
+        // Update sections by merging with existing data
+        if (data.basics) {
+            portfolio.basics = {
+                ...portfolio.basics,
+                ...data.basics
+            };
+        }
+        
+        // Properly handle about section with highlights
+        if (data.about) {
+            portfolio.about = {
+                description: data.about.description || portfolio.about?.description || '',
+                highlights: data.about.highlights?.map(highlight => ({
+                    text: highlight.text,
+                    isVisible: highlight.isVisible || true
+                })) || portfolio.about?.highlights || []
+            };
+        }
+        
+        if (data.skills) {
+            portfolio.skills = data.skills;
+        }
+        if (data.experience) {
+            portfolio.experience = data.experience;
+        }
+        if (data.projects) {
+            portfolio.projects = data.projects;
+        }
+        if (data.theme) {
+            portfolio.theme = {
+                ...portfolio.theme,
+                ...data.theme
+            };
+        }
 
         console.log('Saving complete template data:', portfolio);
 

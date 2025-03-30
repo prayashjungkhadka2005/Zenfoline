@@ -29,6 +29,10 @@ const portfolioDataSchema = new mongoose.Schema({
     description: String,
     vision: String,
     mission: String,
+    highlights: [{
+      text: String,
+      isVisible: { type: Boolean, default: true }
+    }],
     isVisible: { type: Boolean, default: true }
   },
   // Skills Section

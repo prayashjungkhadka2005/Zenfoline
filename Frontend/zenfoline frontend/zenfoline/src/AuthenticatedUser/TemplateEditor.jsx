@@ -322,37 +322,9 @@ const TemplateEditor = () => {
             };
             console.log('Sending basic info data:', basicData);
 
-            response = await fetch(`http://localhost:3000/portfolio-save/template/${userId}/basics`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(basicData),
-            });
-
-            const data = await response.json();
-            console.log('Response from server:', data);
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Failed to save changes');
-            }
-
-            // Update formData with the response data, ensuring proper structure
-            setFormData(prev => ({
-                ...prev,
-                basics: {
-                    ...prev.basics,
-                    ...(data.data.basics || {}),
-                    socialLinks: {
-                        ...(prev.basics?.socialLinks || {}),
-                        ...(data.data.basics?.socialLinks || {})
-                    }
-                }
-            }));
-
-            // Save template data with proper structure
+            // Save template data with only basics section and theme
             const templateData = {
-                ...formData,
+                basics: basicData,
                 theme: {
                     ...(formData.theme || {}),
                     fontStyle: formData.theme?.fontStyle || 'Poppins',
@@ -364,10 +336,6 @@ const TemplateEditor = () => {
                             projects: true
                         })
                     }
-                },
-                basics: {
-                    ...(formData.basics || {}),
-                    socialLinks: formData.basics?.socialLinks || {}
                 }
             };
             
@@ -382,7 +350,7 @@ const TemplateEditor = () => {
 
             if (!templateResponse.ok) {
                 const templateData = await templateResponse.json();
-                throw new Error(templateData.message || 'Failed to save template changes');
+                throw new Error(templateData.message || 'Failed to save basic info');
             }
 
             // Update formData with template response
@@ -390,46 +358,41 @@ const TemplateEditor = () => {
             console.log('Template update response:', templateUpdateData);
 
             if (templateUpdateData.data) {
-                setFormData(prev => {
-                    // Preserve the current enabled sections
-                    const currentEnabledSections = prev.theme?.enabledSections || {
-                        about: true,
-                        skills: true,
-                        experience: true,
-                        projects: true
-                    };
-
-                    return {
-                        ...prev,
-                        basics: {
-                            ...(prev.basics || {}),
-                            ...(templateUpdateData.data.basics || {}),
-                            socialLinks: {
-                                ...(prev.basics?.socialLinks || {}),
-                                ...(templateUpdateData.data.basics?.socialLinks || {})
-                            }
-                        },
-                        about: templateUpdateData.data.about || prev.about || {},
-                        skills: templateUpdateData.data.skills || prev.skills || {},
-                        experience: templateUpdateData.data.experience || prev.experience || [],
-                        projects: templateUpdateData.data.projects || prev.projects || [],
-                        theme: {
-                            ...(prev.theme || {}),
-                            ...(templateUpdateData.data.theme || {}),
-                            fontStyle: templateUpdateData.data.theme?.fontStyle || prev.theme?.fontStyle || 'Poppins',
-                            enabledSections: {
-                                ...currentEnabledSections,
-                                ...(templateUpdateData.data.theme?.enabledSections || {})
-                            }
+                setFormData(prev => ({
+                    ...prev,
+                    basics: {
+                        ...(prev.basics || {}),
+                        ...(templateUpdateData.data.basics || {}),
+                        socialLinks: {
+                            ...(prev.basics?.socialLinks || {}),
+                            ...(templateUpdateData.data.basics?.socialLinks || {})
                         }
-                    };
-                });
+                    },
+                    theme: {
+                        ...(prev.theme || {}),
+                        ...(templateUpdateData.data.theme || {}),
+                        fontStyle: templateUpdateData.data.theme?.fontStyle || prev.theme?.fontStyle || 'Poppins',
+                        enabledSections: {
+                            ...(prev.theme?.enabledSections || {
+                                about: true,
+                                skills: true,
+                                experience: true,
+                                projects: true
+                            }),
+                            ...(templateUpdateData.data.theme?.enabledSections || {})
+                        }
+                    }
+                }));
 
                 // Update active template if it exists
                 if (activeTemplate) {
                     setActiveTemplate(prev => ({
                         ...prev,
-                        data: templateUpdateData.data
+                        data: {
+                            ...prev.data,
+                            basics: templateUpdateData.data.basics,
+                            theme: templateUpdateData.data.theme
+                        }
                     }));
                 }
             }
@@ -438,7 +401,100 @@ const TemplateEditor = () => {
             setActiveSection(prev => prev);
             
             // Show success notification
-            showNotification('Changes saved successfully!', 'success');
+            showNotification('Basic info saved successfully!', 'success');
+        } else if (section === 'About') {
+            // Ensure proper data structure for about section
+            const aboutData = {
+                description: formData.about?.description || '',
+                highlights: formData.about?.highlights?.filter(highlight => highlight.text.trim() !== '') || []
+            };
+            console.log('Sending about data:', aboutData);
+
+            // Save template data with only the about section and theme
+            const templateData = {
+                about: {
+                    description: aboutData.description,
+                    highlights: aboutData.highlights.map(highlight => ({
+                        text: highlight.text,
+                        isVisible: true
+                    }))
+                },
+                theme: {
+                    ...(formData.theme || {}),
+                    fontStyle: formData.theme?.fontStyle || 'Poppins',
+                    enabledSections: {
+                        ...(formData.theme?.enabledSections || {
+                            about: true,
+                            skills: true,
+                            experience: true,
+                            projects: true
+                        })
+                    }
+                }
+            };
+            
+            console.log('Sending template data:', templateData);
+            const templateResponse = await fetch(`http://localhost:3000/portfolio-save/template/${userId}/data`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ data: templateData }),
+            });
+
+            if (!templateResponse.ok) {
+                const templateData = await templateResponse.json();
+                throw new Error(templateData.message || 'Failed to save about section');
+            }
+
+            // Update formData with template response
+            const templateUpdateData = await templateResponse.json();
+            console.log('Template update response:', templateUpdateData);
+
+            if (templateUpdateData.data) {
+                setFormData(prev => ({
+                    ...prev,
+                    about: {
+                        description: templateUpdateData.data.about?.description || prev.about?.description || '',
+                        highlights: templateUpdateData.data.about?.highlights?.map(h => ({
+                            text: h.text,
+                            isVisible: h.isVisible
+                        })) || prev.about?.highlights || []
+                    },
+                    theme: {
+                        ...(prev.theme || {}),
+                        ...(templateUpdateData.data.theme || {}),
+                        fontStyle: templateUpdateData.data.theme?.fontStyle || prev.theme?.fontStyle || 'Poppins',
+                        enabledSections: {
+                            ...(prev.theme?.enabledSections || {
+                                about: true,
+                                skills: true,
+                                experience: true,
+                                projects: true
+                            }),
+                            ...(templateUpdateData.data.theme?.enabledSections || {})
+                        }
+                    }
+                }));
+
+                // Update active template if it exists
+                if (activeTemplate) {
+                    setActiveTemplate(prev => ({
+                        ...prev,
+                        data: {
+                            ...prev.data,
+                            about: templateUpdateData.data.about,
+                            theme: templateUpdateData.data.theme
+                        }
+                    }));
+                }
+            }
+
+            // Force a re-render of the preview by toggling the active section
+            setActiveSection(prev => prev);
+            
+            // Show success notification
+            showNotification('About section saved successfully!', 'success');
         }
     } catch (error) {
         console.error('Error saving changes:', error);
@@ -450,66 +506,120 @@ const TemplateEditor = () => {
   const SaveButton = ({ section }) => {
     const [status, setStatus] = useState(null);
     const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+
+    const validateSection = () => {
+        if (section === 'Basic Info') {
+            const emptyFields = [];
+            const requiredFields = {
+                name: 'Name',
+                role: 'Role',
+                bio: 'Bio',
+                email: 'Email',
+                phone: 'Phone',
+                location: 'Location'
+            };
+
+            for (const [field, label] of Object.entries(requiredFields)) {
+                if (!formData.basics?.[field]?.trim()) {
+                    emptyFields.push(label);
+                }
+            }
+
+            if (emptyFields.length > 0) {
+                setError('Fill all fields');
+                return false;
+            }
+            return true;
+        } else if (section === 'About') {
+            const emptyFields = [];
+            
+            if (!formData.about?.description?.trim()) {
+                emptyFields.push('About description');
+            }
+            if (!formData.about?.highlights?.some(h => h.text.trim())) {
+                emptyFields.push('At least one highlight');
+            }
+
+            if (emptyFields.length > 0) {
+                setError('Fill all fields');
+                return false;
+            }
+            return true;
+        }
+        return true;
+    };
 
     const handleClick = async () => {
-      try {
-        setStatus('saving');
-        await handleSaveSection(section);
-        setStatus('success');
-        setMessage('Saved!');
-        // Reset status after 2 seconds without causing a re-render
-        setTimeout(() => {
-          setStatus(null);
-          setMessage('');
-        }, 2000);
-      } catch (error) {
-        setStatus('error');
-        setMessage('Failed to save');
-        setTimeout(() => {
-          setStatus(null);
-          setMessage('');
-        }, 2000);
-      }
+        try {
+            setError('');
+            if (!validateSection()) {
+                setStatus('error');
+                setTimeout(() => {
+                    setStatus(null);
+                    setError('');
+                }, 2000);
+                return;
+            }
+
+            setStatus('saving');
+            await handleSaveSection(section);
+            setStatus('success');
+            setMessage('Saved!');
+            setTimeout(() => {
+                setStatus(null);
+                setMessage('');
+                setError('');
+            }, 2000);
+        } catch (error) {
+            setStatus('error');
+            setError('Failed to save');
+            setTimeout(() => {
+                setStatus(null);
+                setMessage('');
+                setError('');
+            }, 2000);
+        }
     };
 
     const getButtonStyles = () => {
-      const baseStyles = "mt-6 w-full py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 ";
-      
-      switch (status) {
-        case 'saving':
-          return baseStyles + "bg-gray-400 text-white cursor-wait";
-        case 'success':
-          return baseStyles + "bg-green-500 text-white";
-        case 'error':
-          return baseStyles + "bg-red-500 text-white";
-        default:
-          return baseStyles + "bg-blue-600 hover:bg-blue-700 text-white";
-      }
+        const baseStyles = "mt-6 w-full py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 ";
+        
+        switch (status) {
+            case 'saving':
+                return baseStyles + "bg-gray-400 text-white cursor-wait";
+            case 'success':
+                return baseStyles + "bg-green-500 text-white";
+            case 'error':
+                return baseStyles + "bg-red-500 text-white";
+            default:
+                return baseStyles + "bg-blue-600 hover:bg-blue-700 text-white";
+        }
     };
 
     return (
-      <button
-        onClick={handleClick}
-        disabled={status === 'saving'}
-        className={getButtonStyles()}
-      >
-        {status === 'saving' && (
-          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        )}
-        {status === 'success' && <FiCheck className="w-5 h-5" />}
-        {status === 'error' && <FiX className="w-5 h-5" />}
-        <span>
-          {status === 'saving' ? 'Saving...' :
-           status === 'success' ? 'Saved!' :
-           status === 'error' ? 'Failed to save' :
-           `Save ${section}`}
-        </span>
-      </button>
+        <button
+            onClick={handleClick}
+            disabled={status === 'saving'}
+            className={getButtonStyles()}
+        >
+            {status === 'saving' && (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            )}
+            {status === 'success' && <FiCheck className="w-5 h-5" />}
+            {status === 'error' && <FiX className="w-5 h-5" />}
+            <span>
+                {status === 'saving' ? 'Saving...' :
+                 status === 'success' ? 'Saved!' :
+                 status === 'error' ? error || 'Failed to save' :
+                 `Save ${section}`}
+            </span>
+        </button>
     );
-  };
+};
 
   // Add section toggle handler
   const handleSectionToggle = (sectionId) => {
