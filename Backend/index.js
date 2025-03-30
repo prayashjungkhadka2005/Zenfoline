@@ -12,7 +12,6 @@ const authenticatedUserRoutes = require('./routes/AuthenticatedUserRoutes');
 const portfolioRoutes = require('./routes/portfolio');
 const portfolioSaveRoutes = require('./routes/portfolioRoutes');
 
-
 const app = express();
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -21,7 +20,10 @@ const PORT = 3000;
 const MONGOURL = process.env.MONGOURL;
 
 app.use(cors());
-app.use(express.json());
+
+// ✅ Increase request size limit
+app.use(express.json({ limit: "50mb" })); 
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.use('/auth', authenticationRoutes);
 app.use('/authenticated-user', authenticatedUserRoutes);
