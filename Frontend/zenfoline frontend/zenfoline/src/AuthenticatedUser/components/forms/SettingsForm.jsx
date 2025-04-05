@@ -10,6 +10,10 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
   const userId = useAuthStore((state) => state.userId);
   const [localEnabledSections, setLocalEnabledSections] = useState({});
   const [isInitialized, setIsInitialized] = useState(false);
+  const [defaultSections, setDefaultSections] = useState([]);
+  const [optionalSections, setOptionalSections] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [templateCategory, setTemplateCategory] = useState('');
 
   const commonClasses = {
     section: "max-w-3xl mx-auto space-y-8",
@@ -19,54 +23,128 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
     sectionContainer: "bg-white rounded-lg border border-gray-200 p-6",
     toggleContainer: "flex items-center justify-between py-3 border-b last:border-b-0",
     toggleLabel: "text-sm font-medium text-gray-900",
-    toggleDescription: "text-xs text-gray-500 mt-1"
+    toggleDescription: "text-xs text-gray-500 mt-1",
+    categoryTitle: "text-md font-medium text-gray-700 mb-3 mt-6"
   };
 
-  // Initialize local state with data from props
-  useEffect(() => {
-    if (data && data.enabledSections && !isInitialized) {
-      setLocalEnabledSections(data.enabledSections);
-      setIsInitialized(true);
-    }
-  }, [data, isInitialized]);
+  // All available sections
+  const allSections = [
+    { id: 'basics', label: 'Basics', required: true },
+    { id: 'about', label: 'About', required: true },
+    { id: 'skills', label: 'Skills' },
+    { id: 'experience', label: 'Experience' },
+    { id: 'projects', label: 'Projects' },
+    { id: 'education', label: 'Education' },
+    { id: 'certifications', label: 'Certifications' },
+    { id: 'publications', label: 'Publications' },
+    { id: 'awards', label: 'Awards' },
+    { id: 'services', label: 'Services' }
+  ];
 
-  // Fetch section visibility settings on component mount
+  // Default sections by template category
+  const defaultSectionsByCategory = {
+    'developer': ['basics', 'about', 'skills', 'experience', 'projects', 'education', 'certifications'],
+    'student': ['basics', 'about', 'education', 'skills', 'projects', 'certifications', 'awards'],
+    'content-creator': ['basics', 'about', 'services', 'publications', 'projects', 'skills'],
+    'designer': ['basics', 'about', 'projects', 'skills', 'experience', 'services'],
+    'lawyer': ['basics', 'about', 'experience', 'education', 'certifications', 'services', 'publications'],
+    'expert': ['basics', 'about', 'experience', 'skills', 'projects', 'publications', 'certifications', 'services']
+  };
+
+  // Fetch template default sections and section visibility
   useEffect(() => {
-    const fetchSectionVisibility = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
-        if (!response.ok) {
+        setIsLoading(true);
+        
+        // Get the template ID from the data prop
+        const templateId = data?.templateId || 'developer'; // Default to developer if not specified
+        console.log('Template ID:', templateId);
+        
+        // Fetch template data
+        const templateResponse = await fetch(`${API_BASE_URL}/authenticated-user/activetemplate?userId=${userId}`);
+        if (!templateResponse.ok) {
+          throw new Error('Failed to fetch template data');
+        }
+        const templateData = await templateResponse.json();
+        console.log('Template data:', templateData);
+        
+        // Get template category
+        const category = templateData.category || 'designer';
+        setTemplateCategory(category);
+        console.log('Template category:', category);
+        
+        // Get default sections for this template category
+        const defaultSectionIds = defaultSectionsByCategory[category] || ['basics', 'about'];
+        console.log('Default section IDs:', defaultSectionIds);
+        
+        // Fetch section visibility
+        const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
+        if (!visibilityResponse.ok) {
           throw new Error('Failed to fetch section visibility');
         }
-        const result = await response.json();
+        const visibilityData = await visibilityResponse.json();
+        console.log('Visibility data:', visibilityData);
         
-        // Update the form data with the fetched section configuration
-        if (result.data) {
+        // Process section visibility data
+        if (visibilityData.data) {
           const sectionConfig = {};
-          Object.keys(result.data).forEach(section => {
+          Object.keys(visibilityData.data).forEach(section => {
             if (section !== 'customSections') {
-              sectionConfig[section] = result.data[section].isEnabled;
+              sectionConfig[section] = visibilityData.data[section].isEnabled;
             }
           });
           
-          // Update both the parent component and local state
+          // Update parent component with the fetched section configuration
           onUpdate({
             ...data,
             enabledSections: sectionConfig
           });
+          
+          // Set local state
           setLocalEnabledSections(sectionConfig);
+          
+          // Organize sections into default and optional
+          const defaultSectionsList = allSections.filter(section => 
+            defaultSectionIds.includes(section.id) || section.required
+          );
+          
+          const optionalSectionsList = allSections.filter(section => 
+            !defaultSectionIds.includes(section.id) && !section.required
+          );
+          
+          console.log('Default sections list:', defaultSectionsList);
+          console.log('Optional sections list:', optionalSectionsList);
+          
+          setDefaultSections(defaultSectionsList);
+          setOptionalSections(optionalSectionsList);
           setIsInitialized(true);
         }
       } catch (error) {
-        console.error('Error fetching section visibility:', error);
-        setError('Failed to load section visibility settings');
+        console.error('Error fetching data:', error);
+        setError('Failed to load settings');
+        
+        // Set fallback sections in case of error
+        const defaultSectionsList = allSections.filter(section => 
+          ['basics', 'about'].includes(section.id) || section.required
+        );
+        
+        const optionalSectionsList = allSections.filter(section => 
+          !['basics', 'about'].includes(section.id) && !section.required
+        );
+        
+        setDefaultSections(defaultSectionsList);
+        setOptionalSections(optionalSectionsList);
+        setIsInitialized(true);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     if (userId && !isInitialized) {
-      fetchSectionVisibility();
+      fetchData();
     }
-  }, [userId, isInitialized]);
+  }, [userId, isInitialized, data, onUpdate]);
 
   // Handle section toggle in local state only
   const handleSectionToggle = (sectionId, isEnabled) => {
@@ -80,19 +158,6 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
       return newState;
     });
   };
-
-  const sections = [
-    { id: 'basics', label: 'Basics', required: true },
-    { id: 'about', label: 'About', required: true },
-    { id: 'skills', label: 'Skills' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'education', label: 'Education' },
-    { id: 'certifications', label: 'Certifications' },
-    { id: 'publications', label: 'Publications' },
-    { id: 'awards', label: 'Awards' },
-    { id: 'services', label: 'Services' }
-  ];
 
   const handleSave = async () => {
     try {
@@ -146,6 +211,38 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
     }
   };
 
+  // Render a section toggle
+  const renderSectionToggle = (section) => (
+    <div key={section.id} className={commonClasses.toggleContainer}>
+      <div>
+        <h4 className={commonClasses.toggleLabel}>{section.label}</h4>
+        {section.required && (
+          <p className={commonClasses.toggleDescription}>Required section</p>
+        )}
+      </div>
+      <div className="flex items-center">
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            checked={section.required || localEnabledSections[section.id] || false}
+            onChange={(e) => handleSectionToggle(section.id, e.target.checked)}
+            disabled={section.required}
+            className="sr-only peer"
+          />
+          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </label>
+      </div>
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className={commonClasses.section}>
       <div className={commonClasses.infoBox}>
@@ -157,29 +254,27 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
       <div className="space-y-8">
         <div className={commonClasses.sectionContainer}>
           <h3 className={commonClasses.sectionTitle}>Section Visibility</h3>
+          
+          {/* Default Template Sections */}
+          <h4 className={commonClasses.categoryTitle}>
+            Default {templateCategory ? templateCategory.charAt(0).toUpperCase() + templateCategory.slice(1) : 'Template'} Sections
+          </h4>
           <div className="space-y-1">
-            {sections.map((section) => (
-              <div key={section.id} className={commonClasses.toggleContainer}>
-                <div>
-                  <h4 className={commonClasses.toggleLabel}>{section.label}</h4>
-                  {section.required && (
-                    <p className={commonClasses.toggleDescription}>Required section</p>
-                  )}
-                </div>
-                <div className="flex items-center">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={section.required || localEnabledSections[section.id] || false}
-                      onChange={(e) => handleSectionToggle(section.id, e.target.checked)}
-                      disabled={section.required}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-              </div>
-            ))}
+            {defaultSections.length > 0 ? (
+              defaultSections.map(renderSectionToggle)
+            ) : (
+              <p className="text-gray-500 italic">No default sections found for this template.</p>
+            )}
+          </div>
+          
+          {/* Optional Sections */}
+          <h4 className={commonClasses.categoryTitle}>Optional Sections</h4>
+          <div className="space-y-1">
+            {optionalSections.length > 0 ? (
+              optionalSections.map(renderSectionToggle)
+            ) : (
+              <p className="text-gray-500 italic">No optional sections available.</p>
+            )}
           </div>
         </div>
       </div>
