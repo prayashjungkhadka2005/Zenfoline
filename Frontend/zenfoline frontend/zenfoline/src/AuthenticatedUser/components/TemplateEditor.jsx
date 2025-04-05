@@ -18,6 +18,9 @@ import ExperienceForm from './forms/ExperienceForm';
 import ProjectsForm from './forms/ProjectsForm';
 import SettingsForm from './forms/SettingsForm';
 
+// API base URL
+const API_BASE_URL = 'http://localhost:3000';
+
 const TemplateEditor = () => {
   const { templateId } = useParams();
   const userId = useAuthStore((state) => state.userId);
@@ -54,6 +57,8 @@ const TemplateEditor = () => {
   const [scale, setScale] = useState(1);
   const [fontStyle, setFontStyle] = useState('default');
   const [activeTemplate, setActiveTemplate] = useState(null);
+  const [sectionVisibility, setSectionVisibility] = useState({});
+  const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
 
   // Load initial data
   useEffect(() => {
@@ -102,6 +107,47 @@ const TemplateEditor = () => {
     }
   }, [userId, templateId, fetchTemplates, templates]);
 
+  // Fetch section visibility on component mount
+  useEffect(() => {
+    const fetchSectionVisibility = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch section visibility');
+        }
+        const result = await response.json();
+        
+        if (result.data) {
+          const visibility = {};
+          Object.keys(result.data).forEach(section => {
+            if (section !== 'customSections') {
+              visibility[section] = result.data[section].isEnabled;
+            }
+          });
+          setSectionVisibility(visibility);
+          
+          // Update formData with the fetched section visibility
+          setFormData(prev => ({
+            ...prev,
+            theme: {
+              ...prev.theme,
+              enabledSections: {
+                ...prev.theme.enabledSections,
+                ...visibility
+              }
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching section visibility:', error);
+      }
+    };
+
+    if (userId) {
+      fetchSectionVisibility();
+    }
+  }, [userId]);
+
   // Handle form updates
   const handleFormUpdate = (sectionId, data) => {
     setFormData(prev => ({
@@ -113,7 +159,7 @@ const TemplateEditor = () => {
   // Save changes
   const saveChanges = async () => {
     try {
-      const response = await fetch(`/api/portfolio/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/portfolio-save/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -128,6 +174,62 @@ const TemplateEditor = () => {
       console.error('Error saving changes:', error);
       showNotification('Error saving changes', 'error');
     }
+  };
+
+  // Handle settings saved
+  const handleSettingsSaved = (newSectionVisibility) => {
+    // Update the section visibility state
+    setSectionVisibility(newSectionVisibility);
+    
+    // Force sidebar refresh by incrementing the key
+    setSidebarRefreshKey(prev => prev + 1);
+    
+    // No need to show notification as SettingsForm already shows one
+  };
+
+  // Get visible sections for navigation
+  const getVisibleSections = () => {
+    return sections.filter(section => {
+      // Always show required sections and settings
+      if (section.required || section.id === 'settings') {
+        return true;
+      }
+      
+      // For non-required sections, check if they are enabled in the backend data
+      // Fall back to formData if backend data is not available
+      return sectionVisibility[section.id] !== undefined 
+        ? sectionVisibility[section.id] 
+        : formData?.theme?.enabledSections?.[section.id] ?? true;
+    });
+  };
+
+  // Update sections based on template and visibility
+  const getTemplateSections = () => {
+    if (!activeTemplate) return [];
+    
+    const templateSections = {
+      ExpertPortfolioTemplate: [
+        { id: 'basics', label: 'Basic Info', icon: <FiUser className="w-5 h-5" />, required: true },
+        { id: 'about', label: 'About', icon: <FiInfo className="w-5 h-5" />, required: false },
+        { id: 'skills', label: 'Skills', icon: <FiCode className="w-5 h-5" />, required: false },
+        { id: 'experience', label: 'Experience', icon: <FiBriefcase className="w-5 h-5" />, required: false },
+        { id: 'projects', label: 'Projects', icon: <FiFileText className="w-5 h-5" />, required: false }
+      ],
+      SimplePortfolioTemplate: [
+        { id: 'basics', label: 'Basic Info', icon: <FiUser className="w-5 h-5" />, required: true },
+        { id: 'about', label: 'About', icon: <FiInfo className="w-5 h-5" />, required: false },
+        { id: 'projects', label: 'Projects', icon: <FiFileText className="w-5 h-5" />, required: false }
+      ],
+      // Add more templates here as needed
+    };
+
+    const sections = templateSections[activeTemplate.predefinedTemplate] || [];
+    
+    // Add settings section at the end
+    return [
+      ...sections,
+      { id: 'settings', label: 'Settings', icon: <FiSettings className="w-5 h-5" />, required: true }
+    ];
   };
 
   // Render form section based on active section
@@ -147,8 +249,7 @@ const TemplateEditor = () => {
         return <SettingsForm 
           data={formData.theme} 
           onUpdate={(data) => handleFormUpdate('theme', data)}
-          fontStyle={fontStyle}
-          setFontStyle={setFontStyle}
+          onSettingsSaved={handleSettingsSaved}
         />;
       default:
         return <div>Select a section</div>;
@@ -161,6 +262,7 @@ const TemplateEditor = () => {
     <EditorLayout
       sidebar={
         <EditorSidebar
+          key={sidebarRefreshKey}
           sections={sections}
           activeSection={activeSection}
           setActiveSection={setActiveSection}

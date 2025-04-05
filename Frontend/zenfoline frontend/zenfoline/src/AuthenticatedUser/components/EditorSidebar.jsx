@@ -1,16 +1,61 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiUser, FiInfo, FiCode, FiBriefcase, FiFileText, FiSettings, FiAward } from 'react-icons/fi';
+import useAuthStore from '../../store/userAuthStore';
+
+// API base URL
+const API_BASE_URL = 'http://localhost:3000';
 
 const EditorSidebar = ({ sections, activeSection, setActiveSection, formData }) => {
+  const [sectionVisibility, setSectionVisibility] = useState({});
+  const userId = useAuthStore((state) => state.userId);
+
+  // Fetch section visibility on component mount
+  useEffect(() => {
+    const fetchSectionVisibility = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch section visibility');
+        }
+        const result = await response.json();
+        
+        if (result.data) {
+          const visibility = {};
+          Object.keys(result.data).forEach(section => {
+            if (section !== 'customSections') {
+              visibility[section] = result.data[section].isEnabled;
+            }
+          });
+          setSectionVisibility(visibility);
+        }
+      } catch (error) {
+        console.error('Error fetching section visibility:', error);
+      }
+    };
+
+    if (userId) {
+      fetchSectionVisibility();
+    }
+  }, [userId]);
+
   // Get visible sections for navigation
   const getVisibleSections = () => {
-    return sections.filter(section => 
-      section.required || formData?.theme?.enabledSections?.[section.id] || false
-    );
+    return sections.filter(section => {
+      // Always show required sections and settings
+      if (section.required || section.id === 'settings') {
+        return true;
+      }
+      
+      // For non-required sections, check if they are enabled in the backend data
+      // Fall back to formData if backend data is not available
+      return sectionVisibility[section.id] !== undefined 
+        ? sectionVisibility[section.id] 
+        : formData?.theme?.enabledSections?.[section.id] ?? true;
+    });
   };
 
   const visibleSections = getVisibleSections();
-  const visibleCount = Object.values(formData?.theme?.enabledSections || {}).filter(Boolean).length;
+  const visibleCount = Object.values(sectionVisibility).filter(Boolean).length;
 
   return (
     <div className="h-full bg-white border-r border-gray-200">
