@@ -251,6 +251,79 @@ exports.getExperienceInfo = async (req, res) => {
     }
 };
 
+// Save projects information
+exports.saveProjectsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[saveProjectsInfo] Saving projects for user: ${userId}`);
+        console.log('Request body:', req.body);
+
+        // Find the user's portfolio
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        // Handle uploaded files
+        const uploadedFiles = req.files || [];
+        const projectImages = uploadedFiles.map(file => `/uploads/projects/${file.filename}`);
+
+        // Parse projects if it's a string (form-data) or use as is if it's JSON
+        const projectsData = typeof req.body.projects === 'string' 
+            ? JSON.parse(req.body.projects) 
+            : req.body.projects;
+
+        // Update projects
+        portfolio.projects = projectsData.map((project, index) => ({
+            title: project.title,
+            description: project.description,
+            role: project.role,
+            technologies: project.technologies || [],
+            // If there are uploaded files for this project, use them, otherwise keep existing images
+            images: projectImages.length > index ? [projectImages[index]] : (project.images || []),
+            liveUrl: project.liveUrl,
+            sourceUrl: project.sourceUrl,
+            startDate: project.startDate,
+            endDate: project.endDate,
+            achievements: project.achievements || [],
+            isVisible: true
+        }));
+
+        // Save the updated portfolio
+        await portfolio.save();
+        console.log(`[saveProjectsInfo] Successfully saved projects for user: ${userId}`);
+
+        res.json({
+            message: 'Projects information updated successfully',
+            data: portfolio.projects
+        });
+    } catch (error) {
+        console.error('[saveProjectsInfo] Error:', error);
+        res.status(500).json({ message: 'Error saving projects information', error: error.message });
+    }
+};
+
+// Get projects information
+exports.getProjectsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getProjectsInfo] Getting projects for user: ${userId}`);
+
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        res.json({
+            message: 'Projects information retrieved successfully',
+            data: portfolio.projects
+        });
+    } catch (error) {
+        console.error('[getProjectsInfo] Error:', error);
+        res.status(500).json({ message: 'Error retrieving projects information', error: error.message });
+    }
+};
+
 // Export the upload middleware for use in routes
 exports.upload = upload;
 
