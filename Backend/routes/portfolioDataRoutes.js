@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { saveBasicInfo, saveAboutInfo, getAboutInfo, upload, getBasicInfo } = require('../controllers/PortfolioDataController');
+const { saveBasicInfo, saveAboutInfo, getAboutInfo, upload, getBasicInfo, saveSkillsInfo, getSkillsInfo } = require('../controllers/PortfolioDataController');
 const PortfolioData = require('../models/PortfolioData');
 
 // // Get complete portfolio data
@@ -357,5 +357,9 @@ router.get('/about/:userId', getAboutInfo);
 
 // Save about information
 router.post('/about/:userId', saveAboutInfo);
+
+// Skills routes
+router.get('/skills/:userId', getSkillsInfo);
+router.post('/skills/:userId', saveSkillsInfo);
 
 module.exports = router; 

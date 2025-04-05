@@ -134,6 +134,63 @@ exports.getAboutInfo = async (req, res) => {
     }
 };
 
+// Save skills information
+exports.saveSkillsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[saveSkillsInfo] Saving skills for user: ${userId}`);
+        console.log('Request body:', req.body);
+
+        // Find the user's portfolio
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        // Update skills
+        portfolio.skills = req.body.skills.map(skill => ({
+            name: skill.name,
+            category: skill.category,
+            proficiency: skill.proficiency,
+            isVisible: true
+        }));
+
+        // Save the updated portfolio
+        await portfolio.save();
+        console.log(`[saveSkillsInfo] Successfully saved skills for user: ${userId}`);
+
+        res.json({
+            message: 'Skills information updated successfully',
+            data: portfolio.skills
+        });
+    } catch (error) {
+        console.error('[saveSkillsInfo] Error:', error);
+        res.status(500).json({ message: 'Error saving skills information', error: error.message });
+    }
+};
+
+// Get skills information
+exports.getSkillsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getSkillsInfo] Getting skills for user: ${userId}`);
+
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        res.json({
+            message: 'Skills information retrieved successfully',
+            data: portfolio.skills
+        });
+    } catch (error) {
+        console.error('[getSkillsInfo] Error:', error);
+        res.status(500).json({ message: 'Error retrieving skills information', error: error.message });
+    }
+};
+
 // Export the upload middleware for use in routes
 exports.upload = upload;
+
 
