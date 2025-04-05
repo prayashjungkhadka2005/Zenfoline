@@ -82,6 +82,7 @@ const EditorSidebar = ({ sections, activeSection, setActiveSection, formData }) 
                 }`}>
                   {section.id === 'skills' ? <FiAward className="w-5 h-5" /> : 
                    section.id === 'education' ? <FiBook className="w-5 h-5" /> : 
+                   section.id === 'publications' ? <FiFileText className="w-5 h-5" /> :
                    section.icon}
                 </div>
                 <span className="text-sm font-medium">{section.label}</span>
