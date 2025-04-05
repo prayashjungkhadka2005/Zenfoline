@@ -144,6 +144,21 @@ const applyTemplateToPortfolio = async (userId, templateId) => {
     // Print template category
     console.log(`[applyTemplateToPortfolio] Template category: ${template.category}`);
     
+    // Get the default sections for this portfolio type
+    const defaultSections = template.defaultSections.get(template.category) || [];
+    console.log(`[applyTemplateToPortfolio] Default sections for ${template.category}:`, defaultSections);
+    
+    // Create a new section configuration based on the default sections
+    const newSectionConfig = {};
+    Object.keys(template.sectionConfiguration).forEach(section => {
+      newSectionConfig[section] = {
+        ...template.sectionConfiguration[section],
+        isEnabled: defaultSections.includes(section)
+      };
+    });
+    
+    console.log(`[applyTemplateToPortfolio] New section configuration:`, JSON.stringify(newSectionConfig, null, 2));
+    
     // Find the user's portfolio
     let portfolio = await PortfolioData.findOne({ userId });
     if (!portfolio) {
@@ -153,12 +168,12 @@ const applyTemplateToPortfolio = async (userId, templateId) => {
         userId,
         templateId, // Set the templateId field
         portfolioType: template.category, // Use template category directly as portfolio type
-        sectionConfiguration: template.sectionConfiguration
+        sectionConfiguration: newSectionConfig
       });
     } else {
       console.log(`[applyTemplateToPortfolio] Updating existing portfolio for user: ${userId}`);
       // Update existing portfolio's section configuration and templateId
-      portfolio.sectionConfiguration = template.sectionConfiguration;
+      portfolio.sectionConfiguration = newSectionConfig;
       portfolio.templateId = templateId; // Update the templateId field
     }
     
