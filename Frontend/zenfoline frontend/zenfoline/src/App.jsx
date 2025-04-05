@@ -16,7 +16,7 @@ import AddTemplates from './authenticatedAdmin/AddTemplates';
 import ThemePage from './AuthenticatedUser/ThemePages';
 import ManageComponents from './authenticatedAdmin/ManageComponents';
 import TemplateRenderer from './RenderedTemplate/TemplateRenderer';
-import TemplateEditor from './AuthenticatedUser/TemplateEditor';
+import TemplateEditor from './AuthenticatedUser/components/TemplateEditor';
 import PublicPortfolioView from './PublicPortfolio/PublicPortfolioView';
 
 const App = () => {

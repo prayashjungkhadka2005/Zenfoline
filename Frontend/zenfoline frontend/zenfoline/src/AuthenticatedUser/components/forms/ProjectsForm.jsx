@@ -1,0 +1,362 @@
+import React, { useState } from 'react';
+import { FiPlus, FiTrash2, FiFileText } from 'react-icons/fi';
+
+const ProjectsForm = ({ data, onUpdate }) => {
+  const [status, setStatus] = useState(null);
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const commonClasses = {
+    section: "max-w-3xl mx-auto space-y-8",
+    infoBox: "bg-blue-50 p-4 rounded-lg mb-8",
+    infoText: "text-blue-700 text-sm",
+    projectSection: "space-y-6",
+    projectCard: "bg-white rounded-lg mb-4 p-6 relative border border-gray-200",
+    grid: "grid grid-cols-2 gap-6",
+    inputGroup: "space-y-2",
+    label: "block text-sm font-medium text-gray-600",
+    input: "w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
+    removeButton: "absolute top-4 right-4 text-red-400 hover:text-red-600 transition-colors",
+    addButton: "w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm font-medium",
+    techSection: "mt-6 space-y-4",
+    techInput: "flex gap-2",
+    techTag: "inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800",
+    techTagRemove: "ml-2 text-blue-600 hover:text-blue-800",
+    errorText: "text-red-500 text-xs mt-1",
+    errorInput: "border-red-300 focus:ring-red-500 focus:border-red-500"
+  };
+
+  const handleProjectChange = (index, field, value) => {
+    const newData = [...data];
+    newData[index] = {
+      ...newData[index],
+      [field]: value
+    };
+
+    // Clear error for this field
+    setFieldErrors(prev => ({
+      ...prev,
+      [`${index}-${field}`]: false
+    }));
+
+    onUpdate(newData);
+  };
+
+  const addProject = () => {
+    onUpdate([
+      ...data,
+      {
+        title: '',
+        description: '',
+        technologies: [],
+        newTech: '',
+        image: '',
+        liveLink: '',
+        sourceCode: '',
+        isVisible: true
+      }
+    ]);
+  };
+
+  const removeProject = (index) => {
+    const newData = [...data];
+    newData.splice(index, 1);
+    onUpdate(newData);
+
+    // Clear errors for this project
+    const newErrors = { ...fieldErrors };
+    Object.keys(newErrors).forEach(key => {
+      if (key.startsWith(`${index}-`)) {
+        delete newErrors[key];
+      }
+    });
+    setFieldErrors(newErrors);
+  };
+
+  const handleImageUpload = (index, e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleProjectChange(index, 'image', reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddTechnology = (index, tech) => {
+    if (!tech?.trim()) return;
+
+    const newData = [...data];
+    if (!newData[index].technologies) {
+      newData[index].technologies = [];
+    }
+    newData[index].technologies.push(tech.trim());
+    newData[index].newTech = '';
+    onUpdate(newData);
+  };
+
+  const handleRemoveTechnology = (projectIndex, techIndex) => {
+    const newData = [...data];
+    newData[projectIndex].technologies.splice(techIndex, 1);
+    onUpdate(newData);
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {};
+
+    if (!data.length) {
+      setError('At least one project is required');
+      isValid = false;
+      return isValid;
+    }
+
+    data.forEach((project, index) => {
+      if (!project.title?.trim()) {
+        newErrors[`${index}-title`] = true;
+        isValid = false;
+      }
+      if (!project.description?.trim()) {
+        newErrors[`${index}-description`] = true;
+        isValid = false;
+      }
+      if (!project.technologies?.length) {
+        newErrors[`${index}-technologies`] = true;
+        isValid = false;
+      }
+    });
+
+    if (!isValid) {
+      setError('Please fill in all required fields');
+    }
+    setFieldErrors(newErrors);
+    return isValid;
+  };
+
+  const handleSave = async () => {
+    try {
+      setError('');
+      setFieldErrors({});
+
+      if (!validateForm()) {
+        setStatus('error');
+        setTimeout(() => {
+          setStatus(null);
+        }, 3000);
+        return;
+      }
+
+      setStatus('saving');
+      // Here you would typically call an API to save the data
+      setTimeout(() => {
+        setStatus('success');
+        setTimeout(() => {
+          setStatus(null);
+          setError('');
+        }, 3000);
+      }, 1000);
+    } catch (error) {
+      setStatus('error');
+      setError('Failed to save');
+      setTimeout(() => {
+        setStatus(null);
+        setError('');
+      }, 3000);
+    }
+  };
+
+  return (
+    <div className={commonClasses.section}>
+      <div className={commonClasses.infoBox}>
+        <p className={commonClasses.infoText}>Add your notable projects here. Include details about technologies used and your role.</p>
+      </div>
+
+      <div className={commonClasses.projectSection}>
+        {data.map((project, index) => (
+          <div key={index} className={commonClasses.projectCard}>
+            <button
+              type="button"
+              onClick={() => removeProject(index)}
+              className={commonClasses.removeButton}
+            >
+              <FiTrash2 className="h-5 w-5" />
+            </button>
+
+            <div className={commonClasses.grid}>
+              <div className="col-span-2">
+                <div className={commonClasses.inputGroup}>
+                  <label className={commonClasses.label}>Project Image</label>
+                  <div className="flex items-start space-x-6 mt-2">
+                    <div className="w-40 h-40 rounded-lg overflow-hidden border-2 border-gray-200 shadow-lg hover:border-blue-500 transition-colors bg-gray-50 relative group">
+                      {project.image ? (
+                        <img
+                          src={project.image}
+                          alt={project.title || 'Project preview'}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-gray-400">
+                          <FiFileText className="w-10 h-10 mb-2" />
+                          <p className="text-sm text-center">No image uploaded</p>
+                          <p className="text-xs text-center mt-1">Click to upload</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(index, e)}
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      <p className="text-xs text-gray-500">Recommended: Square image of at least 400x400 pixels</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-span-2">
+                <div className={commonClasses.inputGroup}>
+                  <label className={commonClasses.label}>Project Title</label>
+                  <input
+                    type="text"
+                    value={project.title || ''}
+                    onChange={(e) => handleProjectChange(index, 'title', e.target.value)}
+                    className={`${commonClasses.input} ${fieldErrors[`${index}-title`] ? commonClasses.errorInput : ''}`}
+                    placeholder="Project name"
+                  />
+                  {fieldErrors[`${index}-title`] && (
+                    <p className={commonClasses.errorText}>Project title is required</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="col-span-2">
+                <div className={commonClasses.inputGroup}>
+                  <label className={commonClasses.label}>Description</label>
+                  <textarea
+                    value={project.description || ''}
+                    onChange={(e) => handleProjectChange(index, 'description', e.target.value)}
+                    rows="3"
+                    className={`${commonClasses.input} ${fieldErrors[`${index}-description`] ? commonClasses.errorInput : ''}`}
+                    placeholder="Describe your project"
+                  />
+                  {fieldErrors[`${index}-description`] && (
+                    <p className={commonClasses.errorText}>Project description is required</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="col-span-2">
+                <div className={commonClasses.inputGroup}>
+                  <label className={commonClasses.label}>Technologies Used</label>
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {(project.technologies || []).map((tech, techIndex) => (
+                        <span key={techIndex} className={commonClasses.techTag}>
+                          {tech}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTechnology(index, techIndex)}
+                            className={commonClasses.techTagRemove}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <div className={commonClasses.techInput}>
+                      <input
+                        type="text"
+                        value={project.newTech || ''}
+                        onChange={(e) => handleProjectChange(index, 'newTech', e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && project.newTech?.trim()) {
+                            e.preventDefault();
+                            handleAddTechnology(index, project.newTech);
+                          }
+                        }}
+                        className={`${commonClasses.input} ${fieldErrors[`${index}-technologies`] ? commonClasses.errorInput : ''}`}
+                        placeholder="Type a technology and press Enter"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAddTechnology(index, project.newTech)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                    {fieldErrors[`${index}-technologies`] && (
+                      <p className={commonClasses.errorText}>At least one technology is required</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className={commonClasses.inputGroup}>
+                  <label className={commonClasses.label}>Project URL</label>
+                  <input
+                    type="url"
+                    value={project.liveLink || ''}
+                    onChange={(e) => handleProjectChange(index, 'liveLink', e.target.value)}
+                    className={commonClasses.input}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className={commonClasses.inputGroup}>
+                  <label className={commonClasses.label}>Source Code URL</label>
+                  <input
+                    type="url"
+                    value={project.sourceCode || ''}
+                    onChange={(e) => handleProjectChange(index, 'sourceCode', e.target.value)}
+                    className={commonClasses.input}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={addProject}
+          className={commonClasses.addButton}
+        >
+          <FiPlus className="w-4 h-4" />
+          Add Another Project
+        </button>
+      </div>
+
+      <button
+        onClick={handleSave}
+        className={`w-full px-4 py-3 rounded-lg text-white font-medium transition-colors ${
+          status === 'saving' 
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : status === 'success' 
+              ? 'bg-green-500' 
+              : status === 'error' 
+                ? 'bg-red-500' 
+                : 'bg-blue-500 hover:bg-blue-600'
+        }`}
+        disabled={status === 'saving'}
+      >
+        {status === 'saving' 
+          ? 'Saving...' 
+          : status === 'success' 
+            ? 'Saved Successfully!' 
+            : status === 'error' 
+              ? error || 'Please fix the errors above' 
+              : 'Save Projects'}
+      </button>
+    </div>
+  );
+};
+
+export default ProjectsForm; 
