@@ -58,12 +58,12 @@ const EditorSidebar = ({ sections, activeSection, setActiveSection, formData }) 
   const visibleCount = Object.values(sectionVisibility).filter(Boolean).length;
 
   return (
-    <div className="h-full bg-white border-r border-gray-200">
-      <div className="p-6 border-b border-gray-200">
+    <div className="h-full bg-white border-r border-gray-200 flex flex-col">
+      <div className="p-6 border-b border-gray-200 flex-shrink-0">
         <h1 className="text-xl font-bold text-gray-800">Template Editor</h1>
         <p className="text-sm text-gray-500 mt-1">Customize your portfolio</p>
       </div>
-      <nav className="px-4 py-6 space-y-2">
+      <nav className="px-4 py-6 space-y-2 overflow-y-auto flex-grow">
         {visibleSections.map((section) => (
           <div key={section.id} className="relative">
             <button
