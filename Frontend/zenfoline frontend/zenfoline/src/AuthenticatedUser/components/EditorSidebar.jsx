@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FiUser, FiInfo, FiCode, FiBriefcase, FiFileText, FiSettings, FiAward } from 'react-icons/fi';
+import { FiUser, FiInfo, FiCode, FiBriefcase, FiFileText, FiSettings, FiAward, FiBook } from 'react-icons/fi';
 import useAuthStore from '../../store/userAuthStore';
 
 // API base URL
@@ -80,7 +80,9 @@ const EditorSidebar = ({ sections, activeSection, setActiveSection, formData }) 
                     ? 'bg-blue-100 text-blue-600'
                     : 'bg-gray-100 text-gray-600'
                 }`}>
-                  {section.id === 'skills' ? <FiAward className="w-5 h-5" /> : section.icon}
+                  {section.id === 'skills' ? <FiAward className="w-5 h-5" /> : 
+                   section.id === 'education' ? <FiBook className="w-5 h-5" /> : 
+                   section.icon}
                 </div>
                 <span className="text-sm font-medium">{section.label}</span>
               </div>

@@ -16,6 +16,7 @@ import AboutForm from './forms/AboutForm';
 import SkillsForm from './forms/SkillsForm';
 import ExperienceForm from './forms/ExperienceForm';
 import ProjectsForm from './forms/ProjectsForm';
+import EducationForm from './forms/EducationForm';
 import SettingsForm from './forms/SettingsForm';
 
 // API base URL
@@ -32,6 +33,7 @@ const TemplateEditor = () => {
     { id: 'about', label: 'About', icon: <FiInfo />, required: true },
     { id: 'skills', label: 'Skills', icon: <FiCode /> },
     { id: 'experience', label: 'Experience', icon: <FiBriefcase /> },
+    { id: 'education', label: 'Education', icon: <FiBook /> },
     { id: 'projects', label: 'Projects', icon: <FiFileText /> },
     { id: 'settings', label: 'Settings', icon: <FiSettings /> }
   ]);
@@ -42,6 +44,7 @@ const TemplateEditor = () => {
     about: {},
     skills: [],
     experience: [],
+    education: [],
     projects: [],
     theme: {
       enabledSections: {
@@ -49,6 +52,7 @@ const TemplateEditor = () => {
         about: true,
         skills: true,
         experience: true,
+        education: true,
         projects: true
       },
       fontStyle: 'default'
@@ -79,6 +83,7 @@ const TemplateEditor = () => {
               about: template.data.about || prev.about,
               skills: template.data.skills || prev.skills,
               experience: template.data.experience || prev.experience,
+              education: template.data.education || prev.education,
               projects: template.data.projects || prev.projects,
               theme: {
                 ...prev.theme,
@@ -89,6 +94,7 @@ const TemplateEditor = () => {
                     about: true,
                     skills: true,
                     experience: true,
+                    education: true,
                     projects: true
                   })
                 }
@@ -213,11 +219,13 @@ const TemplateEditor = () => {
         { id: 'about', label: 'About', icon: <FiInfo className="w-5 h-5" />, required: false },
         { id: 'skills', label: 'Skills', icon: <FiCode className="w-5 h-5" />, required: false },
         { id: 'experience', label: 'Experience', icon: <FiBriefcase className="w-5 h-5" />, required: false },
+        { id: 'education', label: 'Education', icon: <FiBook className="w-5 h-5" />, required: false },
         { id: 'projects', label: 'Projects', icon: <FiFileText className="w-5 h-5" />, required: false }
       ],
       SimplePortfolioTemplate: [
         { id: 'basics', label: 'Basic Info', icon: <FiUser className="w-5 h-5" />, required: true },
         { id: 'about', label: 'About', icon: <FiInfo className="w-5 h-5" />, required: false },
+        { id: 'education', label: 'Education', icon: <FiBook className="w-5 h-5" />, required: false },
         { id: 'projects', label: 'Projects', icon: <FiFileText className="w-5 h-5" />, required: false }
       ],
       // Add more templates here as needed
@@ -245,6 +253,8 @@ const TemplateEditor = () => {
         return <ExperienceForm data={formData.experience} onUpdate={(data) => handleFormUpdate('experience', data)} />;
       case 'projects':
         return <ProjectsForm data={formData.projects} onUpdate={(data) => handleFormUpdate('projects', data)} />;
+      case 'education':
+        return <EducationForm data={formData.education} onUpdate={(data) => handleFormUpdate('education', data)} />;
       case 'settings':
         return <SettingsForm 
           data={formData.theme} 
