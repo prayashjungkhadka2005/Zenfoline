@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { saveBasicInfo, upload } = require('../controllers/PortfolioDataController');
+const { saveBasicInfo, saveAboutInfo, getAboutInfo, upload, getBasicInfo } = require('../controllers/PortfolioDataController');
 const PortfolioData = require('../models/PortfolioData');
 
 // // Get complete portfolio data
@@ -347,29 +347,15 @@ const PortfolioData = require('../models/PortfolioData');
 // });
 
 // Get basic information
-router.get('/basic-info/:userId', async (req, res) => {
-    try {
-        const { userId } = req.params;
-        console.log(`[GET /basic-info] Fetching basic info for user: ${userId}`);
-
-        const portfolio = await PortfolioData.findOne({ userId });
-        if (!portfolio) {
-            console.log(`[GET /basic-info] Portfolio not found for user: ${userId}`);
-            return res.status(404).json({ message: 'Portfolio not found' });
-        }
-
-        console.log(`[GET /basic-info] Successfully retrieved basic info for user: ${userId}`);
-        res.status(200).json({
-            message: 'Basic information retrieved successfully',
-            data: portfolio.basics
-        });
-    } catch (error) {
-        console.error('[GET /basic-info] Error retrieving basic information:', error);
-        res.status(500).json({ message: 'Error retrieving basic information' });
-    }
-});
+router.get('/basic-info/:userId', getBasicInfo);
 
 // Save basic information (with profile image upload)
 router.post('/basic-info/:userId', upload.single('profileImage'), saveBasicInfo);
+
+// Get about information
+router.get('/about/:userId', getAboutInfo);
+
+// Save about information
+router.post('/about/:userId', saveAboutInfo);
 
 module.exports = router; 
