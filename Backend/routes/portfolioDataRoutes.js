@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { saveBasicInfo, saveAboutInfo, getAboutInfo, upload, getBasicInfo, saveSkillsInfo, getSkillsInfo, saveExperienceInfo, getExperienceInfo, saveProjectsInfo, getProjectsInfo } = require('../controllers/PortfolioDataController');
+const { saveBasicInfo, saveAboutInfo, getAboutInfo, upload, getBasicInfo, saveSkillsInfo, getSkillsInfo, saveExperienceInfo, getExperienceInfo, saveProjectsInfo, getProjectsInfo, updateSectionVisibility, getSectionVisibility } = require('../controllers/PortfolioDataController');
 const PortfolioData = require('../models/PortfolioData');
 
 // // Get complete portfolio data
@@ -369,5 +369,9 @@ router.post('/experience/:userId', saveExperienceInfo);
 // Projects routes
 router.get('/projects/:userId', getProjectsInfo);
 router.post('/projects/:userId', upload.array('projectImages', 5), saveProjectsInfo);
+
+// Section visibility routes
+router.put('/section-visibility/:userId', updateSectionVisibility);
+router.get('/section-visibility/:userId', getSectionVisibility);
 
 module.exports = router; 

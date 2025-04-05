@@ -324,6 +324,72 @@ exports.getProjectsInfo = async (req, res) => {
     }
 };
 
+// Update section visibility settings
+exports.updateSectionVisibility = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[updateSectionVisibility] Updating section visibility for user: ${userId}`);
+        console.log('Request body:', req.body);
+
+        // Find the user's portfolio
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        // Update section visibility settings
+        const { sectionConfiguration } = req.body;
+        
+        // Validate the section configuration
+        if (!sectionConfiguration || typeof sectionConfiguration !== 'object') {
+            return res.status(400).json({ message: 'Invalid section configuration' });
+        }
+
+        // Update each section's visibility
+        Object.keys(sectionConfiguration).forEach(section => {
+            if (portfolio.sectionConfiguration[section]) {
+                portfolio.sectionConfiguration[section].isEnabled = sectionConfiguration[section].isEnabled;
+            }
+        });
+
+        // Save the updated portfolio
+        await portfolio.save();
+        console.log(`[updateSectionVisibility] Successfully updated section visibility for user: ${userId}`);
+
+        res.json({
+            message: 'Section visibility updated successfully',
+            data: portfolio.sectionConfiguration
+        });
+    } catch (error) {
+        console.error('[updateSectionVisibility] Error:', error);
+        res.status(500).json({ message: 'Error updating section visibility', error: error.message });
+    }
+};
+
+// Get section visibility settings
+exports.getSectionVisibility = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getSectionVisibility] Getting section visibility for user: ${userId}`);
+
+        // Find the user's portfolio
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        console.log(`[getSectionVisibility] Successfully retrieved section visibility for user: ${userId}`);
+
+        res.json({
+            message: 'Section visibility retrieved successfully',
+            data: portfolio.sectionConfiguration
+        });
+    } catch (error) {
+        console.error('[getSectionVisibility] Error:', error);
+        res.status(500).json({ message: 'Error retrieving section visibility', error: error.message });
+    }
+};
+
 // Export the upload middleware for use in routes
 exports.upload = upload;
 
