@@ -4,7 +4,7 @@ import { fetchAPI } from '../utils/fetchAPIs';
 
 const useTemplateStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       templates: [], //stores all templates
       activeTemplateId: null, //stores active templates
       loading: false, 
@@ -12,6 +12,14 @@ const useTemplateStore = create(
 
       // fetching all templates and active templates
       fetchTemplates: async (userId) => {
+        // Get current state
+        const currentState = get();
+        
+        // If templates are already loaded and we have an activeTemplateId, don't fetch again
+        if (currentState.templates.length > 0 && currentState.activeTemplateId) {
+          return;
+        }
+        
         set({ loading: true, error: null });
         try {
         

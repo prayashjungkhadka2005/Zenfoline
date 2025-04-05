@@ -105,7 +105,7 @@ const TemplateEditor = () => {
     if (userId && templateId) {
       loadData();
     }
-  }, [userId, templateId, fetchTemplates, templates]);
+  }, [userId, templateId, fetchTemplates]);
 
   // Fetch section visibility on component mount
   useEffect(() => {
