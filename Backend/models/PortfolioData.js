@@ -70,6 +70,8 @@ const portfolioDataSchema = new mongoose.Schema({
   // Basic Information
   basics: {
     name: String,
+    role: String,
+    bio: String,
     title: String,
     summary: String,
     email: String,
@@ -80,11 +82,45 @@ const portfolioDataSchema = new mongoose.Schema({
     coverImage: String,
     isVisible: { type: Boolean, default: true }
   },
-  // Social Links
+  // Social Links - Enhanced structure
   socialLinks: [{
-    platform: String,
-    url: String,
-    isVisible: { type: Boolean, default: true }
+    platform: {
+      type: String,
+      required: true,
+      enum: [
+        'linkedin', 'github', 'twitter', 'facebook', 'instagram', 
+        'youtube', 'medium', 'dev.to', 'behance', 'dribbble', 
+        'pinterest', 'reddit', 'tiktok', 'snapchat', 'twitch',
+        'stackoverflow', 'gitlab', 'bitbucket', 'codepen', 'codesandbox',
+        'hackerrank', 'leetcode', 'other'
+      ]
+    },
+    url: {
+      type: String,
+      required: true
+    },
+    displayName: {
+      type: String,
+      default: function() {
+        // Capitalize first letter of platform name
+        return this.platform.charAt(0).toUpperCase() + this.platform.slice(1);
+      }
+    },
+    icon: {
+      type: String,
+      default: function() {
+        // Default icon based on platform
+        return `fa-${this.platform}`;
+      }
+    },
+    isVisible: { 
+      type: Boolean, 
+      default: true 
+    },
+    order: {
+      type: Number,
+      default: 0
+    }
   }],
   // About Section
   about: {

@@ -163,18 +163,84 @@ const applyTemplateToPortfolio = async (userId, templateId) => {
     let portfolio = await PortfolioData.findOne({ userId });
     if (!portfolio) {
       console.log(`[applyTemplateToPortfolio] Creating new portfolio for user: ${userId}`);
+      
+      // Create default social links based on portfolio type
+      let defaultSocialLinks = [];
+      
+      // Add common social links based on portfolio type
+      if (template.category === 'developer' || template.category === 'expert') {
+        defaultSocialLinks = [
+          { platform: 'github', url: 'https://github.com', isVisible: true, order: 1 },
+          { platform: 'linkedin', url: 'https://linkedin.com', isVisible: true, order: 2 },
+          { platform: 'stackoverflow', url: 'https://stackoverflow.com', isVisible: true, order: 3 }
+        ];
+      } else if (template.category === 'content-creator') {
+        defaultSocialLinks = [
+          { platform: 'instagram', url: 'https://instagram.com', isVisible: true, order: 1 },
+          { platform: 'youtube', url: 'https://youtube.com', isVisible: true, order: 2 },
+          { platform: 'twitter', url: 'https://twitter.com', isVisible: true, order: 3 }
+        ];
+      } else if (template.category === 'designer') {
+        defaultSocialLinks = [
+          { platform: 'behance', url: 'https://behance.net', isVisible: true, order: 1 },
+          { platform: 'dribbble', url: 'https://dribbble.com', isVisible: true, order: 2 },
+          { platform: 'instagram', url: 'https://instagram.com', isVisible: true, order: 3 }
+        ];
+      } else {
+        // Default social links for other portfolio types
+        defaultSocialLinks = [
+          { platform: 'linkedin', url: 'https://linkedin.com', isVisible: true, order: 1 },
+          { platform: 'twitter', url: 'https://twitter.com', isVisible: true, order: 2 }
+        ];
+      }
+      
       // Create a new portfolio if it doesn't exist
       portfolio = new PortfolioData({
         userId,
         templateId, // Set the templateId field
         portfolioType: template.category, // Use template category directly as portfolio type
-        sectionConfiguration: newSectionConfig
+        sectionConfiguration: newSectionConfig,
+        socialLinks: defaultSocialLinks // Add default social links
       });
     } else {
       console.log(`[applyTemplateToPortfolio] Updating existing portfolio for user: ${userId}`);
       // Update existing portfolio's section configuration and templateId
       portfolio.sectionConfiguration = newSectionConfig;
       portfolio.templateId = templateId; // Update the templateId field
+      portfolio.portfolioType = template.category; // Update the portfolio type
+      
+      // Always update social links when switching templates
+      let defaultSocialLinks = [];
+      
+      if (template.category === 'developer' || template.category === 'expert') {
+        defaultSocialLinks = [
+          { platform: 'github', url: 'https://github.com', isVisible: true, order: 1 },
+          { platform: 'linkedin', url: 'https://linkedin.com', isVisible: true, order: 2 },
+          { platform: 'stackoverflow', url: 'https://stackoverflow.com', isVisible: true, order: 3 }
+        ];
+      } else if (template.category === 'content-creator') {
+        defaultSocialLinks = [
+          { platform: 'instagram', url: 'https://instagram.com', isVisible: true, order: 1 },
+          { platform: 'youtube', url: 'https://youtube.com', isVisible: true, order: 2 },
+          { platform: 'twitter', url: 'https://twitter.com', isVisible: true, order: 3 }
+        ];
+      } else if (template.category === 'designer') {
+        defaultSocialLinks = [
+          { platform: 'behance', url: 'https://behance.net', isVisible: true, order: 1 },
+          { platform: 'dribbble', url: 'https://dribbble.com', isVisible: true, order: 2 },
+          { platform: 'instagram', url: 'https://instagram.com', isVisible: true, order: 3 }
+        ];
+      } else {
+        // Default social links for other portfolio types
+        defaultSocialLinks = [
+          { platform: 'linkedin', url: 'https://linkedin.com', isVisible: true, order: 1 },
+          { platform: 'twitter', url: 'https://twitter.com', isVisible: true, order: 2 }
+        ];
+      }
+      
+      // Update social links
+      portfolio.socialLinks = defaultSocialLinks;
+      console.log(`[applyTemplateToPortfolio] Updated social links for ${template.category}:`, JSON.stringify(portfolio.socialLinks, null, 2));
     }
     
     // Save the updated portfolio
