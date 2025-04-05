@@ -190,7 +190,70 @@ exports.getSkillsInfo = async (req, res) => {
     }
 };
 
+// Save experience information
+exports.saveExperienceInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[saveExperienceInfo] Saving experience for user: ${userId}`);
+        console.log('Request body:', req.body);
+
+        // Find the user's portfolio
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        // Update experience
+        portfolio.experience = req.body.experience.map(exp => ({
+            title: exp.title,
+            company: exp.company,
+            location: exp.location,
+            startDate: exp.startDate,
+            endDate: exp.endDate,
+            current: exp.current || false,
+            description: exp.description,
+            achievements: exp.achievements || [],
+            isVisible: true
+        }));
+
+        // Save the updated portfolio
+        await portfolio.save();
+        console.log(`[saveExperienceInfo] Successfully saved experience for user: ${userId}`);
+
+        res.json({
+            message: 'Experience information updated successfully',
+            data: portfolio.experience
+        });
+    } catch (error) {
+        console.error('[saveExperienceInfo] Error:', error);
+        res.status(500).json({ message: 'Error saving experience information', error: error.message });
+    }
+};
+
+// Get experience information
+exports.getExperienceInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getExperienceInfo] Getting experience for user: ${userId}`);
+
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        res.json({
+            message: 'Experience information retrieved successfully',
+            data: portfolio.experience
+        });
+    } catch (error) {
+        console.error('[getExperienceInfo] Error:', error);
+        res.status(500).json({ message: 'Error retrieving experience information', error: error.message });
+    }
+};
+
 // Export the upload middleware for use in routes
 exports.upload = upload;
+
+
 
 
