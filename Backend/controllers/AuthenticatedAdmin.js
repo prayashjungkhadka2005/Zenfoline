@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const Component = require('../models/Components');
 const Templates = require('../models/Templates');
+const User = require('../models/User');
 
 
 const storage = multer.diskStorage({

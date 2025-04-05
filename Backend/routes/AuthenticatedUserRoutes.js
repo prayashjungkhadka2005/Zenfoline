@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const authenticatedUser = require('../controllers/AuthenticatedUser');
 const Theme = require('../models/ThemeSchema');
-const portfolioController = require('../controllers/PortfolioController');
 const Templates = require('../models/Templates');
 const User = require('../models/User');
 
@@ -66,13 +65,7 @@ router.get('/activetemplate', async (req, res) => {
   });
   
 
-// Portfolio routes
-router.post('/portfolio/initialize', portfolioController.initializePortfolio);
-router.get('/portfolio/:userId', portfolioController.getPortfolioData);
-router.patch('/portfolio/:userId/type', portfolioController.updatePortfolioType);
-router.patch('/portfolio/:userId/sections/order', portfolioController.updateSectionOrder);
 
-// Portfolio section routes
-router.use('/portfolio', require('./portfolioRoutes'));
+
 
 module.exports = router;

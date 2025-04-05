@@ -16,7 +16,6 @@ const templateSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['developer', 'student', 'content-creator', 'designer', 'lawyer', 'expert'],
       required: true,
     },
     predefinedTemplate: {

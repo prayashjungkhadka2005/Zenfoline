@@ -34,6 +34,26 @@ const AdminTemplates = () => {
   const [modalError, setModalError] = useState('');
   const [modalSuccess, setModalSuccess] = useState('');
 
+  // Get all available categories and predefined templates
+  const allCategories = ['developer', 'expert', 'student', 'content-creator', 'designer', 'lawyer'];
+  const allPredefinedTemplates = ['SimplePortfolioTemplate', 'ExpertPortfolioTemplate'];
+
+  // Filter out categories and predefined templates that are already in use
+  const usedCategories = templates.map(template => template.category);
+  const usedPredefinedTemplates = templates.map(template => template.predefinedTemplate);
+
+  const availableCategories = allCategories.filter(cat => !usedCategories.includes(cat));
+  const availablePredefinedTemplates = allPredefinedTemplates.filter(temp => !usedPredefinedTemplates.includes(temp));
+
+  // If editing, add the current template's category and predefined template to the available options
+  const categoriesToShow = editingTemplate 
+    ? [...availableCategories, editingTemplate.category] 
+    : availableCategories;
+  
+  const predefinedTemplatesToShow = editingTemplate 
+    ? [...availablePredefinedTemplates, editingTemplate.predefinedTemplate] 
+    : availablePredefinedTemplates;
+
   useEffect(() => {
     fetchTemplates();
   }, [fetchTemplates]);
@@ -243,12 +263,11 @@ const AdminTemplates = () => {
                   onChange={(e) => setCategory(e.target.value)}
                 >
                   <option value="">Select a category</option>
-                  <option value="developer">Developer</option>
-                  <option value="expert">Expert</option>
-                  <option value="student">Student</option>
-                  <option value="content-creator">Content Creator</option>
-                  <option value="designer">Designer</option>
-                  <option value="lawyer">Lawyer</option>
+                  {categoriesToShow.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -262,8 +281,11 @@ const AdminTemplates = () => {
                   onChange={(e) => setPredefinedTemplate(e.target.value)}
                 >
                   <option value="">Select a predefined template</option>
-                  <option value="SimplePortfolioTemplate">Simple Portfolio</option>
-                  <option value="ExpertPortfolioTemplate">Expert Portfolio</option>
+                  {predefinedTemplatesToShow.map((temp) => (
+                    <option key={temp} value={temp}>
+                      {temp.replace('PortfolioTemplate', ' Portfolio')}
+                    </option>
+                  ))}
                 </select>
               </div>
 

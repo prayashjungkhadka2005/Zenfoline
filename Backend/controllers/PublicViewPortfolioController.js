@@ -4,8 +4,10 @@ const PortfolioData = require('../models/PortfolioData');
 const Template = require('../models/Templates');
 const User = require('../models/User');
 
-// Get template by userId - THIS MUST COME FIRST
-router.get('/template/:userId', async (req, res) => {
+
+// Used for public portfolio view
+// Get template by userId - THIS MUST COME FIRST 
+const getTemplateByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
         console.log('Fetching template for userId:', userId);
@@ -46,10 +48,10 @@ router.get('/template/:userId', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
 // Get portfolio data by userId - THIS COMES SECOND
-router.get('/:userId', async (req, res) => {
+const getPortfolioDataByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
         console.log('Fetching portfolio data for userId:', userId);
@@ -79,6 +81,6 @@ router.get('/:userId', async (req, res) => {
             error: error.message
         });
     }
-});
+};
 
-module.exports = router; 
+module.exports = { getTemplateByUserId, getPortfolioDataByUserId }; 

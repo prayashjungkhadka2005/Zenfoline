@@ -9,8 +9,8 @@ dotenv.config();
 const authenticationRoutes = require('./routes/AuthenticationRoutes');
 const authenticatedAdminRoutes = require('./routes/AuthenticatedAdminRoutes');
 const authenticatedUserRoutes = require('./routes/AuthenticatedUserRoutes');
-const portfolioRoutes = require('./routes/portfolio');
-const portfolioSaveRoutes = require('./routes/portfolioRoutes');
+const portfolioRoutes = require('./routes/publicViewPortfolioRoutes');
+const portfolioSaveRoutes = require('./routes/portfolioDataRoutes');
 
 const app = express();
 
@@ -21,7 +21,7 @@ const MONGOURL = process.env.MONGOURL;
 
 app.use(cors());
 
-// ✅ Increase request size limit
+// Increase request size limit
 app.use(express.json({ limit: "50mb" })); 
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 

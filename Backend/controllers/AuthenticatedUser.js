@@ -10,7 +10,7 @@ const Theme = require('../models/ThemeSchema');
 const Component = require('../models/Components');
 const User = require('../models/User');
 const Templates = require('../models/Templates');
-
+const PortfolioData = require('../models/PortfolioData');
 
 const updateTheme = async (req, res) => {
     const { userId, templateId, colorMode, presetTheme, fontStyle, navigationBar, footer } = req.body;
@@ -87,6 +87,12 @@ const activateUserTemplate = async (req, res) => {
             return res.status(404).json({ message: 'User not found.' });
         }
 
+        // Apply template configuration to portfolio
+        const result = await applyTemplateToPortfolio(userId, templateId);
+        if (!result.success) {
+            console.warn('Warning: Failed to apply template to portfolio:', result.message);
+        }
+
         return res.status(200).json({
             message: 'Template activated successfully.',
             activeTemplateId: updatedUser.selectedTemplate,
@@ -123,64 +129,100 @@ const getActiveTemplate = async (req, res) => {
     }
 };
 
+// Function to apply template configuration to portfolio data
+const applyTemplateToPortfolio = async (userId, templateId) => {
+  console.log(`[applyTemplateToPortfolio] Called for userId: ${userId}, templateId: ${templateId}`);
+  try {
+    // Find the template
+    const template = await Templates.findById(templateId);
+    if (!template) {
+      console.log(`[applyTemplateToPortfolio] Template not found with ID: ${templateId}`);
+      return { success: false, message: 'Template not found' };
+    }
+    console.log(`[applyTemplateToPortfolio] Found template: ${template.name}`);
+    
+    // Print template category
+    console.log(`[applyTemplateToPortfolio] Template category: ${template.category}`);
+    
+    // Find the user's portfolio
+    let portfolio = await PortfolioData.findOne({ userId });
+    if (!portfolio) {
+      console.log(`[applyTemplateToPortfolio] Creating new portfolio for user: ${userId}`);
+      // Create a new portfolio if it doesn't exist
+      portfolio = new PortfolioData({
+        userId,
+        templateId, // Set the templateId field
+        portfolioType: template.category, // Use template category directly as portfolio type
+        sectionConfiguration: template.sectionConfiguration
+      });
+    } else {
+      console.log(`[applyTemplateToPortfolio] Updating existing portfolio for user: ${userId}`);
+      // Update existing portfolio's section configuration and templateId
+      portfolio.sectionConfiguration = template.sectionConfiguration;
+      portfolio.templateId = templateId; // Update the templateId field
+    }
+    
+    // Save the updated portfolio
+    await portfolio.save();
+    console.log(`[applyTemplateToPortfolio] Successfully saved portfolio configuration for user: ${userId}`);
+    console.log(`[applyTemplateToPortfolio] Applied section configuration:`, JSON.stringify(portfolio.sectionConfiguration, null, 2));
+    
+    return { success: true, portfolio };
+  } catch (error) {
+    console.error('[applyTemplateToPortfolio] Error applying template to portfolio:', error);
+    return { success: false, message: 'Error applying template to portfolio' };
+  }
+};
+
 const activateTemplate = async (req, res) => {
     try {
         const { userId, templateId } = req.body;
-
+        console.log(`[activateTemplate] Called for userId: ${userId}, templateId: ${templateId}`);
+        
         if (!userId || !templateId) {
-            return res.status(400).json({ message: 'Both userId and templateId are required.' });
+            return res.status(400).json({ message: 'User ID and Template ID are required.' });
         }
 
-        const findUser = await User.findById(userId).lean();
-        if (!findUser) {
-            return res.status(403).json({ message: 'User not found.' });
+        // Find the user
+        const user = await User.findById(userId);
+        if (!user) {
+            console.log(`[activateTemplate] User not found with ID: ${userId}`);
+            return res.status(404).json({ message: 'User not found.' });
         }
 
-        // Find the original template
-        const originalTemplate = await Templates.findById(templateId);
-        if (!originalTemplate) {
+        // Find the template
+        const template = await Templates.findById(templateId);
+        if (!template) {
+            console.log(`[activateTemplate] Template not found with ID: ${templateId}`);
             return res.status(404).json({ message: 'Template not found.' });
         }
 
-        // Check if user already has this template
-        let userTemplate = await Templates.findOne({ 
-            userId: userId,
-            predefinedTemplate: originalTemplate.predefinedTemplate 
-        });
+        console.log(`[activateTemplate] Found template: ${template.name}`);
 
-        if (!userTemplate) {
-            // Create a new template instance for the user
-            userTemplate = await Templates.create({
-                name: originalTemplate.name,
-                description: originalTemplate.description,
-                image: originalTemplate.image,
-                category: originalTemplate.category,
-                predefinedTemplate: originalTemplate.predefinedTemplate,
-                userId: userId, // Add userId to associate template with user
-                sectionConfiguration: originalTemplate.sectionConfiguration
-            });
+        // Update the user's selected template
+        user.selectedTemplate = templateId;
+        await user.save();
+        console.log(`[activateTemplate] Updated user's selected template to: ${templateId}`);
+
+        // Apply the template configuration to the user's portfolio
+        const result = await applyTemplateToPortfolio(userId, templateId);
+        if (!result.success) {
+            console.log(`[activateTemplate] Failed to apply template to portfolio: ${result.message}`);
+            return res.status(500).json({ message: result.message });
         }
 
-        // Update user's selected template
-        const user = await User.findByIdAndUpdate(
-            userId,
-            { selectedTemplate: userTemplate._id },
-            { new: true }
-        ).populate('selectedTemplate');
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
+        console.log(`[activateTemplate] Successfully applied template to portfolio`);
 
         return res.status(200).json({
             message: 'Template activated successfully.',
             data: {
                 userId: user._id,
                 selectedTemplate: user.selectedTemplate,
+                portfolio: result.portfolio
             },
         });
     } catch (error) {
-        console.error('Error activating template:', error);
+        console.error('[activateTemplate] Error activating template:', error);
         return res.status(500).json({ message: 'An error occurred while activating the template.' });
     }
 };

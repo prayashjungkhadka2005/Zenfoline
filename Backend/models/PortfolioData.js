@@ -5,6 +5,68 @@ const portfolioDataSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // Reference to the template used to create this portfolio
+  templateId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Template',
+    required: true
+  },
+  // Section Configuration - Controls which sections are enabled and their order
+  sectionConfiguration: {
+    basics: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 1 }
+    },
+    about: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 2 }
+    },
+    skills: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 3 },
+      displayStyle: { 
+        type: String, 
+        enum: ['grid', 'list', 'cloud'], 
+        default: 'grid' 
+      }
+    },
+    experience: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 4 }
+    },
+    education: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 5 }
+    },
+    projects: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 6 },
+      displayStyle: { 
+        type: String, 
+        enum: ['grid', 'list'], 
+        default: 'grid' 
+      }
+    },
+    certifications: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 7 }
+    },
+    publications: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 8 }
+    },
+    awards: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 9 }
+    },
+    services: {
+      isEnabled: { type: Boolean, default: true },
+      order: { type: Number, default: 10 }
+    },
+    customSections: {
+      isEnabled: { type: Boolean, default: true }
+    }
+  },
   // Basic Information
   basics: {
     name: String,
@@ -140,7 +202,6 @@ const portfolioDataSchema = new mongoose.Schema({
   // Portfolio Type
   portfolioType: {
     type: String,
-    enum: ['developer', 'student', 'content-creator', 'designer', 'lawyer'],
     required: true
   }
 }, {
