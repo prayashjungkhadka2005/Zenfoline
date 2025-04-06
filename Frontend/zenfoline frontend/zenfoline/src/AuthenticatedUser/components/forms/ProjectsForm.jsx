@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiPlus, FiTrash2, FiFileText } from 'react-icons/fi';
+import useAuthStore from '../../../store/userAuthStore';
+import axios from 'axios';
+
+// API base URL
+const API_BASE_URL = 'http://localhost:3000';
 
 const ProjectsForm = ({ data, onUpdate }) => {
+  const [formData, setFormData] = useState(data || []);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
 
   const commonClasses = {
     section: "max-w-3xl mx-auto space-y-8",
@@ -26,8 +34,41 @@ const ProjectsForm = ({ data, onUpdate }) => {
     errorInput: "border-red-300 focus:ring-red-500 focus:border-red-500"
   };
 
+  // Fetch projects data from the API on initial mount
+  useEffect(() => {
+    const fetchProjectsInfo = async () => {
+      if (!userId || !isInitialMount.current) return;
+      
+      try {
+        const response = await axios.get(`${API_BASE_URL}/portfolio-save/projects/${userId}`);
+        if (response.data && response.data.data) {
+          // Transform the API data to match the form's expected format
+          const transformedData = response.data.data.map(project => ({
+            title: project.title || '',
+            description: project.description || '',
+            technologies: project.technologies || [],
+            newTech: '',
+            image: project.images && project.images.length > 0 ? project.images[0] : '',
+            liveLink: project.liveUrl || '',
+            sourceCode: project.sourceUrl || '',
+            isVisible: project.isVisible !== false
+          }));
+          
+          setFormData(transformedData);
+          onUpdate(transformedData);
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setError('Failed to load projects data');
+      }
+    };
+
+    fetchProjectsInfo();
+    isInitialMount.current = false;
+  }, [userId]);
+
   const handleProjectChange = (index, field, value) => {
-    const newData = [...data];
+    const newData = [...formData];
     newData[index] = {
       ...newData[index],
       [field]: value
@@ -39,12 +80,13 @@ const ProjectsForm = ({ data, onUpdate }) => {
       [`${index}-${field}`]: false
     }));
 
+    setFormData(newData);
     onUpdate(newData);
   };
 
   const addProject = () => {
-    onUpdate([
-      ...data,
+    const newData = [
+      ...formData,
       {
         title: '',
         description: '',
@@ -55,12 +97,15 @@ const ProjectsForm = ({ data, onUpdate }) => {
         sourceCode: '',
         isVisible: true
       }
-    ]);
+    ];
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const removeProject = (index) => {
-    const newData = [...data];
+    const newData = [...formData];
     newData.splice(index, 1);
+    setFormData(newData);
     onUpdate(newData);
 
     // Clear errors for this project
@@ -87,18 +132,20 @@ const ProjectsForm = ({ data, onUpdate }) => {
   const handleAddTechnology = (index, tech) => {
     if (!tech?.trim()) return;
 
-    const newData = [...data];
+    const newData = [...formData];
     if (!newData[index].technologies) {
       newData[index].technologies = [];
     }
     newData[index].technologies.push(tech.trim());
     newData[index].newTech = '';
+    setFormData(newData);
     onUpdate(newData);
   };
 
   const handleRemoveTechnology = (projectIndex, techIndex) => {
-    const newData = [...data];
+    const newData = [...formData];
     newData[projectIndex].technologies.splice(techIndex, 1);
+    setFormData(newData);
     onUpdate(newData);
   };
 
@@ -106,13 +153,13 @@ const ProjectsForm = ({ data, onUpdate }) => {
     let isValid = true;
     const newErrors = {};
 
-    if (!data.length) {
+    if (!formData.length) {
       setError('At least one project is required');
       isValid = false;
       return isValid;
     }
 
-    data.forEach((project, index) => {
+    formData.forEach((project, index) => {
       if (!project.title?.trim()) {
         newErrors[`${index}-title`] = true;
         isValid = false;
@@ -148,17 +195,64 @@ const ProjectsForm = ({ data, onUpdate }) => {
       }
 
       setStatus('saving');
-      // Here you would typically call an API to save the data
-      setTimeout(() => {
+      
+      // Transform the form data to match the API's expected format
+      const apiData = formData.map(project => ({
+        title: project.title,
+        description: project.description,
+        technologies: project.technologies || [],
+        images: project.image ? [project.image] : [],
+        liveUrl: project.liveLink,
+        sourceUrl: project.sourceCode,
+        isVisible: project.isVisible !== false
+      }));
+
+      // Create FormData for file uploads
+      const formDataToSend = new FormData();
+      formDataToSend.append('projects', JSON.stringify(apiData));
+      
+      // Add project images if they exist
+      formData.forEach((project, index) => {
+        if (project.image && project.image.startsWith('data:image')) {
+          // Convert base64 to file
+          const base64Data = project.image.split(',')[1];
+          const byteCharacters = atob(base64Data);
+          const byteArrays = [];
+          
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteArrays.push(byteCharacters.charCodeAt(i));
+          }
+          
+          const byteArray = new Uint8Array(byteArrays);
+          const blob = new Blob([byteArray], { type: 'image/jpeg' });
+          const file = new File([blob], `project-${index}.jpg`, { type: 'image/jpeg' });
+          
+          formDataToSend.append('projectImages', file);
+        }
+      });
+
+      // Save to the API
+      const response = await axios.post(
+        `${API_BASE_URL}/portfolio-save/projects/${userId}`,
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      if (response.data) {
         setStatus('success');
         setTimeout(() => {
           setStatus(null);
           setError('');
         }, 3000);
-      }, 1000);
+      }
     } catch (error) {
+      console.error('Error saving projects:', error);
       setStatus('error');
-      setError('Failed to save');
+      setError('Failed to save projects');
       setTimeout(() => {
         setStatus(null);
         setError('');
@@ -173,7 +267,7 @@ const ProjectsForm = ({ data, onUpdate }) => {
       </div>
 
       <div className={commonClasses.projectSection}>
-        {data.map((project, index) => (
+        {formData.map((project, index) => (
           <div key={index} className={commonClasses.projectCard}>
             <button
               type="button"
