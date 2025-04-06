@@ -1,10 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import useAuthStore from '../../../store/userAuthStore';
+import axios from 'axios';
 
 const ExperienceForm = ({ data, onUpdate }) => {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [formData, setFormData] = useState([]);
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
+
+  // Load data from database only on initial mount
+  useEffect(() => {
+    const fetchExperienceInfo = async () => {
+      if (!userId || !isInitialMount.current) return;
+      
+      try {
+        const response = await axios.get(`http://localhost:3000/portfolio-save/experience/${userId}`);
+        if (response.data && response.data.data) {
+          // Format the dates to YYYY-MM-DD format for the date inputs
+          const formattedData = response.data.data.map(exp => ({
+            ...exp,
+            startDate: exp.startDate ? new Date(exp.startDate).toISOString().split('T')[0] : '',
+            endDate: exp.endDate ? new Date(exp.endDate).toISOString().split('T')[0] : '',
+            isCurrentPosition: exp.current || false
+          }));
+          
+          setFormData(formattedData);
+          onUpdate(formattedData);
+        }
+      } catch (error) {
+        console.error('Error fetching experience info:', error);
+        setError('Failed to load data');
+      }
+    };
+
+    fetchExperienceInfo();
+    isInitialMount.current = false;
+  }, [userId]);
 
   const commonClasses = {
     section: "max-w-3xl mx-auto space-y-8",
@@ -29,7 +63,7 @@ const ExperienceForm = ({ data, onUpdate }) => {
   };
 
   const handleExperienceChange = (index, field, value) => {
-    const newData = [...data];
+    const newData = [...formData];
     newData[index] = {
       ...newData[index],
       [field]: value
@@ -41,11 +75,12 @@ const ExperienceForm = ({ data, onUpdate }) => {
       [`${index}-${field}`]: false
     }));
 
+    setFormData(newData);
     onUpdate(newData);
   };
 
   const handleAchievementChange = (expIndex, achievementIndex, value) => {
-    const newData = [...data];
+    const newData = [...formData];
     if (!newData[expIndex].achievements) {
       newData[expIndex].achievements = [];
     }
@@ -57,12 +92,13 @@ const ExperienceForm = ({ data, onUpdate }) => {
       [`${expIndex}-achievement-${achievementIndex}`]: false
     }));
 
+    setFormData(newData);
     onUpdate(newData);
   };
 
   const addExperience = () => {
-    onUpdate([
-      ...data,
+    const newData = [
+      ...formData,
       {
         title: '',
         company: '',
@@ -74,14 +110,15 @@ const ExperienceForm = ({ data, onUpdate }) => {
         achievements: [],
         isVisible: true
       }
-    ]);
+    ];
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const removeExperience = (index) => {
-    const newData = [...data];
+    const newData = [...formData];
     newData.splice(index, 1);
-    onUpdate(newData);
-
+    
     // Clear errors for this experience
     const newErrors = { ...fieldErrors };
     Object.keys(newErrors).forEach(key => {
@@ -90,41 +127,47 @@ const ExperienceForm = ({ data, onUpdate }) => {
       }
     });
     setFieldErrors(newErrors);
+    
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const addAchievement = (index) => {
-    const newData = [...data];
+    const newData = [...formData];
     if (!newData[index].achievements) {
       newData[index].achievements = [];
     }
     newData[index].achievements.push('');
+    setFormData(newData);
     onUpdate(newData);
   };
 
   const removeAchievement = (expIndex, achievementIndex) => {
-    const newData = [...data];
+    const newData = [...formData];
     newData[expIndex].achievements.splice(achievementIndex, 1);
-    onUpdate(newData);
-
+    
     // Clear error for this achievement
     setFieldErrors(prev => {
       const newErrors = { ...prev };
       delete newErrors[`${expIndex}-achievement-${achievementIndex}`];
       return newErrors;
     });
+    
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const validateForm = () => {
     let isValid = true;
     const newErrors = {};
 
-    if (!data.length) {
-      setError('At least one experience is required');
+    if (!formData.length) {
+      setError('Please fill all the fields');
       isValid = false;
       return isValid;
     }
 
-    data.forEach((exp, index) => {
+    formData.forEach((exp, index) => {
       if (!exp.title?.trim()) {
         newErrors[`${index}-title`] = true;
         isValid = false;
@@ -159,7 +202,7 @@ const ExperienceForm = ({ data, onUpdate }) => {
     });
 
     if (!isValid) {
-      setError('Please fill in all required fields');
+      setError('Please fill all the fields');
     }
     setFieldErrors(newErrors);
     return isValid;
@@ -174,26 +217,53 @@ const ExperienceForm = ({ data, onUpdate }) => {
         setStatus('error');
         setTimeout(() => {
           setStatus(null);
+          setError('');
         }, 3000);
         return;
       }
 
       setStatus('saving');
-      // Here you would typically call an API to save the data
-      setTimeout(() => {
+      
+      // Prepare data for API, removing endDate if isCurrentPosition is true
+      const apiData = formData.map(exp => {
+        const experienceData = {
+          title: exp.title,
+          company: exp.company,
+          location: exp.location,
+          startDate: exp.startDate,
+          current: exp.isCurrentPosition,
+          description: exp.description,
+          achievements: exp.achievements || [],
+          isVisible: exp.isVisible !== undefined ? exp.isVisible : true
+        };
+        
+        // Only include endDate if not current position
+        if (!exp.isCurrentPosition) {
+          experienceData.endDate = exp.endDate;
+        }
+        
+        return experienceData;
+      });
+      
+      const response = await axios.post(
+        `http://localhost:3000/portfolio-save/experience/${userId}`,
+        { experience: apiData }
+      );
+
+      if (response.data) {
         setStatus('success');
         setTimeout(() => {
           setStatus(null);
-          setError('');
-        }, 3000);
-      }, 1000);
+        }, 2000);
+      }
     } catch (error) {
+      console.error('Error saving experience info:', error);
       setStatus('error');
       setError('Failed to save');
       setTimeout(() => {
         setStatus(null);
         setError('');
-      }, 3000);
+      }, 2000);
     }
   };
 
@@ -204,7 +274,7 @@ const ExperienceForm = ({ data, onUpdate }) => {
       </div>
 
       <div className={commonClasses.experienceSection}>
-        {data.map((experience, index) => (
+        {formData.map((experience, index) => (
           <div key={index} className={commonClasses.experienceCard}>
             <button
               type="button"
@@ -395,7 +465,7 @@ const ExperienceForm = ({ data, onUpdate }) => {
           : status === 'success' 
             ? 'Saved Successfully!' 
             : status === 'error' 
-              ? error || 'Please fix the errors above' 
+              ? error || 'Please fill all the fields' 
               : 'Save Experience'}
       </button>
     </div>
