@@ -1,9 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import profile from "../../../assets/profile.png";
+import useAuthStore from '../../../store/userAuthStore';
+import axios from 'axios';
 
 const BasicsForm = ({ data, onUpdate }) => {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    role: '',
+    bio: '',
+    email: '',
+    phone: '',
+    location: '',
+    profileImage: null
+  });
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
+
+  // Load data from database only on initial mount
+  useEffect(() => {
+    const fetchBasicInfo = async () => {
+      if (!userId || !isInitialMount.current) return;
+      
+      try {
+        const response = await axios.get(`http://localhost:3000/portfolio-save/basic-info/${userId}`);
+        if (response.data && response.data.data) {
+          setFormData(response.data.data);
+          onUpdate(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching basic info:', error);
+        setError('Failed to load data');
+      }
+    };
+
+    fetchBasicInfo();
+    isInitialMount.current = false;
+  }, [userId]); // Only depend on userId
 
   const commonClasses = {
     section: "space-y-6",
@@ -19,20 +53,24 @@ const BasicsForm = ({ data, onUpdate }) => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        onUpdate({
-          ...data,
+        const newData = {
+          ...formData,
           profileImage: reader.result
-        });
+        };
+        setFormData(newData);
+        onUpdate(newData);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleInputChange = (field, value) => {
-    onUpdate({
-      ...data,
+    const newData = {
+      ...formData,
       [field]: value
-    });
+    };
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const validateForm = () => {
@@ -42,13 +80,16 @@ const BasicsForm = ({ data, onUpdate }) => {
       bio: 'Bio',
       email: 'Email',
       phone: 'Phone',
-      location: 'Location'
+      location: 'Location',
+      profileImage: 'Profile Image'
     };
 
-    for (const [field] of Object.entries(requiredFields)) {
-      if (!data[field]?.trim()) {
-        return false;
-      }
+    const hasEmptyFields = Object.keys(requiredFields)
+      .some(field => !formData[field]?.trim());
+
+    if (hasEmptyFields) {
+      setError('Please fill all the fields');
+      return false;
     }
     return true;
   };
@@ -58,30 +99,34 @@ const BasicsForm = ({ data, onUpdate }) => {
       setError('');
       if (!validateForm()) {
         setStatus('error');
-        setError('Empty fields');
         setTimeout(() => {
           setStatus(null);
           setError('');
-        }, 1000);
+        }, 3000);
         return;
       }
 
       setStatus('saving');
-      // Here you would typically call an API to save the data
-      // For now, we'll just simulate a successful save
-      setTimeout(() => {
+      
+      const response = await axios.post(
+        `http://localhost:3000/portfolio-save/basic-info/${userId}`,
+        formData
+      );
+
+      if (response.data) {
         setStatus('success');
         setTimeout(() => {
           setStatus(null);
-        }, 1000);
-      }, 1000);
+        }, 2000);
+      }
     } catch (error) {
+      console.error('Error saving basic info:', error);
       setStatus('error');
       setError('Failed to save');
       setTimeout(() => {
         setStatus(null);
         setError('');
-      }, 1000);
+      }, 2000);
     }
   };
 
@@ -93,11 +138,11 @@ const BasicsForm = ({ data, onUpdate }) => {
       
       <div className={commonClasses.grid}>
         <div className="col-span-2">
-          <label className={commonClasses.label}>Profile Image</label>
+          <label className={commonClasses.label}>Profile Image *</label>
           <div className="flex items-center space-x-6">
             <div className="w-40 h-40 rounded-full overflow-hidden border-4 border-orange-500 shadow-lg">
               <img
-                src={data.profileImage || profile}
+                src={formData.profileImage || profile}
                 alt="Profile"
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -112,6 +157,7 @@ const BasicsForm = ({ data, onUpdate }) => {
                 accept="image/*"
                 onChange={handleImageUpload}
                 className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                required
               />
               <p className="mt-2 text-xs text-gray-500">Recommended: Square image of at least 400x400 pixels</p>
             </div>
@@ -119,68 +165,74 @@ const BasicsForm = ({ data, onUpdate }) => {
         </div>
 
         <div className="col-span-2">
-          <label className={commonClasses.label}>Name</label>
+          <label className={commonClasses.label}>Name *</label>
           <input
             type="text"
-            value={data.name || ''}
+            value={formData.name || ''}
             onChange={(e) => handleInputChange('name', e.target.value)}
             className={commonClasses.input}
             placeholder="Enter your full name"
+            required
           />
         </div>
 
         <div>
-          <label className={commonClasses.label}>Role</label>
+          <label className={commonClasses.label}>Role *</label>
           <input
             type="text"
-            value={data.role || ''}
+            value={formData.role || ''}
             onChange={(e) => handleInputChange('role', e.target.value)}
             className={commonClasses.input}
             placeholder="e.g. Full Stack Developer"
+            required
           />
         </div>
 
         <div>
-          <label className={commonClasses.label}>Email</label>
+          <label className={commonClasses.label}>Email *</label>
           <input
             type="email"
-            value={data.email || ''}
+            value={formData.email || ''}
             onChange={(e) => handleInputChange('email', e.target.value)}
             className={commonClasses.input}
             placeholder="your@email.com"
+            required
           />
         </div>
 
         <div className="col-span-2">
-          <label className={commonClasses.label}>Bio</label>
+          <label className={commonClasses.label}>Bio *</label>
           <textarea
-            value={data.bio || ''}
+            value={formData.bio || ''}
             onChange={(e) => handleInputChange('bio', e.target.value)}
             rows="4"
             className={commonClasses.input}
             placeholder="Write a short bio about yourself"
+            required
           />
         </div>
 
         <div>
-          <label className={commonClasses.label}>Phone</label>
+          <label className={commonClasses.label}>Phone *</label>
           <input
             type="tel"
-            value={data.phone || ''}
+            value={formData.phone || ''}
             onChange={(e) => handleInputChange('phone', e.target.value)}
             className={commonClasses.input}
             placeholder="Your phone number"
+            required
           />
         </div>
 
         <div>
-          <label className={commonClasses.label}>Location</label>
+          <label className={commonClasses.label}>Location *</label>
           <input
             type="text"
-            value={data.location || ''}
+            value={formData.location || ''}
             onChange={(e) => handleInputChange('location', e.target.value)}
             className={commonClasses.input}
             placeholder="City, Country"
+            required
           />
         </div>
       </div>

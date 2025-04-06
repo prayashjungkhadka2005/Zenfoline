@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const PortfolioData = require('../models/PortfolioData');
+const Template = require('../models/Templates');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -387,6 +388,33 @@ exports.getSectionVisibility = async (req, res) => {
     } catch (error) {
         console.error('[getSectionVisibility] Error:', error);
         res.status(500).json({ message: 'Error retrieving section visibility', error: error.message });
+    }
+};
+
+// Get available sections for a template
+exports.getTemplateSections = async (req, res) => {
+    try {
+        const { templateId } = req.params;
+        console.log(`[getTemplateSections] Getting sections for template: ${templateId}`);
+
+        // Find the template
+        const template = await Template.findById(templateId);
+        if (!template) {
+            console.log(`[getTemplateSections] Template not found: ${templateId}`);
+            return res.status(404).json({ message: 'Template not found' });
+        }
+
+        // Get available sections from the template
+        const availableSections = template.sections || [];
+        
+        console.log(`[getTemplateSections] Successfully retrieved ${availableSections.length} sections for template: ${templateId}`);
+        res.status(200).json({
+            message: 'Template sections retrieved successfully',
+            sections: availableSections
+        });
+    } catch (error) {
+        console.error('[getTemplateSections] Error retrieving template sections:', error);
+        res.status(500).json({ message: 'Error retrieving template sections' });
     }
 };
 

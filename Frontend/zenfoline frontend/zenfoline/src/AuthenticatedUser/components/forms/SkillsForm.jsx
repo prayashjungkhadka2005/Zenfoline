@@ -1,10 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import useAuthStore from '../../../store/userAuthStore';
+import axios from 'axios';
 
 const SkillsForm = ({ data, onUpdate }) => {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({ technical: {}, soft: {} });
+  const [formData, setFormData] = useState({
+    technical: [],
+    soft: []
+  });
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
+
+  // Load data from database only on initial mount
+  useEffect(() => {
+    const fetchSkillsInfo = async () => {
+      if (!userId || !isInitialMount.current) return;
+      
+      try {
+        const response = await axios.get(`http://localhost:3000/portfolio-save/skills/${userId}`);
+        if (response.data && response.data.data) {
+          // Transform the data to match our form structure
+          const transformedData = {
+            technical: [],
+            soft: []
+          };
+          
+          response.data.data.forEach(skill => {
+            if (skill.category === "Technical") {
+              transformedData.technical.push({
+                name: skill.name,
+                level: skill.proficiency,
+                isVisible: skill.isVisible
+              });
+            } else if (skill.category === "Soft") {
+              transformedData.soft.push({
+                name: skill.name,
+                level: skill.proficiency,
+                isVisible: skill.isVisible
+              });
+            }
+          });
+          
+          setFormData(transformedData);
+          onUpdate(transformedData);
+        }
+      } catch (error) {
+        console.error('Error fetching skills info:', error);
+        setError('Failed to load data');
+      }
+    };
+
+    fetchSkillsInfo();
+    isInitialMount.current = false;
+  }, [userId]);
 
   const commonClasses = {
     section: "max-w-3xl mx-auto space-y-8",
@@ -26,7 +77,7 @@ const SkillsForm = ({ data, onUpdate }) => {
   };
 
   const handleSkillChange = (type, index, field, value) => {
-    const newData = { ...data };
+    const newData = { ...formData };
     if (!newData[type]) {
       newData[type] = [];
     }
@@ -47,20 +98,22 @@ const SkillsForm = ({ data, onUpdate }) => {
       }
     }));
 
+    setFormData(newData);
     onUpdate(newData);
   };
 
   const addSkill = (type) => {
-    const newData = { ...data };
+    const newData = { ...formData };
     if (!newData[type]) {
       newData[type] = [];
     }
     newData[type] = [...newData[type], { name: '', level: 'Beginner' }];
+    setFormData(newData);
     onUpdate(newData);
   };
 
   const removeSkill = (type, index) => {
-    const newData = { ...data };
+    const newData = { ...formData };
     newData[type] = newData[type].filter((_, i) => i !== index);
     
     // Remove error for this index
@@ -70,6 +123,7 @@ const SkillsForm = ({ data, onUpdate }) => {
       return newErrors;
     });
 
+    setFormData(newData);
     onUpdate(newData);
   };
 
@@ -78,31 +132,31 @@ const SkillsForm = ({ data, onUpdate }) => {
     const newFieldErrors = { technical: {}, soft: {} };
 
     // Check if both sections have at least one skill
-    if (!data.technical?.length) {
-      setError('At least one technical skill is required');
+    if (!formData.technical?.length) {
+      setError('Please fill all the fields');
       isValid = false;
     }
     
-    if (!data.soft?.length) {
-      setError('At least one soft skill is required');
+    if (!formData.soft?.length) {
+      setError('Please fill all the fields');
       isValid = false;
     }
 
     // Check for empty skill names in technical skills
-    data.technical?.forEach((skill, index) => {
+    formData.technical?.forEach((skill, index) => {
       if (!skill.name?.trim()) {
         newFieldErrors.technical[index] = true;
         isValid = false;
-        setError('Please fill in all skill names');
+        setError('Please fill all the fields');
       }
     });
 
     // Check for empty skill names in soft skills
-    data.soft?.forEach((skill, index) => {
+    formData.soft?.forEach((skill, index) => {
       if (!skill.name?.trim()) {
         newFieldErrors.soft[index] = true;
         isValid = false;
-        setError('Please fill in all skill names');
+        setError('Please fill all the fields');
       }
     });
 
@@ -119,26 +173,50 @@ const SkillsForm = ({ data, onUpdate }) => {
         setStatus('error');
         setTimeout(() => {
           setStatus(null);
+          setError('');
         }, 3000);
         return;
       }
 
       setStatus('saving');
-      // Here you would typically call an API to save the data
-      setTimeout(() => {
+      
+      // Transform the data to match the API expected format
+      const apiData = {
+        skills: [
+          ...(formData.technical || []).map(skill => ({
+            name: skill.name,
+            category: "Technical",
+            proficiency: skill.level,
+            isVisible: skill.isVisible !== undefined ? skill.isVisible : true
+          })),
+          ...(formData.soft || []).map(skill => ({
+            name: skill.name,
+            category: "Soft",
+            proficiency: skill.level,
+            isVisible: skill.isVisible !== undefined ? skill.isVisible : true
+          }))
+        ]
+      };
+      
+      const response = await axios.post(
+        `http://localhost:3000/portfolio-save/skills/${userId}`,
+        apiData
+      );
+
+      if (response.data) {
         setStatus('success');
         setTimeout(() => {
           setStatus(null);
-          setError('');
-        }, 3000);
-      }, 1000);
+        }, 2000);
+      }
     } catch (error) {
+      console.error('Error saving skills info:', error);
       setStatus('error');
       setError('Failed to save');
       setTimeout(() => {
         setStatus(null);
         setError('');
-      }, 3000);
+      }, 2000);
     }
   };
 
@@ -146,7 +224,7 @@ const SkillsForm = ({ data, onUpdate }) => {
     <div className={commonClasses.skillSection}>
       <h3 className={commonClasses.sectionTitle}>{title}</h3>
       <div className={commonClasses.skillContainer}>
-        {(data[type] || []).map((skill, index) => (
+        {(formData[type] || []).map((skill, index) => (
           <div key={index} className={commonClasses.skillCard}>
             <div className={commonClasses.skillGrid}>
               <div className={commonClasses.inputGroup}>
@@ -230,7 +308,7 @@ const SkillsForm = ({ data, onUpdate }) => {
           : status === 'success' 
             ? 'Saved Successfully!' 
             : status === 'error' 
-              ? error || 'Please fix the errors above' 
+              ? error || 'Please fill all the fields' 
               : 'Save Skills'}
       </button>
     </div>

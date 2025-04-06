@@ -1,9 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiTrash2, FiPlus } from 'react-icons/fi';
+import useAuthStore from '../../../store/userAuthStore';
+import axios from 'axios';
 
 const AboutForm = ({ data, onUpdate }) => {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    description: '',
+    vision: '',
+    highlights: []
+  });
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
+
+  // Load data from database only on initial mount
+  useEffect(() => {
+    const fetchAboutInfo = async () => {
+      if (!userId || !isInitialMount.current) return;
+      
+      try {
+        const response = await axios.get(`http://localhost:3000/portfolio-save/about/${userId}`);
+        if (response.data && response.data.data) {
+          setFormData(response.data.data);
+          onUpdate(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching about info:', error);
+        setError('Failed to load data');
+      }
+    };
+
+    fetchAboutInfo();
+    isInitialMount.current = false;
+  }, [userId]);
 
   const commonClasses = {
     section: "space-y-6",
@@ -17,50 +47,60 @@ const AboutForm = ({ data, onUpdate }) => {
   };
 
   const handleDescriptionChange = (e) => {
-    onUpdate({
-      ...data,
+    const newData = {
+      ...formData,
       description: e.target.value
-    });
+    };
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const handleVisionChange = (e) => {
-    onUpdate({
-      ...data,
+    const newData = {
+      ...formData,
       vision: e.target.value
-    });
+    };
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const handleHighlightChange = (index, field, value) => {
-    const newHighlights = [...(data.highlights || [])];
+    const newHighlights = [...(formData.highlights || [])];
     newHighlights[index] = {
       ...newHighlights[index],
       [field]: value
     };
-    onUpdate({
-      ...data,
+    const newData = {
+      ...formData,
       highlights: newHighlights
-    });
+    };
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const addHighlight = () => {
-    const newHighlights = [...(data.highlights || []), { text: '', isVisible: true }];
-    onUpdate({
-      ...data,
+    const newHighlights = [...(formData.highlights || []), { text: '', isVisible: true }];
+    const newData = {
+      ...formData,
       highlights: newHighlights
-    });
+    };
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const removeHighlight = (index) => {
-    const newHighlights = [...(data.highlights || [])];
+    const newHighlights = [...(formData.highlights || [])];
     newHighlights.splice(index, 1);
-    onUpdate({
-      ...data,
+    const newData = {
+      ...formData,
       highlights: newHighlights
-    });
+    };
+    setFormData(newData);
+    onUpdate(newData);
   };
 
   const validateForm = () => {
-    if (!data.description?.trim()) {
+    if (!formData.description?.trim()) {
       return false;
     }
     return true;
@@ -71,7 +111,7 @@ const AboutForm = ({ data, onUpdate }) => {
       setError('');
       if (!validateForm()) {
         setStatus('error');
-        setError('About Me is required');
+        setError('Please fill all the fields');
         setTimeout(() => {
           setStatus(null);
           setError('');
@@ -80,21 +120,26 @@ const AboutForm = ({ data, onUpdate }) => {
       }
 
       setStatus('saving');
-      // Here you would typically call an API to save the data
-      // For now, we'll just simulate a successful save
-      setTimeout(() => {
+      
+      const response = await axios.post(
+        `http://localhost:3000/portfolio-save/about/${userId}`,
+        formData
+      );
+
+      if (response.data) {
         setStatus('success');
         setTimeout(() => {
           setStatus(null);
-        }, 3000);
-      }, 1000);
+        }, 2000);
+      }
     } catch (error) {
+      console.error('Error saving about info:', error);
       setStatus('error');
       setError('Failed to save');
       setTimeout(() => {
         setStatus(null);
         setError('');
-      }, 3000);
+      }, 2000);
     }
   };
 
@@ -106,20 +151,21 @@ const AboutForm = ({ data, onUpdate }) => {
 
       <div className={commonClasses.grid}>
         <div className="col-span-2">
-          <label className={commonClasses.label}>About Me</label>
+          <label className={commonClasses.label}>About Me *</label>
           <textarea
-            value={data.description || ''}
+            value={formData.description || ''}
             onChange={handleDescriptionChange}
             rows="6"
             className={commonClasses.input}
             placeholder="Share your professional journey, passion, and expertise..."
+            required
           />
         </div>
 
         <div className="col-span-2">
           <label className={commonClasses.label}>Vision</label>
           <textarea
-            value={data.vision || ''}
+            value={formData.vision || ''}
             onChange={handleVisionChange}
             rows="4"
             className={commonClasses.input}
@@ -140,10 +186,10 @@ const AboutForm = ({ data, onUpdate }) => {
           </div>
           
           <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
-            {(data.highlights || []).length === 0 ? (
+            {(formData.highlights || []).length === 0 ? (
               <p className="text-gray-500 text-sm italic">No highlights added yet. Click the button above to add one.</p>
             ) : (
-              (data.highlights || []).map((highlight, index) => (
+              (formData.highlights || []).map((highlight, index) => (
                 <div key={index} className="flex items-center space-x-3 bg-white p-3 rounded-md shadow-sm">
                   <div className="flex-1">
                     <input
@@ -187,7 +233,7 @@ const AboutForm = ({ data, onUpdate }) => {
             : status === 'success' 
               ? 'Saved Successfully!' 
               : status === 'error' 
-                ? error || 'About Me is required' 
+                ? error || 'Please fill all the fields' 
                 : 'Save About Info'}
         </button>
       </div>
