@@ -9,6 +9,137 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
   });
   const [availableSections, setAvailableSections] = useState([]);
   const [sectionVisibility, setSectionVisibility] = useState({});
+  const [processedFormData, setProcessedFormData] = useState(formData);
+
+  // Update processedFormData when formData changes
+  useEffect(() => {
+    if (formData) {
+      // Create a deep copy of formData to avoid reference issues
+      const newFormData = JSON.parse(JSON.stringify(formData));
+      
+      // Format basics section
+      if (newFormData.basics) {
+        newFormData.basics = {
+          ...newFormData.basics,
+          name: newFormData.basics.name || '',
+          title: newFormData.basics.role || '',
+          summary: newFormData.basics.bio || '',
+          email: newFormData.basics.email || '',
+          phone: newFormData.basics.phone || '',
+          location: newFormData.basics.location || '',
+          profileImage: newFormData.basics.profileImage || null
+        };
+      }
+
+      // Format about section
+      if (newFormData.about) {
+        newFormData.about = {
+          ...newFormData.about,
+          description: newFormData.about.description || '',
+          highlights: newFormData.about.highlights || []
+        };
+      }
+
+      // Format skills section
+      if (newFormData.skills) {
+        // Check if skills is an array (from API) or an object (from form)
+        if (Array.isArray(newFormData.skills)) {
+          // Convert array format to object format
+          const technicalSkills = newFormData.skills.filter(skill => skill.category === 'Technical');
+          const softSkills = newFormData.skills.filter(skill => skill.category === 'Soft');
+          
+          newFormData.skills = {
+            technical: technicalSkills,
+            soft: softSkills
+          };
+        } else {
+          // Already in object format
+          newFormData.skills = {
+            technical: newFormData.skills.technical || [],
+            soft: newFormData.skills.soft || []
+          };
+        }
+      }
+
+      // Format experience section
+      if (newFormData.experience) {
+        newFormData.experience = (newFormData.experience || []).map(exp => ({
+          ...exp,
+          company: exp.company || '',
+          position: exp.position || '',
+          startDate: exp.startDate || '',
+          endDate: exp.endDate || '',
+          description: exp.description || '',
+          highlights: exp.highlights || []
+        }));
+      }
+
+      // Format projects section
+      if (newFormData.projects) {
+        newFormData.projects = (newFormData.projects || []).map(project => ({
+          ...project,
+          title: project.title || '',
+          description: project.description || '',
+          technologies: project.technologies || [],
+          images: project.images || (project.image ? [project.image] : []),
+          liveUrl: project.liveUrl || project.liveLink || '',
+          sourceUrl: project.sourceUrl || project.sourceCode || '',
+          isVisible: project.isVisible !== false
+        }));
+      }
+
+      // Format education section
+      if (newFormData.education) {
+        newFormData.education = (newFormData.education || []).map(edu => ({
+          ...edu,
+          institution: edu.institution || '',
+          degree: edu.degree || '',
+          field: edu.field || '',
+          startDate: edu.startDate || '',
+          endDate: edu.endDate || '',
+          description: edu.description || ''
+        }));
+      }
+
+      // Format publications section
+      if (newFormData.publications) {
+        newFormData.publications = (newFormData.publications || []).map(pub => ({
+          ...pub,
+          title: pub.title || '',
+          authors: pub.authors || '',
+          publicationDate: pub.publicationDate || '',
+          description: pub.description || '',
+          link: pub.link || ''
+        }));
+      }
+
+      // Format certifications section
+      if (newFormData.certifications) {
+        newFormData.certifications = (newFormData.certifications || []).map(cert => ({
+          ...cert,
+          name: cert.name || '',
+          issuer: cert.issuer || '',
+          issueDate: cert.issueDate || '',
+          expiryDate: cert.expiryDate || '',
+          credentialId: cert.credentialId || '',
+          credentialUrl: cert.credentialUrl || ''
+        }));
+      }
+
+      // Format services section
+      if (newFormData.services) {
+        newFormData.services = (newFormData.services || []).map(service => ({
+          ...service,
+          title: service.title || '',
+          description: service.description || '',
+          price: service.price || '',
+          duration: service.duration || ''
+        }));
+      }
+      
+      setProcessedFormData(newFormData);
+    }
+  }, [formData]);
 
   // Fetch available sections and section visibility from the backend
   useEffect(() => {
@@ -81,29 +212,34 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
 
   // Check if section has data
   const hasSectionData = (sectionId) => {
-    if (!formData || !formData[sectionId]) return false;
+    if (!processedFormData || !processedFormData[sectionId]) return false;
     
     switch (sectionId) {
       case 'basics':
-        return formData.basics?.name || formData.basics?.title || formData.basics?.summary;
+        return processedFormData.basics?.name || processedFormData.basics?.title || processedFormData.basics?.summary;
       case 'about':
-        return formData.about?.description && formData.about.description.trim() !== '';
+        return processedFormData.about?.description && processedFormData.about.description.trim() !== '';
       case 'skills':
-        return (formData.skills?.technical?.length > 0 || formData.skills?.soft?.length > 0);
+        // Check if skills is an array or an object
+        if (Array.isArray(processedFormData.skills)) {
+          return processedFormData.skills.length > 0;
+        } else {
+          return (processedFormData.skills?.technical?.length > 0 || processedFormData.skills?.soft?.length > 0);
+        }
       case 'experience':
-        return formData.experience?.length > 0;
+        return processedFormData.experience?.length > 0;
       case 'education':
-        return formData.education?.length > 0;
+        return processedFormData.education?.length > 0;
       case 'projects':
-        return formData.projects?.length > 0;
+        return processedFormData.projects?.length > 0;
       case 'publications':
-        return formData.publications?.length > 0;
+        return processedFormData.publications?.length > 0;
       case 'certifications':
-        return formData.certifications?.length > 0;
+        return processedFormData.certifications?.length > 0;
       case 'awards':
-        return formData.awards?.length > 0;
+        return processedFormData.awards?.length > 0;
       case 'services':
-        return formData.services?.length > 0;
+        return processedFormData.services?.length > 0;
       default:
         return false;
     }
@@ -186,7 +322,7 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
             <TemplateProvider mode="preview">
               <TemplateComponent 
                 template={activeTemplate} 
-                data={formData}
+                data={processedFormData}
                 fontStyle={fontStyle}
                 availableSections={availableSections}
                 checkSectionData={hasSectionData}

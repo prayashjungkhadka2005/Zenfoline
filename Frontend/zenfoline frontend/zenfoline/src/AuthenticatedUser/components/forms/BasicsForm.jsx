@@ -17,6 +17,15 @@ const BasicsForm = ({ data, onUpdate }) => {
   });
   const userId = useAuthStore((state) => state.userId);
   const isInitialMount = useRef(true);
+  const dataInitialized = useRef(false);
+
+  // Initialize formData with data from props
+  useEffect(() => {
+    if (data && Object.keys(data).length > 0 && !dataInitialized.current) {
+      setFormData(data);
+      dataInitialized.current = true;
+    }
+  }, [data]);
 
   // Load data from database only on initial mount
   useEffect(() => {

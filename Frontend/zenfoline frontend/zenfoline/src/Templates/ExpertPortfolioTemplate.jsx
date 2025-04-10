@@ -128,6 +128,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
   // Log available sections for debugging
   console.log('Available sections in template:', availableSections);
   console.log('Section visibility in template:', sectionVisibility);
+  console.log('Data in template:', data);
 
   // Check if any sections are available
   const hasAvailableSections = availableSections && availableSections.length > 0;
@@ -324,12 +325,12 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                           <div key={index} className="bg-gray-800 p-4 rounded-lg">
                             <div className="flex justify-between items-center mb-2">
                               <span className="font-medium text-gray-300">{skill.name}</span>
-                              <span className="text-orange-500">{skill.level}</span>
+                              <span className="text-orange-500">{skill.proficiency || skill.level}</span>
                             </div>
                             <div className="w-full bg-gray-700 h-2 rounded-full">
                               <div
                                 className="bg-orange-500 h-2 rounded-full transition-all duration-1000"
-                                style={{ width: `${getSkillLevelPercentage(skill.level)}%` }}
+                                style={{ width: `${getSkillLevelPercentage(skill.proficiency || skill.level)}%` }}
                               ></div>
                             </div>
                           </div>
@@ -347,12 +348,12 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                           <div key={index} className="bg-gray-800 p-4 rounded-lg">
                             <div className="flex justify-between items-center mb-2">
                               <span className="font-medium text-gray-300">{skill.name}</span>
-                              <span className="text-orange-500">{skill.level}</span>
+                              <span className="text-orange-500">{skill.proficiency || skill.level}</span>
                             </div>
                             <div className="w-full bg-gray-700 h-2 rounded-full">
                               <div
                                 className="bg-orange-500 h-2 rounded-full transition-all duration-1000"
-                                style={{ width: `${getSkillLevelPercentage(skill.level)}%` }}
+                                style={{ width: `${getSkillLevelPercentage(skill.proficiency || skill.level)}%` }}
                               ></div>
                             </div>
                           </div>
@@ -382,7 +383,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                     >
                       <div className="relative h-56 overflow-hidden">
                         <img
-                          src={project.image || [
+                          src={project.images && project.images.length > 0 ? project.images[0] : [
                             'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                             'https://images.unsplash.com/photo-1555066931-bf19f8e1083d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                             'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -418,9 +419,9 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                           ))}
                         </div>
                         <div className="flex gap-6">
-                          {project.liveLink && (
+                          {project.liveUrl && (
                             <a
-                              href={project.liveLink}
+                              href={project.liveUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-orange-500 hover:text-orange-400 flex items-center gap-2 text-lg"
@@ -429,9 +430,9 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                               Live Demo
                             </a>
                           )}
-                          {project.sourceCode && (
+                          {project.sourceUrl && (
                             <a
-                              href={project.sourceCode}
+                              href={project.sourceUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-orange-500 hover:text-orange-400 flex items-center gap-2 text-lg"

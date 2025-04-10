@@ -49,6 +49,9 @@ const ProjectsForm = ({ data, onUpdate }) => {
             technologies: project.technologies || [],
             newTech: '',
             image: project.images && project.images.length > 0 ? project.images[0] : '',
+            images: project.images || [],
+            liveUrl: project.liveUrl || '',
+            sourceUrl: project.sourceUrl || '',
             liveLink: project.liveUrl || '',
             sourceCode: project.sourceUrl || '',
             isVisible: project.isVisible !== false
@@ -73,6 +76,13 @@ const ProjectsForm = ({ data, onUpdate }) => {
       ...newData[index],
       [field]: value
     };
+
+    // Keep URL fields in sync
+    if (field === 'liveLink') {
+      newData[index].liveUrl = value;
+    } else if (field === 'sourceCode') {
+      newData[index].sourceUrl = value;
+    }
 
     // Clear error for this field
     setFieldErrors(prev => ({
@@ -123,7 +133,18 @@ const ProjectsForm = ({ data, onUpdate }) => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        handleProjectChange(index, 'image', reader.result);
+        // Store the image as a base64 string
+        const base64Image = reader.result;
+        handleProjectChange(index, 'image', base64Image);
+        
+        // Also update the images array for API compatibility
+        const newData = [...formData];
+        newData[index] = {
+          ...newData[index],
+          images: [base64Image]
+        };
+        setFormData(newData);
+        onUpdate(newData);
       };
       reader.readAsDataURL(file);
     }
@@ -201,7 +222,7 @@ const ProjectsForm = ({ data, onUpdate }) => {
         title: project.title,
         description: project.description,
         technologies: project.technologies || [],
-        images: project.image ? [project.image] : [],
+        images: project.images || (project.image ? [project.image] : []),
         liveUrl: project.liveLink,
         sourceUrl: project.sourceCode,
         isVisible: project.isVisible !== false
@@ -283,9 +304,9 @@ const ProjectsForm = ({ data, onUpdate }) => {
                   <label className={commonClasses.label}>Project Image</label>
                   <div className="flex items-start space-x-6 mt-2">
                     <div className="w-40 h-40 rounded-lg overflow-hidden border-2 border-gray-200 shadow-lg hover:border-blue-500 transition-colors bg-gray-50 relative group">
-                      {project.image ? (
+                      {(project.image || (project.images && project.images.length > 0)) ? (
                         <img
-                          src={project.image}
+                          src={project.image || project.images[0]}
                           alt={project.title || 'Project preview'}
                           className="w-full h-full object-cover"
                         />

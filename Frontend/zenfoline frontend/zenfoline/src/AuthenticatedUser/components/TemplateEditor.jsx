@@ -87,38 +87,72 @@ const TemplateEditor = () => {
         if (template) {
           setActiveTemplate(template);
           
-          // Initialize form data with template data
-          if (template.data) {
-            setFormData(prev => ({
-              ...prev,
-              basics: template.data.basics || prev.basics,
-              about: template.data.about || prev.about,
-              skills: template.data.skills || prev.skills,
-              experience: template.data.experience || prev.experience,
-              education: template.data.education || prev.education,
-              publications: template.data.publications || prev.publications,
-              certifications: template.data.certifications || prev.certifications,
-              awards: template.data.awards || prev.awards,
-              projects: template.data.projects || prev.projects,
-              theme: {
-                ...prev.theme,
-                fontStyle: template.data.theme?.fontStyle || prev.theme.fontStyle,
-                enabledSections: {
-                  ...prev.theme.enabledSections,
-                  ...(template.data.theme?.enabledSections || {
-                    about: true,
-                    skills: true,
-                    experience: true,
-                    education: true,
-                    publications: true,
-                    certifications: true,
-                    awards: true,
-                    projects: true
-                  })
+          // Fetch all section data at once
+          const sections = [
+            { id: 'basics', endpoint: 'basic-info' },
+            { id: 'about', endpoint: 'about' },
+            { id: 'skills', endpoint: 'skills' },
+            { id: 'experience', endpoint: 'experience' },
+            { id: 'education', endpoint: 'education' },
+            { id: 'projects', endpoint: 'projects' },
+            { id: 'publications', endpoint: 'publications' },
+            { id: 'certifications', endpoint: 'certifications' },
+            { id: 'awards', endpoint: 'awards' },
+            { id: 'services', endpoint: 'services' }
+          ];
+          const sectionData = {};
+          
+          // Fetch data for all sections in parallel
+          const sectionPromises = sections.map(async (section) => {
+            try {
+              const response = await fetch(`${API_BASE_URL}/portfolio-save/${section.endpoint}/${userId}`);
+              if (response.ok) {
+                const result = await response.json();
+                if (result.data) {
+                  sectionData[section.id] = result.data;
                 }
+              } else {
+                console.warn(`Failed to fetch ${section.id} data: ${response.status} ${response.statusText}`);
               }
-            }));
-          }
+            } catch (error) {
+              console.error(`Error fetching ${section.id} data:`, error);
+            }
+          });
+          
+          // Wait for all section data to be fetched
+          await Promise.all(sectionPromises);
+          
+          // Initialize form data with all section data
+          setFormData(prev => ({
+            ...prev,
+            basics: sectionData.basics || prev.basics,
+            about: sectionData.about || prev.about,
+            skills: sectionData.skills || prev.skills,
+            experience: sectionData.experience || prev.experience,
+            education: sectionData.education || prev.education,
+            publications: sectionData.publications || prev.publications,
+            certifications: sectionData.certifications || prev.certifications,
+            awards: sectionData.awards || prev.awards,
+            projects: sectionData.projects || prev.projects,
+            services: sectionData.services || prev.services,
+            theme: {
+              ...prev.theme,
+              fontStyle: template.data?.theme?.fontStyle || prev.theme.fontStyle,
+              enabledSections: {
+                ...prev.theme.enabledSections,
+                ...(template.data?.theme?.enabledSections || {
+                  about: true,
+                  skills: true,
+                  experience: true,
+                  education: true,
+                  publications: true,
+                  certifications: true,
+                  awards: true,
+                  projects: true
+                })
+              }
+            }
+          }));
         }
       } catch (error) {
         console.error('Error loading template data:', error);
