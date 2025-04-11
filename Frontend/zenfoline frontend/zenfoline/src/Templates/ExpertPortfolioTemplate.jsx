@@ -237,7 +237,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
 
           {/* Hero Section */}
           {sectionsToRender.includes('basics') && (
-            <section className={`relative h-screen flex items-center justify-center overflow-hidden ${isPreviewMode ? 'mt-16' : ''}`}>
+            <section className={`relative h-screen flex items-center justify-center overflow-hidden ${isPreviewMode ? 'pt-16' : ''}`}>
               <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-purple-600/20 animate-gradient"></div>
               <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-10"></div>
               <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 relative z-10">

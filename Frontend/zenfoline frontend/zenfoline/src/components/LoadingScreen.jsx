@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import logo from '../assets/logo.png';
 
 const LoadingScreen = ({ 
   messages = [
@@ -41,14 +40,23 @@ const LoadingScreen = ({
   return (
     <div className="fixed inset-0 bg-gray-50/95 backdrop-blur-sm flex items-center justify-center">
       <div className="text-center">
-        <div className={`relative w-24 h-24 mx-auto ${showMessages ? 'mb-8' : ''}`}>
-          {/* Spinner */}
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-orange-500 border-r-[#000042] animate-spin"></div>
-          
-          {/* Logo in the center */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <img src={logo} alt="Logo" className="w-12 h-12 object-contain animate-pulse" />
-          </div>
+        <div className="flex justify-center items-center mb-8">
+          <style jsx>{`
+            .loader {
+              width: 40px;
+              aspect-ratio: 1;
+              border-radius: 50%;
+              background: #f97316; /* Orange-500 */
+              clip-path: polygon(0 0,100% 0,100% 100%,0 100%);
+              animation: l1 1.2s infinite cubic-bezier(0.3,1,0,1);
+              margin: 0 auto;
+            }
+            @keyframes l1 {
+              33% {border-radius: 0;background: #000042;clip-path: polygon(0 0,100% 0,100% 100%,0 100%)}
+              66% {border-radius: 0;background: #fb923c;clip-path: polygon(50% 0,50% 0,100% 100%,0 100%)}
+            }
+          `}</style>
+          <div className="loader"></div>
         </div>
 
         {/* Message display - only show if showMessages is true */}
