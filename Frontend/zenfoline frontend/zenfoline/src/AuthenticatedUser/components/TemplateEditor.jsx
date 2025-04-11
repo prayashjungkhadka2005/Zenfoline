@@ -219,47 +219,6 @@ const TemplateEditor = () => {
     }
   }, [userId, templateId, fetchTemplates]);
 
-  // Fetch section visibility on component mount
-  useEffect(() => {
-    const fetchSectionVisibility = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch section visibility');
-        }
-        const result = await response.json();
-        
-        if (result.data) {
-          const visibility = {};
-          Object.keys(result.data).forEach(section => {
-            if (section !== 'customSections') {
-              visibility[section] = result.data[section].isEnabled;
-            }
-          });
-          setSectionVisibility(visibility);
-          
-          // Update formData with the fetched section visibility
-          setFormData(prev => ({
-            ...prev,
-            theme: {
-              ...prev.theme,
-              enabledSections: {
-                ...prev.theme.enabledSections,
-                ...visibility
-              }
-            }
-          }));
-        }
-      } catch (error) {
-        console.error('Error fetching section visibility:', error);
-      }
-    };
-
-    if (userId) {
-      fetchSectionVisibility();
-    }
-  }, [userId]);
-
   // Handle form updates
   const handleFormUpdate = (sectionId, data) => {
     setFormData(prev => ({
@@ -418,17 +377,6 @@ const TemplateEditor = () => {
     return (
       <div id={formContainerId}> 
         <FormComponent {...props} />
-        {/* Add Save Button within the scrollable form area? */}
-        {activeSection !== 'settings' && (
-          <div className="mt-6 pt-6 border-t border-gray-200 flex justify-end">
-            <button 
-              onClick={saveChanges}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-5 rounded-md transition-colors"
-            >
-              Save Changes
-            </button>
-          </div>
-        )}
       </div>
     );
   };
@@ -474,6 +422,7 @@ const TemplateEditor = () => {
           fontStyle={fontStyle}
           userId={userId}
           showNotification={showNotification}
+          sectionVisibility={sectionVisibility}
         />
       }
     />

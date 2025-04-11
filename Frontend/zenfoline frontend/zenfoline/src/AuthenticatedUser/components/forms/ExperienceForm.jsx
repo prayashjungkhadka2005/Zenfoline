@@ -76,7 +76,17 @@ const ExperienceForm = ({ data, onUpdate }) => {
       [field]: value
     };
 
-    // Clear error for this field
+    // Clear endDate if 'currently work here' is checked
+    if (field === 'isCurrentPosition' && value === true) {
+      newData[index].endDate = '';
+      // Also clear any potential error for endDate
+      setFieldErrors(prev => ({
+        ...prev,
+        [`${index}-endDate`]: false
+      }));
+    }
+
+    // Clear error for the field being changed
     setFieldErrors(prev => ({
       ...prev,
       [`${index}-${field}`]: false

@@ -86,10 +86,22 @@ const PublicPortfolioView = () => {
             setThemeSettings(themeResponse.data.theme);
           }
           
-          // Extract section visibility from portfolio data's sectionConfiguration
+          // Extract and transform section visibility
           if (portfolioData.sectionConfiguration) {
-            // Pass the entire sectionConfiguration object to the template
-            setSectionVisibility(portfolioData.sectionConfiguration);
+            const config = portfolioData.sectionConfiguration;
+            const transformedVisibility = {};
+            Object.keys(config).forEach(key => {
+              // Ensure we only process sections with an isEnabled property
+              if (config[key] && typeof config[key].isEnabled === 'boolean') {
+                transformedVisibility[key] = config[key].isEnabled;
+              }
+            });
+            console.log('Transformed Visibility (Public View):', transformedVisibility); // Debug log
+            setSectionVisibility(transformedVisibility); // Set state with the simple object
+          } else {
+             // Handle cases where sectionConfiguration might be missing - perhaps set a default?
+             console.warn('sectionConfiguration not found in portfolioData');
+             // setSectionVisibility({}); // Or set based on theme/template defaults if needed
           }
         } else {
           throw new Error(portfolioResponse.data.message || templateResponse.data.message);

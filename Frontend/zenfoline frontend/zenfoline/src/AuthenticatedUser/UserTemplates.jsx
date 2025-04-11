@@ -51,8 +51,10 @@ const Templates = () => {
     if (sortBy === 'name') {
       return a.name.localeCompare(b.name);
     } else if (sortBy === 'active') {
-      if (a._id === activeTemplateId) return -1;
-      if (b._id === activeTemplateId) return 1;
+      if (activeTemplateId) {
+        if (a._id === activeTemplateId) return -1;
+        if (b._id === activeTemplateId) return 1;
+      }
       return 0;
     } else if (sortBy === 'newest') {
       return new Date(b.createdAt) - new Date(a.createdAt);
@@ -120,7 +122,10 @@ const Templates = () => {
               </button>
               <button
                 onClick={() => handleSort('active')}
-                className="w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors"
+                className={`w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors ${
+                  !activeTemplateId ? 'text-gray-400 cursor-not-allowed' : ''
+                }`}
+                disabled={!activeTemplateId}
               >
                 Active First
               </button>

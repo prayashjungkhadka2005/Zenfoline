@@ -96,12 +96,12 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
 
   // Helper function to check if a section is enabled
   const isSectionEnabled = (sectionId) => {
-    // First check if the section is enabled in the visibility settings
-    if (sectionVisibility && sectionVisibility[sectionId]) {
-      return sectionVisibility[sectionId].isEnabled;
+    // Check the sectionVisibility prop directly (it's { sectionId: boolean })
+    if (sectionVisibility && sectionVisibility[sectionId] !== undefined) {
+      return sectionVisibility[sectionId]; // Directly return the boolean value
     }
     
-    // Fallback to theme settings
+    // Fallback to theme settings if visibility prop doesn't have the section
     return data?.theme?.enabledSections?.[sectionId] !== false;
   };
 
@@ -601,7 +601,18 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                       <div className="text-gray-400 mb-4">
                         {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
                       </div>
-                      <p className="text-gray-300">{exp.description}</p>
+                      <p className="text-gray-300 mb-4">{exp.description}</p>
+                      {/* Render achievements if they exist */}
+                      {exp.achievements && exp.achievements.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-700">
+                          <h4 className="text-lg font-semibold mb-2 text-gray-200">Key Achievements:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-gray-400">
+                            {exp.achievements.map((achievement, achIndex) => (
+                              <li key={achIndex}>{achievement}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -661,6 +672,12 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                       <FaPhone className="w-5 h-5" />
                       Call Me
                     </a>
+                  )}
+                  {data?.basics?.location && (
+                    <div className="flex items-center gap-2 text-gray-300 px-6 py-3">
+                      <FaMapMarkerAlt className="w-5 h-5 text-orange-500" />
+                      <span>{data.basics.location}</span>
+                    </div>
                   )}
                 </div>
               </div>

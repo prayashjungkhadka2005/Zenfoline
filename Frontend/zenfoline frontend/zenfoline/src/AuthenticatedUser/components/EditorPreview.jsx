@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { TemplateProvider } from '../../Templates/TemplateContext';
 import axios from 'axios';
 
-const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, formData, fontStyle, userId, showNotification }) => {
+const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, formData, fontStyle, userId, showNotification, sectionVisibility }) => {
   const [loadingState, setLoadingState] = useState({
-    sections: true,
     data: true
   });
   const [availableSections, setAvailableSections] = useState([]);
-  const [sectionVisibility, setSectionVisibility] = useState({});
   const [processedFormData, setProcessedFormData] = useState(formData);
 
   // Update processedFormData when formData changes
@@ -66,11 +64,14 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
         newFormData.experience = (newFormData.experience || []).map(exp => ({
           ...exp,
           company: exp.company || '',
-          position: exp.position || '',
+          title: exp.title || '',
+          position: exp.title || '',
+          location: exp.location || '',
           startDate: exp.startDate || '',
-          endDate: exp.endDate || '',
+          endDate: exp.isCurrentPosition ? null : (exp.endDate || ''),
+          current: exp.isCurrentPosition || false,
           description: exp.description || '',
-          highlights: exp.highlights || []
+          achievements: exp.achievements || []
         }));
       }
 
@@ -167,74 +168,25 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
     }
   }, [formData]);
 
-  // Fetch available sections and section visibility from the backend
+  // Determine availableSections based on the sectionVisibility prop
   useEffect(() => {
-    const fetchSectionsAndVisibility = async () => {
-      try {
-        setLoadingState(prev => ({ ...prev, sections: true }));
-        
-        // Get template ID from activeTemplate
-        const templateId = activeTemplate?.id || activeTemplate?._id;
-        
-        if (!templateId) {
-          console.error('No template ID found');
-          setLoadingState(prev => ({ ...prev, sections: false }));
-          return;
-        }
-        
-        // Fetch available sections from the backend
-        const sectionsResponse = await axios.get(`/api/portfolio/templates/${templateId}/sections`);
-        
-        // Fetch section visibility - using the exact URL format provided by the user
-        const visibilityResponse = await axios.get(`/portfolio-save/section-visibility/${userId}`);
-        
-        console.log('Visibility API response:', visibilityResponse.data);
-        
-        if (visibilityResponse.data && visibilityResponse.data.data) {
-          setSectionVisibility(visibilityResponse.data.data);
-          
-          // Filter sections based on visibility
-          const enabledSections = Object.entries(visibilityResponse.data.data)
-            .filter(([key, value]) => key !== 'customSections' && value.isEnabled)
-            .map(([key]) => key);
-            
-          console.log('Enabled sections from visibility API:', enabledSections);
-          
-          // If we have enabled sections, use them
-          if (enabledSections.length > 0) {
-            setAvailableSections(enabledSections);
-          } else {
-            // Fallback to template sections if no enabled sections
-            console.log('No enabled sections found, using template sections');
-            const templateSections = activeTemplate?.sections || [];
-            setAvailableSections(templateSections.filter(section => section.enabled !== false));
-          }
-        } else if (sectionsResponse.data && sectionsResponse.data.sections) {
-          // Fallback to template sections if visibility API doesn't return expected format
-          console.log('Using sections from template API');
-          setAvailableSections(sectionsResponse.data.sections);
-        } else {
-          // Fallback to template sections if API doesn't return expected format
-          console.log('Using sections from activeTemplate');
-          const templateSections = activeTemplate?.sections || [];
-          setAvailableSections(templateSections.filter(section => section.enabled !== false));
-        }
-        
-        setLoadingState(prev => ({ ...prev, sections: false }));
-      } catch (error) {
-        console.error('Error fetching sections and visibility:', error);
-        // Fallback to template sections if API call fails
-        console.log('Error occurred, using sections from activeTemplate');
-        const templateSections = activeTemplate?.sections || [];
-        setAvailableSections(templateSections.filter(section => section.enabled !== false));
-        setLoadingState(prev => ({ ...prev, sections: false }));
-      }
-    };
-
-    if (activeTemplate && userId) {
-      fetchSectionsAndVisibility();
+    if (sectionVisibility && Object.keys(sectionVisibility).length > 0) {
+      const enabledSections = Object.entries(sectionVisibility)
+        .filter(([key, isEnabled]) => isEnabled)
+        .map(([key]) => key);
+      setAvailableSections(enabledSections);
+      console.log('Available sections from prop:', enabledSections); 
+    } else {
+      // Fallback or default if visibility prop is empty/undefined
+      // You might want a more robust fallback based on activeTemplate
+      const templateSections = activeTemplate?.sections || []; 
+      setAvailableSections(templateSections.filter(section => section.enabled !== false));
+      console.log('Available sections (fallback):', availableSections);
     }
-  }, [activeTemplate, userId]);
+    // Set data loading state to false once sections are determined
+    setLoadingState(prev => ({ ...prev, data: false }));
+
+  }, [sectionVisibility, activeTemplate]); // Depend on the prop
 
   // Check if section has data
   const hasSectionData = (sectionId) => {
@@ -270,20 +222,6 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
         return false;
     }
   };
-
-  // Simulate data loading
-  useEffect(() => {
-    const loadData = async () => {
-      if (!loadingState.sections) {
-        setLoadingState(prev => ({ ...prev, data: true }));
-        // Simulate data loading delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setLoadingState(prev => ({ ...prev, data: false }));
-      }
-    };
-
-    loadData();
-  }, [loadingState.sections]);
 
   return (
     <>
@@ -327,16 +265,7 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
             width: '100%'
           }}
         >
-          {loadingState.sections && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading sections...</p>
-              </div>
-            </div>
-          )}
-          
-          {loadingState.data && !loadingState.sections && (
+          {loadingState.data && (
             <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>

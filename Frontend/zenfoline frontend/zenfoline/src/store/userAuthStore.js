@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import useTemplateStore from './userTemplateStore';
 
 const useAuthStore = create(
   persist(
@@ -17,13 +18,28 @@ const useAuthStore = create(
       setEmail: (email) => set({ email }),
       setError: (error) => set({ error }),
       setToken: (token) => set({ token, isAuthenticated: !!token }),
-      logout: () => set({
-        email: '',
-        username: '',
-        userId: '',
-        token: null,
-        isAuthenticated: false
-      }),
+      logout: () => {
+        // Clear auth store
+        set({
+          email: '',
+          username: '',
+          userId: '',
+          token: null,
+          isAuthenticated: false
+        });
+        
+        // Clear template store
+        useTemplateStore.setState({
+          templates: [],
+          activeTemplateId: null,
+          loading: false,
+          error: null,
+          hasCheckedActiveTemplate: false
+        });
+        
+        // Clear template store from session storage
+        sessionStorage.removeItem('user-template-store');
+      },
 
       signupAdmin: async (username, email, password) => {
         try {

@@ -4,7 +4,7 @@ import useTemplateStore from '../store/userTemplateStore';
 import { Link } from 'react-router-dom';
 import { 
     FiEdit, FiEye, FiLayout, FiBarChart2, FiArrowRight, FiSettings, FiCheckCircle, 
-    FiZap, FiUser, FiBriefcase, FiCode, FiAward, FiFileText, FiInfo, FiBook, FiStar, FiTool, FiAlertCircle, FiLoader, FiTrendingUp, FiClock
+    FiZap, FiUser, FiBriefcase, FiCode, FiAward, FiFileText, FiInfo, FiBook, FiStar, FiTool, FiAlertCircle, FiLoader, FiTrendingUp, FiClock, FiLock
 } from 'react-icons/fi';
 import { FaPaintBrush } from 'react-icons/fa';
 import Spinner from '../components/Spinner';
@@ -353,12 +353,63 @@ const Home = () => {
                     {/* Portfolio Checklist/Guide */}
                     <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-800 mb-1">Get Started Guide</h2>
-                        <p className="text-sm text-gray-500 mb-4">Complete these steps for your active template.</p>
-                        {renderChecklist()}
+                        {activeTemplateId ? (
+                            <>
+                                <p className="text-sm text-gray-500 mb-4">Complete these steps for your active template.</p>
+                                {renderChecklist()}
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-sm text-gray-500 mb-4">Follow these steps to create your portfolio.</p>
+                                <div className="space-y-6">
+                                    {/* Step 1: Choose Template */}
+                                    <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg shadow-sm border border-orange-200">
+                                        <div className="flex-shrink-0 w-10 h-10 bg-orange-500 text-white rounded-full flex items-center justify-center text-lg font-bold">1</div>
+                                        <div className="flex-grow">
+                                            <h3 className="text-base font-semibold text-gray-800">Choose a Template</h3>
+                                            <p className="text-sm text-gray-600 mt-1">Select a template that best represents your professional style.</p>
+                                            <Link to="/dashboard/templates" className="mt-3 inline-block">
+                                                <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                                                    Browse Templates <FiArrowRight className="w-4 h-4" />
+                                                </button>
+                                            </Link>
+                                        </div>
+                                    </div>
+
+                                    {/* Step 2: Customize Appearance */}
+                                    <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200 opacity-60">
+                                        <div className="flex-shrink-0 w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold">2</div>
+                                        <div className="flex-grow">
+                                            <h3 className="text-base font-semibold text-gray-700">Customize Appearance</h3>
+                                            <p className="text-sm text-gray-600 mt-1">Personalize colors, fonts, and layout after selecting a template.</p>
+                                            <div className="mt-3">
+                                                <button disabled className="bg-gray-300 text-gray-500 px-4 py-2 rounded-md text-sm font-medium cursor-not-allowed flex items-center gap-2">
+                                                    Customize <FiLock className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Step 3: Add Content */}
+                                    <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg shadow-sm border border-purple-200 opacity-60">
+                                        <div className="flex-shrink-0 w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center text-lg font-bold">3</div>
+                                        <div className="flex-grow">
+                                            <h3 className="text-base font-semibold text-gray-700">Add Your Content</h3>
+                                            <p className="text-sm text-gray-600 mt-1">Fill in your professional information and showcase your work.</p>
+                                            <div className="mt-3">
+                                                <button disabled className="bg-gray-300 text-gray-500 px-4 py-2 rounded-md text-sm font-medium cursor-not-allowed flex items-center gap-2">
+                                                    Add Content <FiLock className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Active Template Section */}
-                     <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                    <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-800 mb-4">Active Template</h2>
                         {activeTemplate ? (
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -392,6 +443,43 @@ const Home = () => {
                             </div>
                         )}
                     </div>
+                    
+                    {/* Next Steps Section - Only visible when template is active */}
+                    {activeTemplateId && (
+                        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-4">Next Steps</h2>
+                            <div className="space-y-4">
+                                {/* Step 2: Customize Appearance */}
+                                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200">
+                                    <div className="flex-shrink-0 w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold">2</div>
+                                    <div className="flex-grow">
+                                        <h3 className="text-base font-semibold text-gray-700">Customize Appearance</h3>
+                                        <p className="text-sm text-gray-600 mt-1">Personalize colors, fonts, and layout for your portfolio.</p>
+                                        <Link to="/dashboard/themepage" className="mt-3 inline-block">
+                                            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                                                Customize <FiArrowRight className="w-4 h-4" />
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </div>
+
+                                {/* Step 3: Add Content */}
+                                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg shadow-sm border border-purple-200">
+                                    <div className="flex-shrink-0 w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center text-lg font-bold">3</div>
+                                    <div className="flex-grow">
+                                        <h3 className="text-base font-semibold text-gray-700">Add Your Content</h3>
+                                        <p className="text-sm text-gray-600 mt-1">Fill in your professional information and showcase your work.</p>
+                                        <button 
+                                            onClick={() => handleEditTemplate()}
+                                            className="mt-3 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+                                        >
+                                            Add Content <FiArrowRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     
                     {/* Quick Stats Card */}
                     <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
