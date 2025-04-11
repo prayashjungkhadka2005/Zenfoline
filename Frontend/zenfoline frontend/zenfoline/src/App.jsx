@@ -20,6 +20,7 @@ import TemplateEditor from './AuthenticatedUser/components/TemplateEditor';
 import PublicPortfolioView from './PublicPortfolio/PublicPortfolioView';
 import ProtectedRoute from './components/ProtectedRoute';
 import Analytics from './AuthenticatedUser/Analytics';
+import Setting from './AuthenticatedUser/Setting';
 
 const App = () => {
   return (
@@ -58,6 +59,7 @@ const App = () => {
             <Route path="templates" element={<Templates />} />
             <Route path="themepage" element={<ThemePage />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="settings" element={<Setting />} />
           </Route>
 
           <Route path="/theme" element={
