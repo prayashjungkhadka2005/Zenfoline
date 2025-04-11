@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BellIcon, UserCircleIcon, LogoutIcon, UserIcon, CreditCardIcon, CheckCircleIcon } from '@heroicons/react/outline';
+import useAuthStore from '../store/userAuthStore'; // Add import for the auth store
 
 const Header = () => {
-    const username = 'Prayash'; 
+    // Retrieve username dynamically from the store
+    const username = useAuthStore((state) => state.user?.name || state.profile?.name || 'User'); 
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
     const profileDropdownRef = useRef(null);
