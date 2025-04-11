@@ -5,17 +5,16 @@ import Header from './UserHeader';
 
 const DashboardLayout = () => {
     return (
-        <div className="flex h-screen">
+        <div className="flex h-screen bg-gray-50">
             <Sidebar />
 
-            <div className="flex-1 flex flex-col" style={{ marginLeft: '16rem' }}>
+            <div className="flex-1 flex flex-col ml-60">
                 <Header />
 
-                <main
-                    className="p-6 py-11 bg-gray-100 flex-1 overflow-auto"
-                    style={{ marginTop: '2.5rem'}}
-                >
-                    <Outlet />
+                <main className="flex-1 p-6 pt-20 overflow-auto">
+                    <div className="max-w-7xl mx-auto">
+                        <Outlet />
+                    </div>
                 </main>
             </div>
         </div>
