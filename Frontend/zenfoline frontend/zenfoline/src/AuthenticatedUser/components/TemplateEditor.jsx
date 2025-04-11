@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import useTemplateStore from '../../store/userTemplateStore';
 import useAuthStore from '../../store/userAuthStore';
 import { templateComponents } from '../../RenderedTemplate/templateComponents';
@@ -28,15 +28,16 @@ const API_BASE_URL = 'http://localhost:3000';
 
 const TemplateEditor = () => {
   const { templateId } = useParams();
+  const location = useLocation();
   const userId = useAuthStore((state) => state.userId);
   const { templates, fetchTemplates } = useTemplateStore();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   
   // State management
-  const [sections, setSections] = useState([
+  const initialSections = [
     { id: 'basics', label: 'Basics', icon: <FiUser />, required: true },
-    { id: 'about', label: 'About', icon: <FiInfo />, required: true },
+    { id: 'about', label: 'About', icon: <FiInfo />, required: false },
     { id: 'skills', label: 'Skills', icon: <FiCode /> },
     { id: 'experience', label: 'Experience', icon: <FiBriefcase /> },
     { id: 'education', label: 'Education', icon: <FiBook /> },
@@ -44,10 +45,20 @@ const TemplateEditor = () => {
     { id: 'certifications', label: 'Certifications', icon: <FiAward /> },
     { id: 'awards', label: 'Awards', icon: <FiStar /> },
     { id: 'projects', label: 'Projects', icon: <FiFileText /> },
-    { id: 'settings', label: 'Settings', icon: <FiSettings /> }
-  ]);
+    { id: 'settings', label: 'Settings', icon: <FiSettings />, required: true }
+  ];
+  const [sections, setSections] = useState(initialSections);
   
-  const [activeSection, setActiveSection] = useState('basics');
+  // Determine initial active section from URL hash
+  const getInitialSection = () => {
+    const hash = location.hash.substring(1);
+    if (hash && initialSections.some(s => s.id === hash)) {
+      return hash;
+    }
+    return 'basics';
+  };
+  const [activeSection, setActiveSection] = useState(getInitialSection());
+  
   const [formData, setFormData] = useState({
     basics: {},
     about: {},
@@ -78,6 +89,21 @@ const TemplateEditor = () => {
   const [activeTemplate, setActiveTemplate] = useState(null);
   const [sectionVisibility, setSectionVisibility] = useState({});
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
+
+  // Effect to scroll to section based on hash (after loading)
+  useEffect(() => {
+    if (!isLoading && location.hash) {
+      const id = location.hash.substring(1);
+      // We need a way to target the form container. Let's assume EditorForm adds an id.
+      // We'll add the scrolling logic inside EditorForm or rely on browser behavior for now.
+      // Example if EditorForm had <div id={`form-section-${activeSection}`}> ... </div>
+      // const element = document.getElementById(`form-section-${id}`);
+      // if (element) {
+      //   element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // }
+      // console.log("Attempting to scroll to:", id); 
+    }
+  }, [isLoading, location.hash]);
 
   // Load initial data
   useEffect(() => {
@@ -244,33 +270,69 @@ const TemplateEditor = () => {
 
   // Save changes
   const saveChanges = async () => {
+    // Basic check: Don't save if essential data like basics is missing
+    if (!formData.basics || !formData.basics.name || !formData.basics.email) {
+      showNotification('Please fill in at least Name and Email in Basics.', 'warning');
+      setActiveSection('basics'); // Navigate to basics section
+      return;
+    } 
+
+    // Show saving indicator (optional)
+    showNotification('Saving changes...', 'info', 2000); // Show for 2 seconds
+
     try {
+      // Construct payload: only include sections that are currently supposed to be enabled
+      const payload = {};
+      Object.keys(formData).forEach(key => {
+        // Include if it's theme or if the section exists in visibility map and is enabled
+        if (key === 'theme' || (sectionVisibility && sectionVisibility[key])) {
+          payload[key] = formData[key];
+        } else if (!sectionVisibility && initialSections.some(s => s.id === key)) {
+          // Fallback if visibility hasn't loaded - save all non-theme sections
+          // This might be too broad, consider refining based on template defaults if needed
+          if (key !== 'theme') payload[key] = formData[key];
+        }
+      });
+      
+      // Log the payload being sent
+      console.log("Saving payload:", JSON.stringify(payload, null, 2));
+
       const response = await fetch(`${API_BASE_URL}/portfolio-save/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
+      
       const data = await response.json();
+      
+      if (!response.ok) {
+        // Handle specific errors from backend if available
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      } 
+
       if (data.success) {
-        showNotification('Changes saved successfully!');
+        showNotification('Changes saved successfully!', 'success');
+      } else {
+        // This path might not be reached if backend throws error on !response.ok
+        showNotification(data.message || 'Failed to save changes.', 'error');
       }
     } catch (error) {
       console.error('Error saving changes:', error);
-      showNotification('Error saving changes', 'error');
+      showNotification(`Error saving changes: ${error.message}`, 'error');
     }
   };
 
   // Handle settings saved
   const handleSettingsSaved = (newSectionVisibility) => {
-    // Update the section visibility state
     setSectionVisibility(newSectionVisibility);
-    
-    // Force sidebar refresh by incrementing the key
     setSidebarRefreshKey(prev => prev + 1);
-    
-    // No need to show notification as SettingsForm already shows one
+    // Update sections state based on new visibility
+    setSections(prevSections => initialSections.filter(section => {
+      if (section.required) return true;
+      return newSectionVisibility[section.id] !== false;
+    }));
   };
 
   // Get visible sections for navigation
@@ -328,34 +390,47 @@ const TemplateEditor = () => {
 
   // Render form section based on active section
   const renderFormSection = () => {
+    // Give each form container a unique ID based on the section
+    const formContainerId = `form-section-${activeSection}`;
+    
+    let FormComponent;
     switch (activeSection) {
-      case 'basics':
-        return <BasicsForm data={formData.basics} onUpdate={(data) => handleFormUpdate('basics', data)} />;
-      case 'about':
-        return <AboutForm data={formData.about} onUpdate={(data) => handleFormUpdate('about', data)} />;
-      case 'skills':
-        return <SkillsForm data={formData.skills} onUpdate={(data) => handleFormUpdate('skills', data)} />;
-      case 'experience':
-        return <ExperienceForm data={formData.experience} onUpdate={(data) => handleFormUpdate('experience', data)} />;
-      case 'projects':
-        return <ProjectsForm data={formData.projects} onUpdate={(data) => handleFormUpdate('projects', data)} />;
-      case 'education':
-        return <EducationForm data={formData.education} onUpdate={(data) => handleFormUpdate('education', data)} />;
-      case 'publications':
-        return <PublicationsForm data={formData.publications} onUpdate={(data) => handleFormUpdate('publications', data)} />;
-      case 'certifications':
-        return <CertificationsForm data={formData.certifications} onUpdate={(data) => handleFormUpdate('certifications', data)} />;
-      case 'awards':
-        return <AwardsForm data={formData.awards} onUpdate={(data) => handleFormUpdate('awards', data)} />;
-      case 'settings':
-        return <SettingsForm 
-          data={formData.theme} 
-          onUpdate={(data) => handleFormUpdate('theme', data)}
-          onSettingsSaved={handleSettingsSaved}
-        />;
-      default:
-        return <div>Select a section</div>;
+      case 'basics': FormComponent = BasicsForm; break;
+      case 'about': FormComponent = AboutForm; break;
+      case 'skills': FormComponent = SkillsForm; break;
+      case 'experience': FormComponent = ExperienceForm; break;
+      case 'projects': FormComponent = ProjectsForm; break;
+      case 'education': FormComponent = EducationForm; break;
+      case 'publications': FormComponent = PublicationsForm; break;
+      case 'certifications': FormComponent = CertificationsForm; break;
+      case 'awards': FormComponent = AwardsForm; break;
+      case 'settings': FormComponent = SettingsForm; break;
+      default: return <div id={formContainerId}>Select a section</div>;
     }
+
+    // Pass data and update handler, include onSettingsSaved for settings
+    const props = {
+      data: formData[activeSection] || (Array.isArray(initialSections.find(s => s.id === activeSection)?.default) ? [] : {}),
+      onUpdate: (data) => handleFormUpdate(activeSection, data),
+      ...(activeSection === 'settings' && { onSettingsSaved: handleSettingsSaved, initialData: formData.theme })
+    };
+
+    return (
+      <div id={formContainerId}> 
+        <FormComponent {...props} />
+        {/* Add Save Button within the scrollable form area? */}
+        {activeSection !== 'settings' && (
+          <div className="mt-6 pt-6 border-t border-gray-200 flex justify-end">
+            <button 
+              onClick={saveChanges}
+              className="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-5 rounded-md transition-colors"
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const TemplateComponent = activeTemplate ? templateComponents[activeTemplate.predefinedTemplate] : null;

@@ -193,9 +193,9 @@ const Home = () => {
         }
     };
 
-    // --- Dynamic Checklist Generation (Now uses real completion state) ---
+    // --- Dynamic Checklist Generation ---
     const generateChecklistItems = () => {
-        if (!sectionVisibility) return []; // Depends on visibility data
+        if (!sectionVisibility) return [];
 
         const enabledSectionIds = Object.entries(sectionVisibility)
             .filter(([key, value]) => key !== 'customSections' && value.isEnabled)
@@ -205,23 +205,24 @@ const Home = () => {
         const items = enabledSectionIds
             .map(id => {
                 const info = ALL_SECTIONS_INFO[id];
-                if (!info) return null; 
+                if (!info) return null;
                 return {
-                    id: id,
+                    id: id, // Use the section ID
                     label: info.label,
                     icon: info.icon,
-                    link: activeTemplateId ? `/template-editor/${activeTemplateId}#${id}` : '/dashboard/templates',
-                    completed: contentCompletion[id] || false // Use REAL completion status
+                    // Link is no longer needed here for editor items
+                    completed: contentCompletion[id] || false
                 };
             })
-            .filter(item => item !== null); 
+            .filter(item => item !== null);
 
+        // Manually add the customize appearance step - still uses Link
         items.push({
             id: 'customize',
             label: ALL_SECTIONS_INFO.customize.label,
             icon: ALL_SECTIONS_INFO.customize.icon,
-            link: ALL_SECTIONS_INFO.customize.link,
-            completed: contentCompletion.customize || false // Use REAL completion status for customize
+            link: ALL_SECTIONS_INFO.customize.link, // Keep link for this one
+            completed: contentCompletion.customize || false
         });
 
         return items;
@@ -229,12 +230,12 @@ const Home = () => {
 
     const dynamicChecklistItems = generateChecklistItems();
 
-    // --- Completion Calculation (Now uses real completion state) ---
+    // --- Completion Calculation ---
     const completedItems = dynamicChecklistItems.filter(item => item.completed).length;
     const totalItems = dynamicChecklistItems.length;
     const completionPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-    // --- Render Logic ---
+    // --- Render Logic (Updated to use Buttons for editor items) ---
     const renderChecklist = () => {
         if (isLoading.visibility || isLoading.theme) {
             return (
@@ -255,7 +256,9 @@ const Home = () => {
                 </div>
             );
         }
-        // Error checking for content fetch could be added here if needed
+        if (error.content) {
+             return <div className="flex items-center justify-center p-6 text-red-600"><FiAlertCircle className="mr-2"/> Error checking progress: {error.content}</div>;
+        }
 
         if (dynamicChecklistItems.length === 0 && !activeTemplateId) {
              return <div className="text-center py-4">
@@ -280,32 +283,55 @@ const Home = () => {
                 <p className="text-right text-sm text-gray-600 mb-4">{completionPercentage}% Complete</p>
 
                 <div className="space-y-3">
-                    {dynamicChecklistItems.map(item => (
-                        <Link
-                            key={item.id}
-                            to={item.link}
-                            onClick={(e) => { 
-                                if ((item.link.includes('template-editor') && !activeTemplateId)) { 
-                                    e.preventDefault(); 
-                                } 
-                            }}
-                            className={`flex items-center justify-between p-3 rounded-md transition-colors duration-150 
-                                ${item.completed ? 'bg-green-50' : 'bg-gray-50 hover:bg-gray-100'} 
-                                ${(!activeTemplateId && item.link.includes('template-editor')) || item.id === 'customize' && !activeTemplateId ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            aria-disabled={(!activeTemplateId && item.link.includes('template-editor')) || item.id === 'customize' && !activeTemplateId}
-                            tabIndex={(!activeTemplateId && item.link.includes('template-editor')) || item.id === 'customize' && !activeTemplateId ? -1 : 0}
-                        >
-                            <div className="flex items-center gap-3">
-                                {item.icon}
-                                <span className={`text-sm font-medium ${item.completed ? 'text-gray-500 line-through' : 'text-gray-700'}`}>{item.label}</span>
-                            </div>
-                            {item.completed ? (
-                                <FiCheckCircle className="w-5 h-5 text-green-500" />
-                            ) : (
-                                <FiArrowRight className="w-4 h-4 text-gray-400" />
-                            )}
-                        </Link>
-                    ))}
+                    {dynamicChecklistItems.map(item => {
+                        // Check if the item should navigate within the app (Customize) or open editor
+                        const isInternalLink = item.id === 'customize';
+                        const isDisabled = !activeTemplateId && !isInternalLink;
+
+                        return isInternalLink ? (
+                            // Render Link for Customize Appearance
+                            <Link
+                                key={item.id}
+                                to={item.link}
+                                className={`flex items-center justify-between p-3 rounded-md transition-colors duration-150 
+                                    ${item.completed ? 'bg-green-50' : 'bg-gray-50 hover:bg-gray-100'} 
+                                    ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                aria-disabled={isDisabled}
+                                tabIndex={isDisabled ? -1 : 0}
+                                onClick={(e) => { if (isDisabled) e.preventDefault(); }}
+                            >
+                                <div className="flex items-center gap-3">
+                                    {item.icon}
+                                    <span className={`text-sm font-medium ${item.completed ? 'text-gray-500 line-through' : 'text-gray-700'}`}>{item.label}</span>
+                                </div>
+                                {item.completed ? (
+                                    <FiCheckCircle className="w-5 h-5 text-green-500" />
+                                ) : (
+                                    <FiArrowRight className="w-4 h-4 text-gray-400" />
+                                )}
+                            </Link>
+                        ) : (
+                            // Render Button for items opening the editor
+                            <button
+                                key={item.id}
+                                onClick={() => handleEditTemplate(item.id)}
+                                disabled={isDisabled}
+                                className={`w-full flex items-center justify-between p-3 rounded-md transition-colors duration-150 text-left 
+                                    ${item.completed ? 'bg-green-50' : 'bg-gray-50 hover:bg-gray-100'} 
+                                    ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    {item.icon}
+                                    <span className={`text-sm font-medium ${item.completed ? 'text-gray-500 line-through' : 'text-gray-700'}`}>{item.label}</span>
+                                </div>
+                                {item.completed ? (
+                                    <FiCheckCircle className="w-5 h-5 text-green-500" />
+                                ) : (
+                                    <FiArrowRight className="w-4 h-4 text-gray-400" />
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
             </>
         );
