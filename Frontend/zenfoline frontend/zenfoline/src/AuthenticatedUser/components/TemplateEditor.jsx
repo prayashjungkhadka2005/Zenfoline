@@ -86,9 +86,17 @@ const TemplateEditor = () => {
         
         if (template) {
           setActiveTemplate(template);
-          
-          // Fetch all section data at once
-          const sections = [
+
+          // First fetch section visibility
+          const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
+          if (!visibilityResponse.ok) {
+            throw new Error('Failed to fetch section visibility');
+          }
+          const visibilityResult = await visibilityResponse.json();
+          const sectionVisibility = visibilityResult.data || {};
+
+          // Define all possible sections with their endpoints
+          const allSections = [
             { id: 'basics', endpoint: 'basic-info' },
             { id: 'about', endpoint: 'about' },
             { id: 'skills', endpoint: 'skills' },
@@ -100,10 +108,16 @@ const TemplateEditor = () => {
             { id: 'awards', endpoint: 'awards' },
             { id: 'services', endpoint: 'services' }
           ];
+
+          // Filter sections based on visibility
+          const sectionsToFetch = allSections.filter(section => 
+            sectionVisibility[section.id]?.isEnabled !== false
+          );
+
           const sectionData = {};
           
-          // Fetch data for all sections in parallel
-          const sectionPromises = sections.map(async (section) => {
+          // Fetch data only for enabled sections
+          const sectionPromises = sectionsToFetch.map(async (section) => {
             try {
               const response = await fetch(`${API_BASE_URL}/portfolio-save/${section.endpoint}/${userId}`);
               if (response.ok) {
@@ -119,10 +133,10 @@ const TemplateEditor = () => {
             }
           });
           
-          // Wait for all section data to be fetched
+          // Wait for all enabled section data to be fetched
           await Promise.all(sectionPromises);
           
-          // Initialize form data with all section data
+          // Initialize form data with fetched section data
           setFormData(prev => ({
             ...prev,
             basics: sectionData.basics || prev.basics,
@@ -138,21 +152,18 @@ const TemplateEditor = () => {
             theme: {
               ...prev.theme,
               fontStyle: template.data?.theme?.fontStyle || prev.theme.fontStyle,
-              enabledSections: {
-                ...prev.theme.enabledSections,
-                ...(template.data?.theme?.enabledSections || {
-                  about: true,
-                  skills: true,
-                  experience: true,
-                  education: true,
-                  publications: true,
-                  certifications: true,
-                  awards: true,
-                  projects: true
-                })
-              }
+              enabledSections: Object.fromEntries(
+                Object.entries(sectionVisibility).map(([key, value]) => [key, value.isEnabled])
+              )
             }
           }));
+
+          // Update section visibility state
+          setSectionVisibility(
+            Object.fromEntries(
+              Object.entries(sectionVisibility).map(([key, value]) => [key, value.isEnabled])
+            )
+          );
         }
       } catch (error) {
         console.error('Error loading template data:', error);
