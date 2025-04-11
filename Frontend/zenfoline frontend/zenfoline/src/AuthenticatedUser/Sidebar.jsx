@@ -31,7 +31,7 @@ const Sidebar = () => {
                             }`
                         }
                     >
-                        <i className={`${menu.icon} text-base w-5 text-center ${menu.name === 'Home' && window.location.pathname === '/dashboard' ? 'text-orange-500' : ''}`}></i>
+                        <i className={`${menu.icon} text-base w-5 text-center`}></i>
                         {menu.name}
                     </NavLink>
                 ))}

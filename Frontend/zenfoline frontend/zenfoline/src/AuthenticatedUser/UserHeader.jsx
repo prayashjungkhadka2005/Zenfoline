@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { BellIcon, UserCircleIcon, LogoutIcon, UserIcon, CreditCardIcon, CheckCircleIcon } from '@heroicons/react/outline';
+import { BellIcon, UserCircleIcon, LogoutIcon, UserIcon, CreditCardIcon, CheckCircleIcon, BadgeCheckIcon } from '@heroicons/react/outline';
+import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/userAuthStore'; // Add import for the auth store
 
 const Header = () => {
     // Retrieve username dynamically from the store
     const username = useAuthStore((state) => state.user?.name || state.profile?.name || 'User'); 
+    const logout = useAuthStore((state) => state.logout); // Get logout function
+    const navigate = useNavigate(); // Initialize navigate
     const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
     const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
     const profileDropdownRef = useRef(null);
@@ -37,9 +40,10 @@ const Header = () => {
     }, []);
 
     const handleLogout = () => {
-        // Add your logout logic here
-        console.log("Logout clicked");
+        logout(); // Call the logout function from the store
         setIsProfileDropdownOpen(false);
+        navigate('/login'); // Redirect to login page
+        console.log("Logout clicked and user redirected");
     };
 
     const handleMarkAllRead = () => {
@@ -134,7 +138,7 @@ const Header = () => {
                                 className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-500 transition-colors"
                                 onClick={() => setIsProfileDropdownOpen(false)}
                             >
-                                <CreditCardIcon className="w-4 h-4" />
+                                <BadgeCheckIcon className="w-4 h-4" />
                                 See Plans
                             </a>
                             <button

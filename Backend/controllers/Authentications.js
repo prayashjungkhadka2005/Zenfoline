@@ -7,9 +7,12 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
 const saltRounds = 10;
 const generateOTP = () => Math.floor(9999 + Math.random() * 900);
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -245,7 +248,9 @@ const userLogin = async (req, res) => {
             return res.status(400).json({ message: 'Email or password incorrect.' });
         }
 
-        return res.status(200).json({ message: 'Login successful.', user_id: user._id });
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+
+        return res.status(200).json({ message: 'Login successful.', user_id: user._id, token });
     } catch (error) {
         console.error('Error during login:', error);
         return res.status(500).json({ message: 'An error occurred during login.' });

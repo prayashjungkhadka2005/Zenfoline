@@ -18,6 +18,7 @@ import ManageComponents from './authenticatedAdmin/ManageComponents';
 import TemplateRenderer from './RenderedTemplate/TemplateRenderer';
 import TemplateEditor from './AuthenticatedUser/components/TemplateEditor';
 import PublicPortfolioView from './PublicPortfolio/PublicPortfolioView';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
@@ -33,24 +34,45 @@ const App = () => {
           <Route path="/forgotpasswordotp" element={<ForgotPasswordOTP />} />
           <Route path="/adminsignup" element={<AdminSignup />} />
           <Route path="/" element={<AdminLogin />} />
+          <Route path="/portfolio/:userId" element={<PublicPortfolioView />} />
 
-          {/* Admin Routes */}
-          <Route path="/admindashboard" element={<AdminDashboard />}>
+          {/* Protected Admin Routes */}
+          <Route path="/admindashboard" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }>
             <Route index element={<AdminHome />} />
             <Route path="addtemplates" element={<AddTemplates />} />
             <Route path="managecomponents" element={<ManageComponents />} />
           </Route>
 
-          <Route path="/dashboard" element={<Dashboard />}>
+          {/* Protected User Routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }>
             <Route index element={<Home />} />
             <Route path="templates" element={<Templates />} />
             <Route path="themepage" element={<ThemePage />} />
           </Route>
 
-          <Route path="/theme" element={<ThemePage />} />
-          <Route path="/template/:templateId" element={<TemplateRenderer />} />
-          <Route path="/template-editor/:templateId" element={<TemplateEditor />} />
-          <Route path="/portfolio/:userId" element={<PublicPortfolioView />} />
+          <Route path="/theme" element={
+            <ProtectedRoute>
+              <ThemePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/template/:templateId" element={
+            <ProtectedRoute>
+              <TemplateRenderer />
+            </ProtectedRoute>
+          } />
+          <Route path="/template-editor/:templateId" element={
+            <ProtectedRoute>
+              <TemplateEditor />
+            </ProtectedRoute>
+          } />
         </Routes>
       </Router>
     </div>
