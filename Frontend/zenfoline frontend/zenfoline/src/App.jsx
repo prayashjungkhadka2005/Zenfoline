@@ -19,6 +19,7 @@ import TemplateRenderer from './RenderedTemplate/TemplateRenderer';
 import TemplateEditor from './AuthenticatedUser/components/TemplateEditor';
 import PublicPortfolioView from './PublicPortfolio/PublicPortfolioView';
 import ProtectedRoute from './components/ProtectedRoute';
+import Analytics from './AuthenticatedUser/Analytics';
 
 const App = () => {
   return (
@@ -56,6 +57,7 @@ const App = () => {
             <Route index element={<Home />} />
             <Route path="templates" element={<Templates />} />
             <Route path="themepage" element={<ThemePage />} />
+            <Route path="analytics" element={<Analytics />} />
           </Route>
 
           <Route path="/theme" element={
