@@ -98,7 +98,10 @@ const Templates = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-xl font-semibold text-gray-800">My Templates</h1>
+        <div>
+          <h1 className="text-xl font-semibold text-gray-800">My Templates</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage and customize your portfolio templates</p>
+        </div>
         <div className="relative">
           <button 
             onClick={() => setShowSortDropdown(!showSortDropdown)}
@@ -108,7 +111,7 @@ const Templates = () => {
             <i className={`fas fa-chevron-${showSortDropdown ? 'up' : 'down'} text-xs`}></i>
           </button>
           {showSortDropdown && (
-            <div className="absolute right-0 mt-1.5 w-40 bg-white rounded-md shadow-sm border border-gray-200 py-1">
+            <div className="absolute right-0 mt-1.5 w-40 bg-white rounded-md shadow-sm border border-gray-200 py-1 z-10">
               <button
                 onClick={() => handleSort('name')}
                 className="w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors"
@@ -132,66 +135,80 @@ const Templates = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sortedTemplates.map((template) => (
-          <div
-            key={template._id}
-            className={`bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow ${
-              activeTemplateId === template._id ? 'ring-2 ring-orange-500' : ''
-            }`}
-          >
-            <div className="relative">
-              <img
-                src={`http://localhost:3000${template.image}`}
-                alt={template.name}
-                className="w-full h-40 object-cover"
-              />
-              {activeTemplateId === template._id && (
-                <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-                  Active
-                </div>
-              )}
-            </div>
+      {sortedTemplates.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-sm p-8 flex flex-col items-center justify-center min-h-[300px]">
+          <div className="text-gray-500 text-center">
+            <i className="fas fa-file-alt text-4xl mb-3 text-gray-300"></i>
+            <p className="text-lg font-medium mb-2">No templates found</p>
+            <p className="text-sm mb-4">Create your first template to get started</p>
+            <button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors">
+              Create Template
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {sortedTemplates.map((template) => (
+            <div
+              key={template._id}
+              className={`bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${
+                activeTemplateId === template._id ? 'ring-2 ring-orange-500' : ''
+              }`}
+            >
+              <div className="relative">
+                <img
+                  src={`http://localhost:3000${template.image}`}
+                  alt={template.name}
+                  className="w-full h-40 object-cover"
+                />
+                {activeTemplateId === template._id && (
+                  <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                    Active
+                  </div>
+                )}
+              </div>
 
-            <div className="p-4">
-              <h2 className="text-base font-semibold mb-3 text-gray-800">{template.name}</h2>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() =>
-                    activeTemplateId === template._id
-                      ? handleDeactivate()
-                      : handleActivate(template._id)
-                  }
-                  className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    activeTemplateId === template._id
-                      ? 'bg-red-500 text-white hover:bg-red-600'
-                      : 'bg-orange-500 text-white hover:bg-orange-600'
-                  }`}
-                >
-                  {activeTemplateId === template._id ? 'Deactivate' : 'Activate'}
-                </button>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleEdit(template._id)}
-                    className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              <div className="p-4">
+                <h2 className="text-base font-semibold mb-2 text-gray-800">{template.name}</h2>
+                <p className="text-xs text-gray-500 mb-3">Created {new Date(template.createdAt).toLocaleDateString()}</p>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() =>
                       activeTemplateId === template._id
-                        ? 'bg-blue-500 text-white hover:bg-blue-600'
-                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        ? handleDeactivate()
+                        : handleActivate(template._id)
+                    }
+                    className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      activeTemplateId === template._id
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-orange-500 text-white hover:bg-orange-600'
                     }`}
-                    disabled={activeTemplateId !== template._id}
                   >
-                    Edit Template
+                    {activeTemplateId === template._id ? 'Deactivate' : 'Activate'}
                   </button>
-                  <button className="flex-1 py-1.5 rounded-md text-sm font-medium border border-orange-500 text-orange-500 hover:bg-orange-50 transition-colors">
-                    Live Preview
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => handleEdit(template._id)}
+                      className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                        activeTemplateId === template._id
+                          ? 'bg-blue-500 text-white hover:bg-blue-600'
+                          : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      }`}
+                      disabled={activeTemplateId !== template._id}
+                    >
+                      Edit Template
+                    </button>
+                    <button className="flex-1 py-1.5 rounded-md text-sm font-medium border border-orange-500 text-orange-500 hover:bg-orange-50 transition-colors">
+                      Live Preview
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

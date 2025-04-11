@@ -12,7 +12,7 @@ const DashboardLayout = () => {
                 <Header />
 
                 <main className="flex-1 p-6 pt-20 overflow-auto">
-                    <div className="max-w-7xl mx-auto">
+                    <div className="max-w-7xl mx-auto px-1.5 py-1.5">
                         <Outlet />
                     </div>
                 </main>

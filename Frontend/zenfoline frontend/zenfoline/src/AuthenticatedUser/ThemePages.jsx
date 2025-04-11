@@ -221,7 +221,10 @@ const ThemePage = () => {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 className="text-xl font-semibold text-gray-800">Theme Settings</h1>
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800">Theme Settings</h1>
+            <p className="text-sm text-gray-500 mt-1">Customize the appearance of your portfolio</p>
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-8 flex justify-center items-center min-h-[300px]">
           <div className="text-center">
@@ -236,21 +239,24 @@ const ThemePage = () => {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-xl font-semibold text-gray-800">Theme Settings</h1>
+        <div>
+          <h1 className="text-xl font-semibold text-gray-800">Theme Settings</h1>
+          <p className="text-sm text-gray-500 mt-1">Customize the appearance of your portfolio</p>
+        </div>
       </div>
 
-      <div className="mb-4 bg-white rounded-lg shadow-sm p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="mb-5 bg-white rounded-lg shadow-sm p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-l-4 border-orange-500">
         <h2 className="text-base font-medium text-gray-700">
           Current template:{" "}
-          <span className="font-semibold">{activeTemplate ? activeTemplate.name : "None"}</span>
+          <span className="font-semibold text-gray-900">{activeTemplate ? activeTemplate.name : "None"}</span>
         </h2>
         <div className="flex items-center gap-3">
           {activeTemplate ? (
-            <span className="text-green-500 text-sm font-medium flex items-center gap-1.5">
+            <span className="text-green-500 text-sm font-medium flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded-md">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Active
             </span>
           ) : (
-            <span className="text-red-500 text-sm font-medium">No active template</span>
+            <span className="text-red-500 text-sm font-medium bg-red-50 px-2 py-1 rounded-md">No active template</span>
           )}
           <button
             onClick={handleViewSite}
@@ -265,13 +271,13 @@ const ThemePage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="mb-4 bg-white rounded-lg shadow-sm p-4">
+      <div className="mb-5 bg-white rounded-lg shadow-sm p-4">
         <div className="flex gap-3">
           <button
             onClick={() => activeTemplate && handleTabChange("appearances")}
-            className={`px-4 py-1.5 text-sm border-b-2 ${
+            className={`px-4 py-1.5 text-sm border-b-2 transition-colors ${
               activeTab === "appearances"
-                ? "border-orange-500 text-orange-500"
+                ? "border-orange-500 text-orange-500 font-medium"
                 : activeTemplate
                 ? "border-transparent text-gray-600 hover:text-gray-900"
                 : "border-transparent text-gray-400 cursor-not-allowed"
@@ -283,9 +289,9 @@ const ThemePage = () => {
 
           <button
             onClick={() => activeTemplate && handleTabChange("developerComponents")}
-            className={`px-4 py-1.5 text-sm border-b-2 ${
+            className={`px-4 py-1.5 text-sm border-b-2 transition-colors ${
               activeTab === "developerComponents"
-                ? "border-orange-500 text-orange-500"
+                ? "border-orange-500 text-orange-500 font-medium"
                 : activeTemplate
                 ? "border-transparent text-gray-600 hover:text-gray-900"
                 : "border-transparent text-gray-400 cursor-not-allowed"
@@ -298,18 +304,20 @@ const ThemePage = () => {
       </div>
 
       {activeTab === "appearances" && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Color Mode */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Color Mode</h3>
+          <div className="bg-white rounded-lg shadow-sm p-5">
+            <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <i className="fas fa-palette text-orange-500"></i> Color Mode
+            </h3>
             <div className="flex gap-3">
               {["default", "light", "dark"].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => handleColorModeChange(mode)}
-                  className={`px-3 py-1.5 text-sm border rounded-md transition-colors ${
+                  className={`px-3 py-1.5 text-sm border rounded-md transition-all duration-200 ${
                     activeColorMode === mode 
-                      ? "bg-orange-50 border-orange-500 text-orange-500" 
+                      ? "bg-orange-50 border-orange-500 text-orange-500 shadow-sm" 
                       : "border-gray-200 text-gray-700 hover:border-orange-200 hover:text-orange-500"
                   }`}
                 >
@@ -320,16 +328,18 @@ const ThemePage = () => {
           </div>
 
           {/* Preset Themes */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Preset Themes</h3>
+          <div className="bg-white rounded-lg shadow-sm p-5">
+            <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <i className="fas fa-paint-brush text-orange-500"></i> Preset Themes
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {Array.from({ length: 12 }).map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => handlePresetThemeSelect(idx)}
-                  className={`px-3 py-1.5 text-sm border rounded-md transition-colors ${
+                  className={`px-3 py-1.5 text-sm border rounded-md transition-all duration-200 ${
                     parseInt(activePresetTheme, 10) === idx 
-                      ? "bg-orange-50 border-orange-500 text-orange-500" 
+                      ? "bg-orange-50 border-orange-500 text-orange-500 shadow-sm" 
                       : "border-gray-200 text-gray-700 hover:border-orange-200 hover:text-orange-500"
                   }`}
                 >
@@ -340,17 +350,19 @@ const ThemePage = () => {
           </div>
 
           {/* Font Style */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Font Style</h3>
+          <div className="bg-white rounded-lg shadow-sm p-5">
+            <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <i className="fas fa-font text-orange-500"></i> Font Style
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {["Poppins", "Inter", "Inria Serif", "Crimson Text", "Lobster", "Playfair Display"].map(
                 (font) => (
                   <button
                     key={font}
                     onClick={() => handleFontStyleSelect(font)}
-                    className={`px-3 py-1.5 text-sm border rounded-md transition-colors ${
+                    className={`px-3 py-1.5 text-sm border rounded-md transition-all duration-200 ${
                       activeFontStyle === font 
-                        ? "bg-orange-50 border-orange-500 text-orange-500" 
+                        ? "bg-orange-50 border-orange-500 text-orange-500 shadow-sm" 
                         : "border-gray-200 text-gray-700 hover:border-orange-200 hover:text-orange-500"
                     }`}
                   >
@@ -364,10 +376,12 @@ const ThemePage = () => {
       )}
 
       {activeTab === "developerComponents" && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Header Selection */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Select Header</h3>
+          <div className="bg-white rounded-lg shadow-sm p-5">
+            <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <i className="fas fa-heading text-orange-500"></i> Select Header
+            </h3>
             <select 
               value={selectedHeader} 
               onChange={handleHeaderChange} 
@@ -396,8 +410,10 @@ const ThemePage = () => {
           </div>
 
           {/* Footer Selection */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <h3 className="text-base font-semibold text-gray-800 mb-3">Select Footer</h3>
+          <div className="bg-white rounded-lg shadow-sm p-5">
+            <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <i className="fas fa-shoe-prints text-orange-500"></i> Select Footer
+            </h3>
             <select 
               value={selectedFooter} 
               onChange={handleFooterChange} 
