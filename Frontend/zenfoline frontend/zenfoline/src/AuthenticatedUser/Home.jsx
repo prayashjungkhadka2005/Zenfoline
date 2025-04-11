@@ -346,6 +346,30 @@ const Home = () => {
                 <p className="mt-1 text-orange-100">Let's make your portfolio stand out today.</p>
             </div>
 
+            {/* Quick Stats Card - Moved to top */}
+            <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                 <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h2>
+                 <div className="grid grid-cols-1 sm:grid-cols-3">
+                     {/* Sections Complete */}
+                     <div className="flex flex-col items-center sm:items-start py-2 px-4">
+                         <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1"><FiCheckCircle className="w-4 h-4 text-green-500"/> Sections Complete</span>
+                         <span className="text-2xl font-bold text-gray-800">
+                             {isLoading.content ? <Spinner size="sm" color="gray-500" className="inline-block h-5 w-5"/> : `${completedItems} / ${totalItems || '?'}`}
+                         </span>
+                     </div>
+                     {/* Profile Views */}
+                     <div className="flex flex-col items-center sm:items-start py-2 px-4 sm:border-l sm:border-gray-200">
+                         <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1"><FiTrendingUp className="w-4 h-4 text-blue-500"/> Profile Views (Month)</span>
+                         <span className="text-2xl font-bold text-gray-800">_ _</span> 
+                     </div>
+                     {/* Last Updated */}
+                     <div className="flex flex-col items-center sm:items-start py-2 px-4 sm:border-l sm:border-gray-200">
+                         <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1"><FiClock className="w-4 h-4 text-purple-500"/> Last Updated</span>
+                         <span className="text-2xl font-bold text-gray-800">Today</span> 
+                     </div>
+                 </div>
+            </div>
+
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column (Checklist, Active Template, Stats) */}
@@ -480,27 +504,6 @@ const Home = () => {
                             </div>
                         </div>
                     )}
-                    
-                    {/* Quick Stats Card */}
-                    <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-                         <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h2>
-                         <div className="space-y-3">
-                             <div className="flex items-center justify-between text-sm">
-                                 <span className="flex items-center gap-2 text-gray-600"><FiCheckCircle className="w-4 h-4 text-green-500"/> Sections Complete</span>
-                                 <span className="font-medium text-gray-800">
-                                     {isLoading.content ? <Spinner size="sm" color="gray-500" className="inline-block h-4 w-4"/> : `${completedItems} / ${totalItems || '?'}`}
-                                 </span>
-                             </div>
-                             <div className="flex items-center justify-between text-sm">
-                                 <span className="flex items-center gap-2 text-gray-600"><FiTrendingUp className="w-4 h-4 text-blue-500"/> Profile Views (Month)</span>
-                                 <span className="font-medium text-gray-800">_ _</span> 
-                             </div>
-                             <div className="flex items-center justify-between text-sm">
-                                 <span className="flex items-center gap-2 text-gray-600"><FiClock className="w-4 h-4 text-purple-500"/> Last Updated</span>
-                                 <span className="font-medium text-gray-800">Today</span> 
-                             </div>
-                         </div>
-                    </div>
                 </div>
 
                 {/* Right Column (Quick Actions & Upgrade) */}
