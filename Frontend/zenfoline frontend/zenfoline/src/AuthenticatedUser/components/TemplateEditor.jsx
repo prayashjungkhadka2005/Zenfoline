@@ -11,6 +11,7 @@ import EditorLayout from './EditorLayout';
 import EditorSidebar from './EditorSidebar';
 import EditorForm from './EditorForm';
 import EditorPreview from './EditorPreview';
+import LoadingScreen from '../../components/LoadingScreen';
 import BasicsForm from './forms/BasicsForm';
 import AboutForm from './forms/AboutForm';
 import SkillsForm from './forms/SkillsForm';
@@ -29,6 +30,8 @@ const TemplateEditor = () => {
   const { templateId } = useParams();
   const userId = useAuthStore((state) => state.userId);
   const { templates, fetchTemplates } = useTemplateStore();
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   
   // State management
   const [sections, setSections] = useState([
@@ -80,12 +83,18 @@ const TemplateEditor = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setIsLoading(true);
+        setLoadingProgress(10);
+        
         // Fetch templates
         await fetchTemplates(userId);
+        setLoadingProgress(20);
+        
         const template = templates.find(t => t._id === templateId);
         
         if (template) {
           setActiveTemplate(template);
+          setLoadingProgress(30);
 
           // First fetch section visibility
           const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
@@ -94,6 +103,7 @@ const TemplateEditor = () => {
           }
           const visibilityResult = await visibilityResponse.json();
           const sectionVisibility = visibilityResult.data || {};
+          setLoadingProgress(40);
 
           // Define all possible sections with their endpoints
           const allSections = [
@@ -164,10 +174,17 @@ const TemplateEditor = () => {
               Object.entries(sectionVisibility).map(([key, value]) => [key, value.isEnabled])
             )
           );
+
+          setLoadingProgress(100);
+          // Add a small delay before hiding the loading screen for smooth transition
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 500);
         }
       } catch (error) {
         console.error('Error loading template data:', error);
         showNotification('Error loading template data', 'error');
+        setIsLoading(false);
       }
     };
 
@@ -342,6 +359,17 @@ const TemplateEditor = () => {
   };
 
   const TemplateComponent = activeTemplate ? templateComponents[activeTemplate.predefinedTemplate] : null;
+
+  if (isLoading) {
+    return (
+      <LoadingScreen 
+        message="Loading Portfolio Editor" 
+        subMessage="Please wait while we fetch your data..."
+        showProgress={true}
+        progress={loadingProgress}
+      />
+    );
+  }
 
   return (
     <EditorLayout
