@@ -59,9 +59,9 @@ const EditorSidebar = ({ sections, activeSection, setActiveSection, formData }) 
 
   return (
     <div className="h-full bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-6 border-b border-gray-200 flex-shrink-0">
-        <h1 className="text-xl font-bold text-gray-800">Template Editor</h1>
-        <p className="text-sm text-gray-500 mt-1">Customize your portfolio</p>
+      <div className="h-16 px-6 border-b border-gray-200 flex flex-col justify-center flex-shrink-0">
+        <h1 className="text-lg font-bold text-gray-800 leading-tight">Template Editor</h1>
+        <p className="text-xs text-gray-500 mt-0.5">Customize your portfolio</p>
       </div>
       <nav className="px-4 py-6 space-y-2 overflow-y-auto flex-grow">
         {visibleSections.map((section) => (
