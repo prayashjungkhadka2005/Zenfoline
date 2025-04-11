@@ -76,16 +76,42 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
 
       // Format projects section
       if (newFormData.projects) {
-        newFormData.projects = (newFormData.projects || []).map(project => ({
-          ...project,
-          title: project.title || '',
-          description: project.description || '',
-          technologies: project.technologies || [],
-          images: project.images || (project.image ? [project.image] : []),
-          liveUrl: project.liveUrl || project.liveLink || '',
-          sourceUrl: project.sourceUrl || project.sourceCode || '',
-          isVisible: project.isVisible !== false
-        }));
+        newFormData.projects = (newFormData.projects || []).map(project => {
+          // Handle both base64 and file path image formats
+          let processedImages = [];
+          if (project.images && project.images.length > 0) {
+            processedImages = project.images.map(img => {
+              if (img.startsWith('data:image')) {
+                // Base64 image
+                return img;
+              } else if (img.startsWith('/uploads/')) {
+                // File path - construct full URL
+                return `${window.location.origin}${img}`;
+              }
+              return img;
+            });
+          } else if (project.image) {
+            // Fallback to image field - handle both base64 and file path
+            if (project.image.startsWith('data:image')) {
+              processedImages = [project.image];
+            } else if (project.image.startsWith('/uploads/')) {
+              processedImages = [`${window.location.origin}${project.image}`];
+            } else {
+              processedImages = [project.image];
+            }
+          }
+          
+          return {
+            ...project,
+            title: project.title || '',
+            description: project.description || '',
+            technologies: project.technologies || [],
+            images: processedImages,
+            liveUrl: project.liveUrl || project.liveLink || '',
+            sourceUrl: project.sourceUrl || project.sourceCode || '',
+            isVisible: project.isVisible !== false
+          };
+        });
       }
 
       // Format education section

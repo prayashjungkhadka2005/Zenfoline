@@ -392,6 +392,7 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                           alt={project.title}
                           className="w-full h-full object-cover"
                           onError={(e) => {
+                            console.error('Image load error:', e.target.src);
                             e.target.onerror = null;
                             e.target.src = [
                               'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',

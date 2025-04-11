@@ -43,19 +43,33 @@ const ProjectsForm = ({ data, onUpdate }) => {
         const response = await axios.get(`${API_BASE_URL}/portfolio-save/projects/${userId}`);
         if (response.data && response.data.data) {
           // Transform the API data to match the form's expected format
-          const transformedData = response.data.data.map(project => ({
-            title: project.title || '',
-            description: project.description || '',
-            technologies: project.technologies || [],
-            newTech: '',
-            image: project.images && project.images.length > 0 ? project.images[0] : '',
-            images: project.images || [],
-            liveUrl: project.liveUrl || '',
-            sourceUrl: project.sourceUrl || '',
-            liveLink: project.liveUrl || '',
-            sourceCode: project.sourceUrl || '',
-            isVisible: project.isVisible !== false
-          }));
+          const transformedData = response.data.data.map(project => {
+            // Handle both base64 and file path image formats
+            let imageUrl = '';
+            if (project.images && project.images.length > 0) {
+              if (project.images[0].startsWith('data:image')) {
+                // Base64 image
+                imageUrl = project.images[0];
+              } else if (project.images[0].startsWith('/uploads/')) {
+                // File path - construct full URL
+                imageUrl = `${API_BASE_URL}${project.images[0]}`;
+              }
+            }
+            
+            return {
+              title: project.title || '',
+              description: project.description || '',
+              technologies: project.technologies || [],
+              newTech: '',
+              image: imageUrl,
+              images: project.images || [],
+              liveUrl: project.liveUrl || '',
+              sourceUrl: project.sourceUrl || '',
+              liveLink: project.liveUrl || '',
+              sourceCode: project.sourceUrl || '',
+              isVisible: project.isVisible !== false
+            };
+          });
           
           setFormData(transformedData);
           onUpdate(transformedData);
@@ -222,7 +236,8 @@ const ProjectsForm = ({ data, onUpdate }) => {
         title: project.title,
         description: project.description,
         technologies: project.technologies || [],
-        images: project.images || (project.image ? [project.image] : []),
+        // Keep existing images if no new image was uploaded
+        images: project.images || [],
         liveUrl: project.liveLink,
         sourceUrl: project.sourceCode,
         isVisible: project.isVisible !== false
@@ -232,9 +247,16 @@ const ProjectsForm = ({ data, onUpdate }) => {
       const formDataToSend = new FormData();
       formDataToSend.append('projects', JSON.stringify(apiData));
       
-      // Add project images if they exist
+      // Only process and upload images that have actually changed
       formData.forEach((project, index) => {
-        if (project.image && project.image.startsWith('data:image')) {
+        // Check if this is a new base64 image that's different from the original
+        const hasNewImage = project.image && 
+                           project.image.startsWith('data:image') && 
+                           (!project.images || 
+                            !project.images[0] || 
+                            project.images[0] !== project.image);
+        
+        if (hasNewImage) {
           // Convert base64 to file
           const base64Data = project.image.split(',')[1];
           const byteCharacters = atob(base64Data);
@@ -249,6 +271,9 @@ const ProjectsForm = ({ data, onUpdate }) => {
           const file = new File([blob], `project-${index}.jpg`, { type: 'image/jpeg' });
           
           formDataToSend.append('projectImages', file);
+          
+          // Update the images array in apiData to include the new image
+          apiData[index].images = [project.image];
         }
       });
 
