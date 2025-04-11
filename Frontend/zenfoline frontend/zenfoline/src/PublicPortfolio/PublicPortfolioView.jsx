@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { templateComponents } from '../RenderedTemplate/templateComponents';
+import { TemplateProvider } from '../Templates/TemplateContext';
 import axios from 'axios';
 
 const PublicPortfolioView = () => {
@@ -8,8 +9,39 @@ const PublicPortfolioView = () => {
   const [portfolioData, setPortfolioData] = useState(null);
   const [template, setTemplate] = useState(null);
   const [themeSettings, setThemeSettings] = useState(null);
+  const [sectionVisibility, setSectionVisibility] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Helper function to check if a section has data
+  const checkSectionData = (sectionId) => {
+    if (!portfolioData || !portfolioData[sectionId]) return false;
+    
+    switch (sectionId) {
+      case 'basics':
+        return portfolioData.basics?.name || portfolioData.basics?.title || portfolioData.basics?.summary;
+      case 'about':
+        return portfolioData.about?.description && portfolioData.about.description.trim() !== '';
+      case 'skills':
+        return portfolioData.skills?.length > 0;
+      case 'experience':
+        return portfolioData.experience?.length > 0;
+      case 'education':
+        return portfolioData.education?.length > 0;
+      case 'projects':
+        return portfolioData.projects?.length > 0;
+      case 'publications':
+        return portfolioData.publications?.length > 0;
+      case 'certifications':
+        return portfolioData.certifications?.length > 0;
+      case 'awards':
+        return portfolioData.awards?.length > 0;
+      case 'services':
+        return portfolioData.services?.length > 0;
+      default:
+        return false;
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,12 +54,41 @@ const PublicPortfolioView = () => {
         ]);
 
         if (portfolioResponse.data.success && templateResponse.data.success) {
-          setPortfolioData(portfolioResponse.data.data);
+          const portfolioData = portfolioResponse.data.data;
+          
+          // Transform skills data into the format expected by the template
+          if (portfolioData.skills && Array.isArray(portfolioData.skills)) {
+            const transformedSkills = {
+              technical: portfolioData.skills
+                .filter(skill => skill.category === 'Technical')
+                .map(skill => ({
+                  name: skill.name,
+                  level: skill.proficiency,
+                  isVisible: skill.isVisible
+                })),
+              soft: portfolioData.skills
+                .filter(skill => skill.category === 'Soft')
+                .map(skill => ({
+                  name: skill.name,
+                  level: skill.proficiency,
+                  isVisible: skill.isVisible
+                }))
+            };
+            portfolioData.skills = transformedSkills;
+          }
+          
+          setPortfolioData(portfolioData);
           setTemplate(templateResponse.data.data);
           
           // Set theme settings from the response
           if (themeResponse.data.theme) {
             setThemeSettings(themeResponse.data.theme);
+          }
+          
+          // Extract section visibility from portfolio data's sectionConfiguration
+          if (portfolioData.sectionConfiguration) {
+            // Pass the entire sectionConfiguration object to the template
+            setSectionVisibility(portfolioData.sectionConfiguration);
           }
         } else {
           throw new Error(portfolioResponse.data.message || templateResponse.data.message);
@@ -48,7 +109,7 @@ const PublicPortfolioView = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
       </div>
     );
   }
@@ -56,33 +117,20 @@ const PublicPortfolioView = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Oops!</h1>
-          <p className="text-gray-600">{error}</p>
+        <div className="text-red-500 text-center">
+          <h2 className="text-2xl font-bold mb-2">Error</h2>
+          <p>{error}</p>
         </div>
       </div>
     );
   }
 
-  if (!portfolioData || !template) {
+  if (!template) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Portfolio Not Found</h1>
-          <p className="text-gray-600">The requested portfolio could not be found.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const TemplateComponent = templateComponents[template.predefinedTemplate];
-
-  if (!TemplateComponent) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Template Not Found</h1>
-          <p className="text-gray-600">The template for this portfolio is not available.</p>
+        <div className="text-gray-500 text-center">
+          <h2 className="text-2xl font-bold mb-2">Template Not Found</h2>
+          <p>The template for this portfolio is not available.</p>
         </div>
       </div>
     );
@@ -91,22 +139,22 @@ const PublicPortfolioView = () => {
   // Merge theme settings with portfolio data
   const enhancedData = {
     ...portfolioData,
-    theme: {
-      ...portfolioData.theme,
-      ...themeSettings,
-      fontStyle: themeSettings?.fontStyle || 'Poppins',
-      colorMode: themeSettings?.colorMode || 'default',
-      presetTheme: themeSettings?.presetTheme || 0
-    }
+    theme: themeSettings
   };
+
+  const TemplateComponent = templateComponents[template.predefinedTemplate];
 
   return (
     <div className="min-h-screen">
-      <TemplateComponent
-        template={template}
-        data={enhancedData}
-        fontStyle={themeSettings?.fontStyle || 'Poppins'}
-      />
+      <TemplateProvider mode="public">
+        <TemplateComponent
+          template={template}
+          data={enhancedData}
+          fontStyle={themeSettings?.fontStyle || 'Poppins'}
+          checkSectionData={checkSectionData}
+          sectionVisibility={sectionVisibility}
+        />
+      </TemplateProvider>
     </div>
   );
 };
