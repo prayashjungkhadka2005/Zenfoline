@@ -41,21 +41,23 @@ const LoadingScreen = ({
     <div className="fixed inset-0 bg-gray-50/95 backdrop-blur-sm flex items-center justify-center">
       <div className="text-center">
         <div className="flex justify-center items-center mb-8">
-          <style jsx>{`
-            .loader {
-              width: 40px;
-              aspect-ratio: 1;
-              border-radius: 50%;
-              background: #f97316; /* Orange-500 */
-              clip-path: polygon(0 0,100% 0,100% 100%,0 100%);
-              animation: l1 1.2s infinite cubic-bezier(0.3,1,0,1);
-              margin: 0 auto;
-            }
-            @keyframes l1 {
-              33% {border-radius: 0;background: #000042;clip-path: polygon(0 0,100% 0,100% 100%,0 100%)}
-              66% {border-radius: 0;background: #fb923c;clip-path: polygon(50% 0,50% 0,100% 100%,0 100%)}
-            }
-          `}</style>
+          <style>
+            {`
+              .loader {
+                width: 40px;
+                aspect-ratio: 1;
+                border-radius: 50%;
+                background: #f97316; /* Orange-500 */
+                clip-path: polygon(0 0,100% 0,100% 100%,0 100%);
+                animation: l1 1.2s infinite cubic-bezier(0.3,1,0,1);
+                margin: 0 auto;
+              }
+              @keyframes l1 {
+                33% {border-radius: 0;background: #000042;clip-path: polygon(0 0,100% 0,100% 100%,0 100%)}
+                66% {border-radius: 0;background: #fb923c;clip-path: polygon(50% 0,50% 0,100% 100%,0 100%)}
+              }
+            `}
+          </style>
           <div className="loader"></div>
         </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FiPlus, FiTrash2, FiFileText } from 'react-icons/fi';
 import useAuthStore from '../../../store/userAuthStore';
 import axios from 'axios';
+import Spinner from '../../../components/Spinner';
 
 // API base URL
 const API_BASE_URL = 'http://localhost:3000';
@@ -11,6 +12,7 @@ const ProjectsForm = ({ data, onUpdate }) => {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(true);
   const userId = useAuthStore((state) => state.userId);
   const isInitialMount = useRef(true);
 
@@ -31,7 +33,10 @@ const ProjectsForm = ({ data, onUpdate }) => {
     techTag: "inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800",
     techTagRemove: "ml-2 text-blue-600 hover:text-blue-800",
     errorText: "text-red-500 text-xs mt-1",
-    errorInput: "border-red-300 focus:ring-red-500 focus:border-red-500"
+    errorInput: "border-red-300 focus:ring-red-500 focus:border-red-500",
+    loadingPlaceholder: "h-10 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200",
+    loadingTextareaPlaceholder: "h-20 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200",
+    loadingImagePlaceholder: "w-40 h-40 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-gray-200 shadow-lg"
   };
 
   // Fetch projects data from the API on initial mount
@@ -40,6 +45,7 @@ const ProjectsForm = ({ data, onUpdate }) => {
       if (!userId || !isInitialMount.current) return;
       
       try {
+        setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/portfolio-save/projects/${userId}`);
         if (response.data && response.data.data) {
           // Transform the API data to match the form's expected format
@@ -77,6 +83,8 @@ const ProjectsForm = ({ data, onUpdate }) => {
       } catch (error) {
         console.error('Error fetching projects:', error);
         setError('Failed to load projects data');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -189,7 +197,7 @@ const ProjectsForm = ({ data, onUpdate }) => {
     const newErrors = {};
 
     if (!formData.length) {
-      setError('At least one project is required');
+      setError('Please add at least one project');
       isValid = false;
       return isValid;
     }
@@ -305,6 +313,80 @@ const ProjectsForm = ({ data, onUpdate }) => {
       }, 3000);
     }
   };
+
+  // Function to render a loading placeholder for a project card
+  const renderLoadingProjectCard = (key) => (
+    <div key={key} className={commonClasses.projectCard}>
+      <div className={commonClasses.grid}>
+        <div className="col-span-2">
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Project Image</label>
+            <div className={commonClasses.loadingImagePlaceholder}>
+              <Spinner size="sm" color="orange-500" />
+            </div>
+          </div>
+        </div>
+        <div className="col-span-2">
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Project Title</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div className="col-span-2">
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Description</label>
+            <div className={commonClasses.loadingTextareaPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div className="col-span-2">
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Technologies Used</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div>
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Project URL</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div>
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Source Code URL</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className={commonClasses.section}>
+        <div className={commonClasses.infoBox}>
+          <p className={commonClasses.infoText}>Add your notable projects here. Include details about technologies used and your role.</p>
+        </div>
+        <div className={commonClasses.projectSection}>
+          {/* Render one loading placeholder card */}
+          {renderLoadingProjectCard('loading-project-0')}
+        </div>
+        <button
+          type="button"
+          disabled
+          className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}
+        >
+          <FiPlus className="w-4 h-4" />
+          Add Another Project
+        </button>
+        <button
+          disabled
+          className={`w-full px-4 py-3 rounded-lg text-white font-medium bg-gray-400 cursor-not-allowed`}
+        >
+          Loading...
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={commonClasses.section}>

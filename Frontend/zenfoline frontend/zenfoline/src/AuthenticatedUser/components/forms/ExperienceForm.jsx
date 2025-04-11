@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import useAuthStore from '../../../store/userAuthStore';
 import axios from 'axios';
+import Spinner from '../../../components/Spinner';
 
 const ExperienceForm = ({ data, onUpdate }) => {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState([]);
   const userId = useAuthStore((state) => state.userId);
   const isInitialMount = useRef(true);
@@ -17,6 +19,7 @@ const ExperienceForm = ({ data, onUpdate }) => {
       if (!userId || !isInitialMount.current) return;
       
       try {
+        setLoading(true);
         const response = await axios.get(`http://localhost:3000/portfolio-save/experience/${userId}`);
         if (response.data && response.data.data) {
           // Format the dates to YYYY-MM-DD format for the date inputs
@@ -33,6 +36,8 @@ const ExperienceForm = ({ data, onUpdate }) => {
       } catch (error) {
         console.error('Error fetching experience info:', error);
         setError('Failed to load data');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -59,7 +64,9 @@ const ExperienceForm = ({ data, onUpdate }) => {
     errorText: "text-red-500 text-xs mt-1",
     errorInput: "border-red-300 focus:ring-red-500 focus:border-red-500",
     checkbox: "h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded",
-    checkboxLabel: "ml-2 block text-sm text-gray-600"
+    checkboxLabel: "ml-2 block text-sm text-gray-600",
+    loadingPlaceholder: "h-10 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200",
+    loadingTextareaPlaceholder: "h-20 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200"
   };
 
   const handleExperienceChange = (index, field, value) => {
@@ -162,7 +169,7 @@ const ExperienceForm = ({ data, onUpdate }) => {
     const newErrors = {};
 
     if (!formData.length) {
-      setError('Please fill all the fields');
+      setError('Please add at least one experience');
       isValid = false;
       return isValid;
     }
@@ -202,7 +209,7 @@ const ExperienceForm = ({ data, onUpdate }) => {
     });
 
     if (!isValid) {
-      setError('Please fill all the fields');
+      setError('Please fill all required fields');
     }
     setFieldErrors(newErrors);
     return isValid;
@@ -217,7 +224,6 @@ const ExperienceForm = ({ data, onUpdate }) => {
         setStatus('error');
         setTimeout(() => {
           setStatus(null);
-          setError('');
         }, 3000);
         return;
       }
@@ -266,6 +272,93 @@ const ExperienceForm = ({ data, onUpdate }) => {
       }, 2000);
     }
   };
+
+  // Function to render a loading placeholder for an experience card
+  const renderLoadingExperienceCard = (key) => (
+    <div key={key} className={commonClasses.experienceCard}>
+      <div className={commonClasses.grid}>
+        <div className="col-span-2">
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Job Title</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div>
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Company</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div>
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Location</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div>
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Start Date</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div>
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>End Date</label>
+            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+        <div className="col-span-2">
+          <div className="flex items-center mb-4">
+            <input type="checkbox" disabled className={`${commonClasses.checkbox} bg-gray-200`} />
+            <label className={`${commonClasses.checkboxLabel} text-gray-400`}>I currently work here</label>
+          </div>
+          <div className={commonClasses.inputGroup}>
+            <label className={commonClasses.label}>Description</label>
+            <div className={commonClasses.loadingTextareaPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+          </div>
+        </div>
+      </div>
+      <div className={commonClasses.achievementSection}>
+        <div className={commonClasses.achievementHeader}>
+          <label className={commonClasses.label}>Key Achievements</label>
+          <button disabled className={`${commonClasses.achievementAddButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
+            <FiPlus className="mr-1 h-4 w-4" />
+            Add Achievement
+          </button>
+        </div>
+        <div className="space-y-3">
+          <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className={commonClasses.section}>
+        <div className={commonClasses.infoBox}>
+          <p className={commonClasses.infoText}>Add your work experience, including current and previous positions.</p>
+        </div>
+        <div className={commonClasses.experienceSection}>
+          {renderLoadingExperienceCard('loading-exp-0')}
+        </div>
+        <button
+          type="button"
+          disabled
+          className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}
+        >
+          <FiPlus className="w-4 h-4" />
+          Add Experience
+        </button>
+        <button
+          disabled
+          className={`w-full px-4 py-3 rounded-lg text-white font-medium bg-gray-400 cursor-not-allowed`}
+        >
+          Loading...
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={commonClasses.section}>
@@ -465,7 +558,7 @@ const ExperienceForm = ({ data, onUpdate }) => {
           : status === 'success' 
             ? 'Saved Successfully!' 
             : status === 'error' 
-              ? error || 'Please fill all the fields' 
+              ? error || 'Please fill all required fields' 
               : 'Save Experience'}
       </button>
     </div>

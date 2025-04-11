@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { templateComponents } from '../RenderedTemplate/templateComponents';
 import { TemplateProvider } from '../Templates/TemplateContext';
 import axios from 'axios';
+import LoadingScreen from '../components/LoadingScreen';
 
 const PublicPortfolioView = () => {
   const { userId } = useParams();
@@ -107,11 +108,7 @@ const PublicPortfolioView = () => {
   }, [userId]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
-      </div>
-    );
+    return <LoadingScreen showMessages={false} />;
   }
 
   if (error) {

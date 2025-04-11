@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import useAuthStore from '../../../store/userAuthStore';
 import axios from 'axios';
+import Spinner from '../../../components/Spinner';
 
 const SkillsForm = ({ data, onUpdate }) => {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({ technical: {}, soft: {} });
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     technical: [],
     soft: []
@@ -20,6 +22,7 @@ const SkillsForm = ({ data, onUpdate }) => {
       if (!userId || !isInitialMount.current) return;
       
       try {
+        setLoading(true);
         const response = await axios.get(`http://localhost:3000/portfolio-save/skills/${userId}`);
         if (response.data && response.data.data) {
           // Transform the data to match our form structure
@@ -50,6 +53,8 @@ const SkillsForm = ({ data, onUpdate }) => {
       } catch (error) {
         console.error('Error fetching skills info:', error);
         setError('Failed to load data');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -73,7 +78,8 @@ const SkillsForm = ({ data, onUpdate }) => {
     removeButton: "mt-8 text-red-400 hover:text-red-600 transition-colors",
     addButton: "w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm font-medium",
     errorText: "text-red-500 text-xs mt-1",
-    errorInput: "border-red-300 focus:ring-red-500 focus:border-red-500"
+    errorInput: "border-red-300 focus:ring-red-500 focus:border-red-500",
+    loadingPlaceholder: "h-16 flex items-center justify-center bg-gray-50 rounded-lg border border-dashed border-gray-200"
   };
 
   const handleSkillChange = (type, index, field, value) => {
@@ -133,12 +139,12 @@ const SkillsForm = ({ data, onUpdate }) => {
 
     // Check if both sections have at least one skill
     if (!formData.technical?.length) {
-      setError('Please fill all the fields');
+      setError('Please add at least one technical skill');
       isValid = false;
     }
     
     if (!formData.soft?.length) {
-      setError('Please fill all the fields');
+      setError('Please add at least one soft skill');
       isValid = false;
     }
 
@@ -147,7 +153,7 @@ const SkillsForm = ({ data, onUpdate }) => {
       if (!skill.name?.trim()) {
         newFieldErrors.technical[index] = true;
         isValid = false;
-        setError('Please fill all the fields');
+        setError('Please fill in all skill names');
       }
     });
 
@@ -156,7 +162,7 @@ const SkillsForm = ({ data, onUpdate }) => {
       if (!skill.name?.trim()) {
         newFieldErrors.soft[index] = true;
         isValid = false;
-        setError('Please fill all the fields');
+        setError('Please fill in all skill names');
       }
     });
 
@@ -173,7 +179,7 @@ const SkillsForm = ({ data, onUpdate }) => {
         setStatus('error');
         setTimeout(() => {
           setStatus(null);
-          setError('');
+          // Don't clear the specific error message here
         }, 3000);
         return;
       }
@@ -281,6 +287,42 @@ const SkillsForm = ({ data, onUpdate }) => {
     </div>
   );
 
+  const renderLoadingSection = (title) => (
+    <div className={commonClasses.skillSection}>
+      <h3 className={commonClasses.sectionTitle}>{title}</h3>
+      <div className={commonClasses.skillContainer}>
+        <div className={commonClasses.loadingPlaceholder}>
+          <Spinner size="sm" color="orange-500" />
+        </div>
+        <button
+          disabled
+          className={`${commonClasses.addButton} bg-gray-100 cursor-not-allowed text-gray-400`}
+        >
+          <FiPlus className="w-4 h-4" />
+          Loading...
+        </button>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className={commonClasses.section}>
+        <div className={commonClasses.infoBox}>
+          <p className={commonClasses.infoText}>List your technical and soft skills with proficiency levels.</p>
+        </div>
+        {renderLoadingSection('Technical Skills')}
+        {renderLoadingSection('Soft Skills')}
+        <button
+          disabled
+          className={`w-full px-4 py-3 rounded-lg text-white font-medium bg-gray-400 cursor-not-allowed`}
+        >
+          Loading...
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className={commonClasses.section}>
       <div className={commonClasses.infoBox}>
@@ -308,7 +350,7 @@ const SkillsForm = ({ data, onUpdate }) => {
           : status === 'success' 
             ? 'Saved Successfully!' 
             : status === 'error' 
-              ? error || 'Please fill all the fields' 
+              ? error || 'Error occurred' 
               : 'Save Skills'}
       </button>
     </div>
