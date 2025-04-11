@@ -38,10 +38,10 @@ const Sidebar = () => {
             </nav>
             
             <div className="mt-auto p-4 border-t border-gray-100">
-                <div className="flex items-center gap-3 py-2 px-3 text-sm text-gray-500 rounded-md hover:bg-gray-50 cursor-pointer transition-colors">
-                    <i className="fas fa-sign-out-alt text-base w-5 text-center"></i>
-                    Logout
-                </div>
+                <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2">
+                    <i className="fas fa-crown text-xs"></i>
+                    Upgrade Plan
+                </button>
             </div>
         </div>
     );
