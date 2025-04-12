@@ -59,6 +59,13 @@ const EditorLayout = ({ sidebar, form, preview, previewMode }) => {
     };
   }, [isResizingSidebar, isResizingPreview, previewMode]);
 
+  // Add useEffect to reset previewWidth when switching back to desktop mode
+  useEffect(() => {
+    if (previewMode === 'desktop') {
+      setPreviewWidth(45); // Reset to default percentage
+    }
+  }, [previewMode]);
+
   return (
     <div className="flex h-screen bg-gray-50 editor-container overflow-hidden">
       {/* Left Sidebar - Always visible */}

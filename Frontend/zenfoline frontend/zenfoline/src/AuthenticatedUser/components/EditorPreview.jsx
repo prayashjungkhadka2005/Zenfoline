@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TemplateProvider } from '../../Templates/TemplateContext';
 import axios from 'axios';
-import { FiMonitor, FiSmartphone, FiShare2 } from 'react-icons/fi';
+import { FiMonitor, FiSmartphone, FiTablet, FiShare2 } from 'react-icons/fi';
 
 const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, formData, fontStyle, userId, showNotification, sectionVisibility, previewMode, setPreviewMode }) => {
   const [loadingState, setLoadingState] = useState({
@@ -245,6 +245,17 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
               <FiMonitor className="w-4 h-4" />
             </button>
             <button
+              onClick={() => setPreviewMode('tablet')}
+              title="Tablet Preview"
+              className={`p-1.5 rounded ${
+                previewMode === 'tablet'
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+              } transition-colors`}
+            >
+              <FiTablet className="w-4 h-4" />
+            </button>
+            <button
               onClick={() => setPreviewMode('mobile')}
               title="Mobile Preview"
               className={`p-1.5 rounded ${
@@ -256,6 +267,7 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
               <FiSmartphone className="w-4 h-4" />
             </button>
           </div>
+          {/* Show scale slider only for desktop */}
           {previewMode === 'desktop' && (
             <div className="flex items-center space-x-1">
               <label className={`text-sm text-gray-600 hidden md:block`}>Scale:</label>
@@ -291,7 +303,10 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
         <div
           className={`
             transition-all duration-300 ease-in-out shadow-lg border border-gray-300 bg-white relative
-            ${previewMode === 'mobile' ? 'w-[375px] h-full' : 'w-full'}
+            ${previewMode === 'mobile' ? 'w-[375px] h-full' : 
+              previewMode === 'tablet' ? 'w-[768px] h-full' : 
+              'w-full'
+            }
           `}
           style={{
             transform: `scale(${scale})`,
@@ -306,7 +321,7 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
               </div>
             </div>
           )}
-          <div className={`w-full h-full overflow-hidden ${previewMode === 'mobile' ? 'overflow-y-auto' : ''}`}>
+          <div className={`w-full h-full overflow-hidden ${previewMode === 'mobile' || previewMode === 'tablet' ? 'overflow-y-auto' : ''}`}>
             {!loadingState.data && TemplateComponent && (
               <TemplateProvider mode="preview">
                 <TemplateComponent 
