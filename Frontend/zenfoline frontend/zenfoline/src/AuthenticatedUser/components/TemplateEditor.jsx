@@ -89,6 +89,7 @@ const TemplateEditor = () => {
   const [activeTemplate, setActiveTemplate] = useState(null);
   const [sectionVisibility, setSectionVisibility] = useState({});
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
+  const [previewMode, setPreviewMode] = useState('desktop');
 
   // Effect to scroll to section based on hash (after loading)
   useEffect(() => {
@@ -396,6 +397,7 @@ const TemplateEditor = () => {
 
   return (
     <EditorLayout
+      previewMode={previewMode}
       sidebar={
         <EditorSidebar
           key={sidebarRefreshKey}
@@ -416,6 +418,8 @@ const TemplateEditor = () => {
         <EditorPreview
           scale={scale}
           setScale={setScale}
+          previewMode={previewMode}
+          setPreviewMode={setPreviewMode}
           TemplateComponent={TemplateComponent}
           activeTemplate={activeTemplate}
           formData={formData}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const EditorLayout = ({ sidebar, form, preview }) => {
+const EditorLayout = ({ sidebar, form, preview, previewMode }) => {
   // State to track the widths of the sections
   const [sidebarWidth, setSidebarWidth] = useState(256); // 16rem = 256px
   const [previewWidth, setPreviewWidth] = useState(45); // 45% of the container width
@@ -34,7 +34,7 @@ const EditorLayout = ({ sidebar, form, preview }) => {
         }
       }
       
-      if (isResizingPreview) {
+      if (isResizingPreview && previewMode === 'desktop') { // Only allow preview resize in desktop mode
         const containerWidth = document.querySelector('.editor-container').clientWidth;
         const newWidth = ((containerWidth - e.clientX) / containerWidth) * 100;
         if (newWidth >= 30 && newWidth <= 70) {
@@ -57,41 +57,47 @@ const EditorLayout = ({ sidebar, form, preview }) => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizingSidebar, isResizingPreview]);
-  
+  }, [isResizingSidebar, isResizingPreview, previewMode]);
+
   return (
-    <div className="flex h-screen bg-gray-50 editor-container">
-      {/* Left Sidebar - Navigation */}
+    <div className="flex h-screen bg-gray-50 editor-container overflow-hidden">
+      {/* Left Sidebar - Always visible */}
       <div 
         className="bg-white border-r border-gray-200 overflow-hidden"
-        style={{ width: `${sidebarWidth}px` }}
+        style={{ 
+          width: `${sidebarWidth}px`,
+          transition: isResizingSidebar ? 'none' : 'width 150ms ease-out'
+        }}
       >
         {sidebar}
       </div>
       
-      {/* Sidebar resize handle */}
+      {/* Sidebar resize handle - Always visible */}
       <div
         ref={sidebarResizeHandleRef}
         className="w-1 cursor-col-resize bg-gray-200 hover:bg-blue-500 transition-colors"
         onMouseDown={handleMouseDownSidebar}
       />
       
-      {/* Middle Section - Form */}
+      {/* Middle Section - Form - Always visible */}
       <div className="flex-1 overflow-hidden flex flex-col">
         {form}
       </div>
       
-      {/* Preview resize handle */}
+      {/* Preview resize handle - Disable interaction in mobile mode? Or keep? Keep for now */}
       <div
         ref={previewResizeHandleRef}
         className="w-1 cursor-col-resize bg-gray-200 hover:bg-blue-500 transition-colors"
-        onMouseDown={handleMouseDownPreview}
+        onMouseDown={previewMode === 'desktop' ? handleMouseDownPreview : undefined} 
       />
       
-      {/* Right Section - Live Preview */}
+      {/* Right Section - Live Preview - Adjust width based on previewMode */}
       <div 
         className="bg-[#f8fafc] border-l border-gray-200 flex flex-col overflow-hidden"
-        style={{ width: `${previewWidth}%` }}
+        style={{ 
+          width: previewMode === 'desktop' ? `${previewWidth}%` : '400px',
+          transition: isResizingPreview ? 'none' : 'width 150ms ease-out'
+        }}
       >
         {preview}
       </div>

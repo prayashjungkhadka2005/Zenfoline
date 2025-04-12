@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { TemplateProvider } from '../../Templates/TemplateContext';
 import axios from 'axios';
+import { FiMonitor, FiSmartphone, FiShare2 } from 'react-icons/fi';
 
-const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, formData, fontStyle, userId, showNotification, sectionVisibility }) => {
+const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, formData, fontStyle, userId, showNotification, sectionVisibility, previewMode, setPreviewMode }) => {
   const [loadingState, setLoadingState] = useState({
     data: true
   });
@@ -172,7 +173,8 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
   useEffect(() => {
     if (sectionVisibility && Object.keys(sectionVisibility).length > 0) {
       const enabledSections = Object.entries(sectionVisibility)
-        .filter(([key, isEnabled]) => isEnabled)
+        .filter(([key, value]) => value.isEnabled)
+        .sort(([, a], [, b]) => a.order - b.order)
         .map(([key]) => key);
       setAvailableSections(enabledSections);
       console.log('Available sections from prop:', enabledSections); 
@@ -180,7 +182,7 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
       // Fallback or default if visibility prop is empty/undefined
       // You might want a more robust fallback based on activeTemplate
       const templateSections = activeTemplate?.sections || []; 
-      setAvailableSections(templateSections.filter(section => section.enabled !== false));
+      setAvailableSections(templateSections.filter(section => section.enabled !== false).map(s => s.id));
       console.log('Available sections (fallback):', availableSections);
     }
     // Set data loading state to false once sections are determined
@@ -225,67 +227,99 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
 
   return (
     <>
-      <div className="h-16 px-6 border-b bg-white flex items-center justify-between flex-shrink-0">
-        <h2 className="text-lg font-bold text-gray-800">Preview</h2>
-        <div className="flex items-center space-x-4">
+      <div className="h-16 px-4 sm:px-6 border-b bg-white flex items-center justify-between flex-shrink-0">
+        <h2 className={`text-lg font-semibold text-gray-800 hidden sm:block`}>
+          Preview
+        </h2>
+        <div className={`flex items-center ${previewMode === 'mobile' ? 'space-x-2' : 'space-x-3 sm:space-x-4'}`}>
+          <div className="flex items-center space-x-1 border border-gray-200 rounded-md p-0.5">
+            <button
+              onClick={() => setPreviewMode('desktop')}
+              title="Desktop Preview"
+              className={`p-1.5 rounded ${
+                previewMode === 'desktop'
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+              } transition-colors`}
+            >
+              <FiMonitor className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPreviewMode('mobile')}
+              title="Mobile Preview"
+              className={`p-1.5 rounded ${
+                previewMode === 'mobile'
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+              } transition-colors`}
+            >
+              <FiSmartphone className="w-4 h-4" />
+            </button>
+          </div>
+          {previewMode === 'desktop' && (
+            <div className="flex items-center space-x-1">
+              <label className={`text-sm text-gray-600 hidden md:block`}>Scale:</label>
+              <input
+                type="range"
+                min="0.3"
+                max="1"
+                step="0.05"
+                value={scale}
+                onChange={(e) => setScale(parseFloat(e.target.value))}
+                className={`h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500 w-16 md:w-24`}
+              />
+              <span className={`text-xs text-gray-500 w-8 text-right`}>
+                {(scale * 100).toFixed(0)}%
+              </span>
+            </div>
+          )}
           <button
             onClick={() => {
               const portfolioUrl = `${window.location.origin}/portfolio/${userId}`;
               navigator.clipboard.writeText(portfolioUrl);
               showNotification('Portfolio URL copied to clipboard!');
             }}
-            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            title="Copy Portfolio Link"
+            className="px-2 py-1.5 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors flex items-center space-x-1.5"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
-            </svg>
-            <span>Share</span>
+            <FiShare2 className="w-4 h-4" />
+            <span className={`${previewMode === 'mobile' ? 'hidden' : 'hidden lg:inline'}`}>Share</span>
           </button>
-          <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-600">Scale:</label>
-            <input
-              type="range"
-              min="0.5"
-              max="1"
-              step="0.1"
-              value={scale}
-              onChange={(e) => setScale(parseFloat(e.target.value))}
-              className="w-20 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-            />
-          </div>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto bg-[#f8fafc]">
-        <div 
-          className="min-h-full relative"
+      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-100 to-blue-50 flex justify-center items-start">
+        <div
+          className={`
+            transition-all duration-300 ease-in-out shadow-lg border border-gray-300 bg-white relative
+            ${previewMode === 'mobile' ? 'w-[375px] h-full' : 'w-full'}
+          `}
           style={{
             transform: `scale(${scale})`,
             transformOrigin: 'top center',
-            height: `${100/scale}%`,
-            width: '100%'
           }}
         >
           {loadingState.data && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-50">
+            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading data...</p>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500 mx-auto"></div>
+                <p className="mt-3 text-gray-600 text-sm">Loading preview...</p>
               </div>
             </div>
           )}
-
-          {TemplateComponent && (
-            <TemplateProvider mode="preview">
-              <TemplateComponent 
-                template={activeTemplate} 
-                data={processedFormData}
-                fontStyle={fontStyle}
-                availableSections={availableSections}
-                checkSectionData={hasSectionData}
-                sectionVisibility={sectionVisibility}
-              />
-            </TemplateProvider>
-          )}
+          <div className={`w-full h-full overflow-hidden ${previewMode === 'mobile' ? 'overflow-y-auto' : ''}`}>
+            {!loadingState.data && TemplateComponent && (
+              <TemplateProvider mode="preview">
+                <TemplateComponent 
+                  template={activeTemplate} 
+                  data={processedFormData}
+                  fontStyle={fontStyle}
+                  availableSections={availableSections}
+                  checkSectionData={hasSectionData}
+                  sectionVisibility={sectionVisibility}
+                />
+              </TemplateProvider>
+            )}
+          </div>
         </div>
       </div>
     </>

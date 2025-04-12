@@ -11,7 +11,7 @@ const EditorForm = ({ activeSection, sections, renderFormSection }) => {
         </h2>
       </div>
       <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           {renderFormSection()}
         </div>
       </div>
