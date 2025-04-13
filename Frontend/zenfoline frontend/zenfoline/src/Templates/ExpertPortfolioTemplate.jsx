@@ -245,10 +245,10 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                   <h1 className="text-5xl md:text-7xl font-bold mb-6">
                     {data?.basics?.name || 'Full Stack'}
                     <br />
-                    <span className="text-orange-500 break-words">{data?.basics?.title || 'Developer'}</span>
+                    <span className="text-orange-500 break-words">{data?.basics?.role || 'Developer'}</span>
                   </h1>
                   <p className="text-xl text-gray-300 mb-8">
-                    {data?.basics?.summary || 'Crafting exceptional digital experiences with cutting-edge technology'}
+                    {data?.basics?.bio || 'Crafting exceptional digital experiences with cutting-edge technology'}
                   </p>
                   <div className="flex gap-4 justify-center md:justify-start">
                     {shouldRenderSection('projects') && data?.projects?.length > 0 && (
@@ -291,6 +291,15 @@ const ExpertPortfolioTemplate = ({ fontStyle = 'Poppins', template, data, availa
                 <h2 className="text-4xl font-bold text-center mb-12">About Me</h2>
                 <div className="max-w-3xl mx-auto">
                   <p className="text-lg text-gray-300 mb-8">{data.about.description}</p>
+                  
+                  {/* Add Vision Statement Display */}
+                  {data.about.vision && (
+                    <div className="mb-8 border-l-4 border-orange-500 pl-4 italic">
+                      <h4 className="text-xl font-semibold mb-2 text-orange-500">My Vision</h4>
+                      <p className="text-lg text-gray-300">{data.about.vision}</p>
+                    </div>
+                  )}
+
                   {data.about.highlights?.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {data.about.highlights.map((highlight, index) => (
