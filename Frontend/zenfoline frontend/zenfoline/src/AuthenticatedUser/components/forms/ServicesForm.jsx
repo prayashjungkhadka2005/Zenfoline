@@ -236,47 +236,15 @@ const ServicesForm = ({ data, onUpdate }) => {
     onUpdate(updatedServices);
   };
 
-  // Skeleton loader function
-  const renderLoadingServiceCard = (key) => (
-    <div key={key} className={commonClasses.card}>
-      <div className={commonClasses.grid}>
-        <div>
-          <label className={commonClasses.label}>Title*</label>
-          <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-        </div>
-        <div>
-          <label className={commonClasses.label}>Price</label>
-          <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-        </div>
-      </div>
-      <div className="mt-4">
-        <label className={commonClasses.label}>Description*</label>
-        <div className={commonClasses.loadingTextareaPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-      </div>
-      <div className="mt-4">
-        <label className={commonClasses.label}>Image URL</label>
-        <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-      </div>
-      <div className={commonClasses.featureSection}>
-        <label className={commonClasses.label}>Features</label>
-        <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className={commonClasses.section}>
         <div className={commonClasses.infoBox}>
           <p className={commonClasses.infoText}>Add your professional services and offerings with detailed descriptions and pricing.</p>
         </div>
-        <div className="space-y-4">
-          {renderLoadingServiceCard('loading-service-0')}
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
         </div>
-        <button type="button" disabled className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
-          <FiPlus className="w-4 h-4" /> Add Service
-        </button>
-        <button disabled className={`${commonClasses.button} ${commonClasses.buttonDisabled}`}>Loading...</button>
       </div>
     );
   }

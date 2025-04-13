@@ -314,76 +314,15 @@ const ProjectsForm = ({ data, onUpdate }) => {
     }
   };
 
-  // Function to render a loading placeholder for a project card
-  const renderLoadingProjectCard = (key) => (
-    <div key={key} className={commonClasses.projectCard}>
-      <div className={commonClasses.grid}>
-        <div className="col-span-2">
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Project Image</label>
-            <div className={commonClasses.loadingImagePlaceholder}>
-              <Spinner size="sm" color="orange-500" />
-            </div>
-          </div>
-        </div>
-        <div className="col-span-2">
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Project Title</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div className="col-span-2">
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Description</label>
-            <div className={commonClasses.loadingTextareaPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div className="col-span-2">
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Technologies Used</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div>
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Project URL</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div>
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Source Code URL</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className={commonClasses.section}>
         <div className={commonClasses.infoBox}>
           <p className={commonClasses.infoText}>Add your notable projects here. Include details about technologies used and your role.</p>
         </div>
-        <div className={commonClasses.projectSection}>
-          {/* Render one loading placeholder card */}
-          {renderLoadingProjectCard('loading-project-0')}
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
         </div>
-        <button
-          type="button"
-          disabled
-          className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}
-        >
-          <FiPlus className="w-4 h-4" />
-          Add Another Project
-        </button>
-        <button
-          disabled
-          className={`w-full px-4 py-3 rounded-lg text-white font-medium bg-gray-400 cursor-not-allowed`}
-        >
-          Loading...
-        </button>
       </div>
     );
   }

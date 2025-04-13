@@ -278,13 +278,9 @@ const CertificationsForm = ({ data, onUpdate }) => {
         <div className={commonClasses.infoBox}>
           <p className={commonClasses.infoText}>Add your certifications to showcase your professional qualifications and achievements.</p>
         </div>
-        <div className="space-y-4">
-          {renderLoadingCertificationCard('loading-cert-0')}
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
         </div>
-        <button type="button" disabled className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
-          <FiPlus className="w-4 h-4" /> Add Certification
-        </button>
-        <button disabled className={`${commonClasses.button} ${commonClasses.buttonDisabled}`}>Loading...</button>
       </div>
     );
   }

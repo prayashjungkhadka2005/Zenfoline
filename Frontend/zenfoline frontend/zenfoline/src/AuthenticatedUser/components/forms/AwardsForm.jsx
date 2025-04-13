@@ -245,13 +245,9 @@ const AwardsForm = ({ data, onUpdate }) => {
         <div className={commonClasses.infoBox}>
           <p className={commonClasses.infoText}>Add your awards and achievements to showcase your recognition and accomplishments.</p>
         </div>
-        <div className="space-y-4">
-          {renderLoadingAwardCard('loading-award-0')}
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
         </div>
-        <button type="button" disabled className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
-          <FiPlus className="w-4 h-4" /> Add Award
-        </button>
-        <button disabled className={`${commonClasses.button} ${commonClasses.buttonDisabled}`}>Loading...</button>
       </div>
     );
   }

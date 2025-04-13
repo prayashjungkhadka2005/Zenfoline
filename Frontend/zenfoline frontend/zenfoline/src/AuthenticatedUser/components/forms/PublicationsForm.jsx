@@ -217,43 +217,70 @@ const PublicationsForm = ({ data, onUpdate }) => {
 
   const renderLoadingPublicationCard = (key) => (
     <div key={key} className={commonClasses.card}>
-      <div className={commonClasses.grid}>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-800">Publication Details</h3>
+          <div className={commonClasses.iconButtonDanger}>
+            <FiTrash2 />
+          </div>
+        </div>
+        
+        <div className={commonClasses.grid}>
+          <div>
+            <label className={commonClasses.label}>Title*</label>
+            <div className={commonClasses.loadingPlaceholder}>
+              <Spinner size="sm" color="orange-500" />
+            </div>
+          </div>
+          <div>
+            <label className={commonClasses.label}>Publisher*</label>
+            <div className={commonClasses.loadingPlaceholder}>
+              <Spinner size="sm" color="orange-500" />
+            </div>
+          </div>
+        </div>
+
         <div>
-          <label className={commonClasses.label}>Title*</label>
-          <div className={commonClasses.loadingPlaceholder}>
+          <label className={commonClasses.label}>Publication Date*</label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiCalendar className="text-gray-400" />
+            </div>
+            <div className={commonClasses.loadingPlaceholder}>
+              <Spinner size="sm" color="orange-500" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className={commonClasses.label}>Description</label>
+          <div className={commonClasses.loadingTextareaPlaceholder}>
             <Spinner size="sm" color="orange-500" />
           </div>
         </div>
-        <div>
-          <label className={commonClasses.label}>Publisher*</label>
-          <div className={commonClasses.loadingPlaceholder}>
-            <Spinner size="sm" color="orange-500" />
+
+        <div className={commonClasses.grid}>
+          <div>
+            <label className={commonClasses.label}>URL</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FiLink className="text-gray-400" />
+              </div>
+              <div className={commonClasses.loadingPlaceholder}>
+                <Spinner size="sm" color="orange-500" />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div className="mt-4">
-        <label className={commonClasses.label}>Publication Date*</label>
-        <div className={commonClasses.loadingPlaceholder}>
-          <Spinner size="sm" color="orange-500" />
-        </div>
-      </div>
-      <div className="mt-4">
-        <label className={commonClasses.label}>Description</label>
-        <div className={commonClasses.loadingTextareaPlaceholder}>
-          <Spinner size="sm" color="orange-500" />
-        </div>
-      </div>
-      <div className={`${commonClasses.grid} mt-4`}>
-        <div>
-          <label className={commonClasses.label}>URL</label>
-          <div className={commonClasses.loadingPlaceholder}>
-            <Spinner size="sm" color="orange-500" />
-          </div>
-        </div>
-        <div>
-          <label className={commonClasses.label}>Image URL</label>
-          <div className={commonClasses.loadingPlaceholder}>
-            <Spinner size="sm" color="orange-500" />
+          <div>
+            <label className={commonClasses.label}>Image URL</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FiImage className="text-gray-400" />
+              </div>
+              <div className={commonClasses.loadingPlaceholder}>
+                <Spinner size="sm" color="orange-500" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -266,14 +293,9 @@ const PublicationsForm = ({ data, onUpdate }) => {
         <div className={commonClasses.infoBox}>
           <p className={commonClasses.infoText}>Add your publications to showcase your research, articles, or books.</p>
         </div>
-        <div className="space-y-4">
-          {renderLoadingPublicationCard('loading-pub-0')}
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
         </div>
-        <button type="button" disabled className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
-          <FiPlus className="w-4 h-4" />
-          Add Publication
-        </button>
-        <button disabled className={`${commonClasses.button} ${commonClasses.buttonDisabled}`}>Loading...</button>
       </div>
     );
   }

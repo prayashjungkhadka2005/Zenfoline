@@ -311,14 +311,9 @@ const SkillsForm = ({ data, onUpdate }) => {
         <div className={commonClasses.infoBox}>
           <p className={commonClasses.infoText}>List your technical and soft skills with proficiency levels.</p>
         </div>
-        {renderLoadingSection('Technical Skills')}
-        {renderLoadingSection('Soft Skills')}
-        <button
-          disabled
-          className={`w-full px-4 py-3 rounded-lg text-white font-medium bg-gray-400 cursor-not-allowed`}
-        >
-          Loading...
-        </button>
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
+        </div>
       </div>
     );
   }

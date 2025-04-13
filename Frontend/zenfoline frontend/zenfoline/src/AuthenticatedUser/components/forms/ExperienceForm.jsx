@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiBriefcase } from 'react-icons/fi';
 import useAuthStore from '../../../store/userAuthStore';
 import axios from 'axios';
 import Spinner from '../../../components/Spinner';
@@ -283,89 +283,15 @@ const ExperienceForm = ({ data, onUpdate }) => {
     }
   };
 
-  // Function to render a loading placeholder for an experience card
-  const renderLoadingExperienceCard = (key) => (
-    <div key={key} className={commonClasses.experienceCard}>
-      <div className={commonClasses.grid}>
-        <div className="col-span-2">
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Job Title</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div>
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Company</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div>
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Location</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div>
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Start Date</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div>
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>End Date</label>
-            <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-        <div className="col-span-2">
-          <div className="flex items-center mb-4">
-            <input type="checkbox" disabled className={`${commonClasses.checkbox} bg-gray-200`} />
-            <label className={`${commonClasses.checkboxLabel} text-gray-400`}>I currently work here</label>
-          </div>
-          <div className={commonClasses.inputGroup}>
-            <label className={commonClasses.label}>Description</label>
-            <div className={commonClasses.loadingTextareaPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-          </div>
-        </div>
-      </div>
-      <div className={commonClasses.achievementSection}>
-        <div className={commonClasses.achievementHeader}>
-          <label className={commonClasses.label}>Key Achievements</label>
-          <button disabled className={`${commonClasses.achievementAddButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
-            <FiPlus className="mr-1 h-4 w-4" />
-            Add Achievement
-          </button>
-        </div>
-        <div className="space-y-3">
-          <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
-        </div>
-      </div>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className={commonClasses.section}>
         <div className={commonClasses.infoBox}>
           <p className={commonClasses.infoText}>Add your work experience, including current and previous positions.</p>
         </div>
-        <div className={commonClasses.experienceSection}>
-          {renderLoadingExperienceCard('loading-exp-0')}
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
         </div>
-        <button
-          type="button"
-          disabled
-          className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}
-        >
-          <FiPlus className="w-4 h-4" />
-          Add Experience
-        </button>
-        <button
-          disabled
-          className={`w-full px-4 py-3 rounded-lg text-white font-medium bg-gray-400 cursor-not-allowed`}
-        >
-          Loading...
-        </button>
       </div>
     );
   }
@@ -376,179 +302,196 @@ const ExperienceForm = ({ data, onUpdate }) => {
         <p className={commonClasses.infoText}>Add your work experience, including current and previous positions.</p>
       </div>
 
-      <div className={commonClasses.experienceSection}>
-        {formData.map((experience, index) => (
-          <div key={index} className={commonClasses.experienceCard}>
-            <button
-              type="button"
-              onClick={() => removeExperience(index)}
-              className={commonClasses.removeButton}
-            >
-              <FiTrash2 className="h-5 w-5" />
-            </button>
-
-            <div className={commonClasses.grid}>
-              <div className="col-span-2">
-                <div className={commonClasses.inputGroup}>
-                  <label className={commonClasses.label}>Job Title</label>
-                  <input
-                    type="text"
-                    value={experience.title || ''}
-                    onChange={(e) => handleExperienceChange(index, 'title', e.target.value)}
-                    className={`${commonClasses.input} ${fieldErrors[`${index}-title`] ? commonClasses.errorInput : ''}`}
-                    placeholder="e.g., Senior Software Engineer"
-                  />
-                  {fieldErrors[`${index}-title`] && (
-                    <p className={commonClasses.errorText}>Job title is required</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div className={commonClasses.inputGroup}>
-                  <label className={commonClasses.label}>Company</label>
-                  <input
-                    type="text"
-                    value={experience.company || ''}
-                    onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
-                    className={`${commonClasses.input} ${fieldErrors[`${index}-company`] ? commonClasses.errorInput : ''}`}
-                    placeholder="Company name"
-                  />
-                  {fieldErrors[`${index}-company`] && (
-                    <p className={commonClasses.errorText}>Company name is required</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div className={commonClasses.inputGroup}>
-                  <label className={commonClasses.label}>Location</label>
-                  <input
-                    type="text"
-                    value={experience.location || ''}
-                    onChange={(e) => handleExperienceChange(index, 'location', e.target.value)}
-                    className={`${commonClasses.input} ${fieldErrors[`${index}-location`] ? commonClasses.errorInput : ''}`}
-                    placeholder="City, Country"
-                  />
-                  {fieldErrors[`${index}-location`] && (
-                    <p className={commonClasses.errorText}>Location is required</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div className={commonClasses.inputGroup}>
-                  <label className={commonClasses.label}>Start Date</label>
-                  <input
-                    type="date"
-                    value={experience.startDate || ''}
-                    onChange={(e) => handleExperienceChange(index, 'startDate', e.target.value)}
-                    className={`${commonClasses.input} ${fieldErrors[`${index}-startDate`] ? commonClasses.errorInput : ''}`}
-                  />
-                  {fieldErrors[`${index}-startDate`] && (
-                    <p className={commonClasses.errorText}>Start date is required</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div className={commonClasses.inputGroup}>
-                  <label className={commonClasses.label}>End Date</label>
-                  <input
-                    type="date"
-                    value={experience.endDate || ''}
-                    onChange={(e) => handleExperienceChange(index, 'endDate', e.target.value)}
-                    disabled={experience.isCurrentPosition}
-                    className={`${commonClasses.input} ${fieldErrors[`${index}-endDate`] ? commonClasses.errorInput : ''}`}
-                  />
-                  {fieldErrors[`${index}-endDate`] && !experience.isCurrentPosition && (
-                    <p className={commonClasses.errorText}>End date is required</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="col-span-2">
-                <div className="flex items-center mb-4">
-                  <input
-                    type="checkbox"
-                    checked={experience.isCurrentPosition || false}
-                    onChange={(e) => handleExperienceChange(index, 'isCurrentPosition', e.target.checked)}
-                    className={commonClasses.checkbox}
-                  />
-                  <label className={commonClasses.checkboxLabel}>
-                    I currently work here
-                  </label>
-                </div>
-
-                <div className={commonClasses.inputGroup}>
-                  <label className={commonClasses.label}>Description</label>
-                  <textarea
-                    value={experience.description || ''}
-                    onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
-                    rows={3}
-                    className={`${commonClasses.input} ${fieldErrors[`${index}-description`] ? commonClasses.errorInput : ''}`}
-                    placeholder="Describe your responsibilities and achievements..."
-                  />
-                  {fieldErrors[`${index}-description`] && (
-                    <p className={commonClasses.errorText}>Description is required</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className={commonClasses.achievementSection}>
-              <div className={commonClasses.achievementHeader}>
-                <label className={commonClasses.label}>Key Achievements</label>
-                <button
-                  type="button"
-                  onClick={() => addAchievement(index)}
-                  className={commonClasses.achievementAddButton}
-                >
-                  <FiPlus className="mr-1 h-4 w-4" />
-                  Add Achievement
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {(experience.achievements || []).map((achievement, achievementIndex) => (
-                  <div key={achievementIndex} className="flex items-start space-x-3">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        value={achievement}
-                        onChange={(e) => handleAchievementChange(index, achievementIndex, e.target.value)}
-                        className={`${commonClasses.input} ${
-                          fieldErrors[`${index}-achievement-${achievementIndex}`] ? commonClasses.errorInput : ''
-                        }`}
-                        placeholder="Enter achievement..."
-                      />
-                      {fieldErrors[`${index}-achievement-${achievementIndex}`] && (
-                        <p className={commonClasses.errorText}>Achievement cannot be empty</p>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeAchievement(index, achievementIndex)}
-                      className={commonClasses.removeButton}
-                    >
-                      <FiTrash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {formData.length === 0 ? (
+        <div className="text-center py-6">
+          <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <FiBriefcase className="w-8 h-8 text-gray-400" />
           </div>
-        ))}
+          <h3 className="text-lg font-medium text-gray-700 mb-2">No Experience Added</h3>
+          <p className="text-gray-500 mb-4">Add your work experience to showcase your professional background</p>
+          <button
+            onClick={addExperience}
+            className={`${commonClasses.addButton} max-w-xs mx-auto`}
+          >
+            <FiPlus className="w-4 h-4" />
+            Add Experience
+          </button>
+        </div>
+      ) : (
+        <div className={commonClasses.experienceSection}>
+          {formData.map((experience, index) => (
+            <div key={index} className={commonClasses.experienceCard}>
+              <button
+                type="button"
+                onClick={() => removeExperience(index)}
+                className={commonClasses.removeButton}
+              >
+                <FiTrash2 className="h-5 w-5" />
+              </button>
 
-        <button
-          type="button"
-          onClick={addExperience}
-          className={commonClasses.addButton}
-        >
-          <FiPlus className="w-4 h-4" />
-          Add Experience
-        </button>
-      </div>
+              <div className={commonClasses.grid}>
+                <div className="col-span-2">
+                  <div className={commonClasses.inputGroup}>
+                    <label className={commonClasses.label}>Job Title</label>
+                    <input
+                      type="text"
+                      value={experience.title || ''}
+                      onChange={(e) => handleExperienceChange(index, 'title', e.target.value)}
+                      className={`${commonClasses.input} ${fieldErrors[`${index}-title`] ? commonClasses.errorInput : ''}`}
+                      placeholder="e.g., Senior Software Engineer"
+                    />
+                    {fieldErrors[`${index}-title`] && (
+                      <p className={commonClasses.errorText}>Job title is required</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className={commonClasses.inputGroup}>
+                    <label className={commonClasses.label}>Company</label>
+                    <input
+                      type="text"
+                      value={experience.company || ''}
+                      onChange={(e) => handleExperienceChange(index, 'company', e.target.value)}
+                      className={`${commonClasses.input} ${fieldErrors[`${index}-company`] ? commonClasses.errorInput : ''}`}
+                      placeholder="Company name"
+                    />
+                    {fieldErrors[`${index}-company`] && (
+                      <p className={commonClasses.errorText}>Company name is required</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className={commonClasses.inputGroup}>
+                    <label className={commonClasses.label}>Location</label>
+                    <input
+                      type="text"
+                      value={experience.location || ''}
+                      onChange={(e) => handleExperienceChange(index, 'location', e.target.value)}
+                      className={`${commonClasses.input} ${fieldErrors[`${index}-location`] ? commonClasses.errorInput : ''}`}
+                      placeholder="City, Country"
+                    />
+                    {fieldErrors[`${index}-location`] && (
+                      <p className={commonClasses.errorText}>Location is required</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className={commonClasses.inputGroup}>
+                    <label className={commonClasses.label}>Start Date</label>
+                    <input
+                      type="date"
+                      value={experience.startDate || ''}
+                      onChange={(e) => handleExperienceChange(index, 'startDate', e.target.value)}
+                      className={`${commonClasses.input} ${fieldErrors[`${index}-startDate`] ? commonClasses.errorInput : ''}`}
+                    />
+                    {fieldErrors[`${index}-startDate`] && (
+                      <p className={commonClasses.errorText}>Start date is required</p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className={commonClasses.inputGroup}>
+                    <label className={commonClasses.label}>End Date</label>
+                    <input
+                      type="date"
+                      value={experience.endDate || ''}
+                      onChange={(e) => handleExperienceChange(index, 'endDate', e.target.value)}
+                      disabled={experience.isCurrentPosition}
+                      className={`${commonClasses.input} ${fieldErrors[`${index}-endDate`] ? commonClasses.errorInput : ''}`}
+                    />
+                    {fieldErrors[`${index}-endDate`] && !experience.isCurrentPosition && (
+                      <p className={commonClasses.errorText}>End date is required</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <div className="flex items-center mb-4">
+                    <input
+                      type="checkbox"
+                      checked={experience.isCurrentPosition || false}
+                      onChange={(e) => handleExperienceChange(index, 'isCurrentPosition', e.target.checked)}
+                      className={commonClasses.checkbox}
+                    />
+                    <label className={commonClasses.checkboxLabel}>
+                      I currently work here
+                    </label>
+                  </div>
+
+                  <div className={commonClasses.inputGroup}>
+                    <label className={commonClasses.label}>Description</label>
+                    <textarea
+                      value={experience.description || ''}
+                      onChange={(e) => handleExperienceChange(index, 'description', e.target.value)}
+                      rows={3}
+                      className={`${commonClasses.input} ${fieldErrors[`${index}-description`] ? commonClasses.errorInput : ''}`}
+                      placeholder="Describe your responsibilities and achievements..."
+                    />
+                    {fieldErrors[`${index}-description`] && (
+                      <p className={commonClasses.errorText}>Description is required</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className={commonClasses.achievementSection}>
+                <div className={commonClasses.achievementHeader}>
+                  <label className={commonClasses.label}>Key Achievements</label>
+                  <button
+                    type="button"
+                    onClick={() => addAchievement(index)}
+                    className={commonClasses.achievementAddButton}
+                  >
+                    <FiPlus className="mr-1 h-4 w-4" />
+                    Add Achievement
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {(experience.achievements || []).map((achievement, achievementIndex) => (
+                    <div key={achievementIndex} className="flex items-start space-x-3">
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={achievement}
+                          onChange={(e) => handleAchievementChange(index, achievementIndex, e.target.value)}
+                          className={`${commonClasses.input} ${
+                            fieldErrors[`${index}-achievement-${achievementIndex}`] ? commonClasses.errorInput : ''
+                          }`}
+                          placeholder="Enter achievement..."
+                        />
+                        {fieldErrors[`${index}-achievement-${achievementIndex}`] && (
+                          <p className={commonClasses.errorText}>Achievement cannot be empty</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeAchievement(index, achievementIndex)}
+                        className={commonClasses.removeButton}
+                      >
+                        <FiTrash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={addExperience}
+            className={commonClasses.addButton}
+          >
+            <FiPlus className="w-4 h-4" />
+            Add Experience
+          </button>
+        </div>
+      )}
 
       <button
         onClick={handleSave}
