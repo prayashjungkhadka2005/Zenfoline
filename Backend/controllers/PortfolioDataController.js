@@ -325,6 +325,279 @@ exports.getProjectsInfo = async (req, res) => {
     }
 };
 
+// Save education information
+exports.saveEducationInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[saveEducationInfo] Saving education for user: ${userId}`);
+        // Ensure req.body.education exists and is an array
+        const educationData = req.body.education || [];
+        console.log('Request body (education):', educationData);
+
+        if (!Array.isArray(educationData)) {
+             return res.status(400).json({ message: 'Invalid education data format. Expected an array.' });
+        }
+
+        // Find the user's portfolio
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        // Update education - map to ensure only expected fields are saved
+        portfolio.education = educationData.map(edu => ({
+            institution: edu.institution,
+            degree: edu.degree,
+            field: edu.field,
+            location: edu.location,
+            startDate: edu.startDate,
+            // Explicitly set endDate to null if current is true
+            endDate: edu.current ? null : edu.endDate, 
+            current: edu.current || false,
+            gpa: edu.gpa,
+            achievements: edu.achievements || [],
+            isVisible: edu.isVisible !== undefined ? edu.isVisible : true // Default to true if not provided
+        }));
+
+        // Save the updated portfolio
+        await portfolio.save();
+        console.log(`[saveEducationInfo] Successfully saved education for user: ${userId}`);
+
+        res.json({
+            message: 'Education information updated successfully',
+            data: portfolio.education // Return the saved data
+        });
+    } catch (error) {
+        console.error('[saveEducationInfo] Error:', error);
+        res.status(500).json({ message: 'Error saving education information', error: error.message });
+    }
+};
+
+// Get education information
+exports.getEducationInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getEducationInfo] Getting education for user: ${userId}`);
+
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio || !portfolio.education) {
+            // Return empty array if portfolio or education doesn't exist, which is valid
+             console.log(`[getEducationInfo] Portfolio or education not found for user: ${userId}. Returning empty array.`);
+            return res.json({
+                message: 'Education information retrieved successfully (or empty)',
+                data: []
+            });
+        }
+
+        console.log(`[getEducationInfo] Successfully retrieved education for user: ${userId}`);
+        res.json({
+            message: 'Education information retrieved successfully',
+            data: portfolio.education
+        });
+    } catch (error) {
+        console.error('[getEducationInfo] Error:', error);
+        res.status(500).json({ message: 'Error retrieving education information', error: error.message });
+    }
+};
+
+// Save publications information
+exports.savePublicationsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[savePublicationsInfo] Saving publications for user: ${userId}`);
+        const publicationsData = req.body.publications || [];
+        console.log('Request body (publications):', publicationsData);
+
+        if (!Array.isArray(publicationsData)) {
+             return res.status(400).json({ message: 'Invalid publications data format. Expected an array.' });
+        }
+
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        portfolio.publications = publicationsData.map(pub => ({
+            title: pub.title,
+            publisher: pub.publisher,
+            publicationDate: pub.publicationDate, // Assuming date is handled correctly on frontend/backend
+            description: pub.description,
+            url: pub.url,
+            image: pub.image, // Handle image uploads separately if needed
+            isVisible: pub.isVisible !== undefined ? pub.isVisible : true
+        }));
+
+        await portfolio.save();
+        console.log(`[savePublicationsInfo] Successfully saved publications for user: ${userId}`);
+
+        res.json({
+            message: 'Publications information updated successfully',
+            data: portfolio.publications
+        });
+    } catch (error) {
+        console.error('[savePublicationsInfo] Error:', error);
+        res.status(500).json({ message: 'Error saving publications information', error: error.message });
+    }
+};
+
+// Get publications information
+exports.getPublicationsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getPublicationsInfo] Getting publications for user: ${userId}`);
+
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio || !portfolio.publications) {
+             console.log(`[getPublicationsInfo] Portfolio or publications not found for user: ${userId}. Returning empty array.`);
+            return res.json({
+                message: 'Publications information retrieved successfully (or empty)',
+                data: []
+            });
+        }
+
+        console.log(`[getPublicationsInfo] Successfully retrieved publications for user: ${userId}`);
+        res.json({
+            message: 'Publications information retrieved successfully',
+            data: portfolio.publications
+        });
+    } catch (error) {
+        console.error('[getPublicationsInfo] Error:', error);
+        res.status(500).json({ message: 'Error retrieving publications information', error: error.message });
+    }
+};
+
+// Save certifications information
+exports.saveCertificationsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[saveCertificationsInfo] Saving certifications for user: ${userId}`);
+        const certificationsData = req.body.certifications || [];
+        console.log('Request body (certifications):', certificationsData);
+
+        if (!Array.isArray(certificationsData)) {
+             return res.status(400).json({ message: 'Invalid certifications data format. Expected an array.' });
+        }
+
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        portfolio.certifications = certificationsData.map(cert => ({
+            name: cert.name,
+            issuer: cert.issuer,
+            issueDate: cert.issueDate,
+            expiryDate: cert.expiryDate, // Can be null
+            credentialId: cert.credentialId,
+            credentialUrl: cert.credentialUrl,
+            description: cert.description,
+            isVisible: cert.isVisible !== undefined ? cert.isVisible : true
+        }));
+
+        await portfolio.save();
+        console.log(`[saveCertificationsInfo] Successfully saved certifications for user: ${userId}`);
+
+        res.json({
+            message: 'Certifications information updated successfully',
+            data: portfolio.certifications
+        });
+    } catch (error) {
+        console.error('[saveCertificationsInfo] Error:', error);
+        res.status(500).json({ message: 'Error saving certifications information', error: error.message });
+    }
+};
+
+// Get certifications information
+exports.getCertificationsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getCertificationsInfo] Getting certifications for user: ${userId}`);
+
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio || !portfolio.certifications) {
+             console.log(`[getCertificationsInfo] Portfolio or certifications not found for user: ${userId}. Returning empty array.`);
+            return res.json({
+                message: 'Certifications information retrieved successfully (or empty)',
+                data: []
+            });
+        }
+
+        console.log(`[getCertificationsInfo] Successfully retrieved certifications for user: ${userId}`);
+        res.json({
+            message: 'Certifications information retrieved successfully',
+            data: portfolio.certifications
+        });
+    } catch (error) {
+        console.error('[getCertificationsInfo] Error:', error);
+        res.status(500).json({ message: 'Error retrieving certifications information', error: error.message });
+    }
+};
+
+// Save awards information
+exports.saveAwardsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[saveAwardsInfo] Saving awards for user: ${userId}`);
+        const awardsData = req.body.awards || [];
+        console.log('Request body (awards):', awardsData);
+
+        if (!Array.isArray(awardsData)) {
+             return res.status(400).json({ message: 'Invalid awards data format. Expected an array.' });
+        }
+
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        portfolio.awards = awardsData.map(award => ({
+            title: award.title,
+            issuer: award.issuer,
+            date: award.date,
+            description: award.description,
+            image: award.image, // Handle image uploads separately if needed
+            isVisible: award.isVisible !== undefined ? award.isVisible : true
+        }));
+
+        await portfolio.save();
+        console.log(`[saveAwardsInfo] Successfully saved awards for user: ${userId}`);
+
+        res.json({
+            message: 'Awards information updated successfully',
+            data: portfolio.awards
+        });
+    } catch (error) {
+        console.error('[saveAwardsInfo] Error:', error);
+        res.status(500).json({ message: 'Error saving awards information', error: error.message });
+    }
+};
+
+// Get awards information
+exports.getAwardsInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getAwardsInfo] Getting awards for user: ${userId}`);
+
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio || !portfolio.awards) {
+             console.log(`[getAwardsInfo] Portfolio or awards not found for user: ${userId}. Returning empty array.`);
+            return res.json({
+                message: 'Awards information retrieved successfully (or empty)',
+                data: []
+            });
+        }
+
+        console.log(`[getAwardsInfo] Successfully retrieved awards for user: ${userId}`);
+        res.json({
+            message: 'Awards information retrieved successfully',
+            data: portfolio.awards
+        });
+    } catch (error) {
+        console.error('[getAwardsInfo] Error:', error);
+        res.status(500).json({ message: 'Error retrieving awards information', error: error.message });
+    }
+};
+
 // Update section visibility settings
 exports.updateSectionVisibility = async (req, res) => {
     try {

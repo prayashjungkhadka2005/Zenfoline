@@ -26,7 +26,8 @@ import {
   FaHeart,
   FaEdit,
   FaEye,
-  FaEyeSlash
+  FaEyeSlash,
+  FaLink
 } from 'react-icons/fa';
 import { useTemplateMode } from './TemplateContext';
 

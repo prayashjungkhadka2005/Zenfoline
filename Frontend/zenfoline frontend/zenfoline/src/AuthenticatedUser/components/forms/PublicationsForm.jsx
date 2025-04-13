@@ -1,57 +1,78 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiPlus, FiTrash2, FiCalendar, FiLink, FiImage, FiFileText } from 'react-icons/fi';
 import { format } from 'date-fns';
+import axios from 'axios';
+import useAuthStore from '../../../store/userAuthStore';
+import Spinner from '../../../components/Spinner';
 
 const PublicationsForm = ({ data, onUpdate }) => {
   const [publications, setPublications] = useState([]);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
 
   // Common classes for consistent styling
   const commonClasses = {
-    section: "space-y-4",
-    infoBox: "bg-blue-50 p-4 rounded-lg",
+    section: "space-y-6",
+    infoBox: "bg-blue-50 p-4 rounded-lg mb-6",
     infoText: "text-blue-700 text-sm",
     grid: "grid grid-cols-1 md:grid-cols-2 gap-6",
     label: "block text-sm font-medium text-gray-700 mb-1",
     input: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
     inputError: "w-full px-3 py-2 border border-red-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500",
     errorText: "text-red-500 text-xs mt-1",
-    button: "w-full px-4 py-2 rounded-md text-white",
+    button: "w-full px-4 py-2 rounded-md text-white font-medium",
     buttonPrimary: "bg-blue-500 hover:bg-blue-600",
     buttonSuccess: "bg-green-500",
     buttonError: "bg-red-500",
     buttonDisabled: "bg-gray-400 cursor-not-allowed",
-    card: "border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors",
+    card: "bg-white rounded-lg mb-4 p-6 relative border border-gray-200 shadow-sm",
     iconButton: "p-2 text-gray-500 hover:text-gray-700",
-    iconButtonDanger: "p-2 text-red-500 hover:text-red-700",
+    iconButtonDanger: "absolute top-4 right-4 p-2 text-red-400 hover:text-red-600 transition-colors",
     addButton: "w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm font-medium",
-    textarea: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
+    textarea: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]",
+    loadingPlaceholder: "h-10 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200",
+    loadingTextareaPlaceholder: "h-24 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200"
   };
 
   useEffect(() => {
-    if (data) {
-      // Check if data is an array (direct publications array) or has a publications property
-      if (Array.isArray(data)) {
-        setPublications(data);
-      } else if (data.publications) {
-        setPublications(data.publications);
-      } else {
-        // If no publications data is provided, initialize with empty array
+    const fetchPublicationData = async () => {
+      if (!userId || !isInitialMount.current) return;
+      setLoading(true);
+      try {
+        const response = await axios.get(`http://localhost:3000/portfolio-save/publications/${userId}`);
+        if (response.data && Array.isArray(response.data.data)) {
+          const formattedData = response.data.data.map(pub => ({
+            ...pub,
+            publicationDate: pub.publicationDate ? format(new Date(pub.publicationDate), 'yyyy-MM') : ''
+          }));
+          setPublications(formattedData);
+          onUpdate(formattedData);
+        } else {
+          setPublications([]);
+          onUpdate([]);
+        }
+      } catch (fetchError) {
+        console.error('Error fetching publication data:', fetchError);
+        setError('Failed to load publication data.');
         setPublications([]);
+        onUpdate([]);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      // If no data is provided at all, initialize with empty array
-      setPublications([]);
-    }
-  }, [data]);
+    };
+    fetchPublicationData();
+    isInitialMount.current = false;
+  }, [userId, onUpdate]);
 
   const handleAddPublication = () => {
     const newPublication = {
       title: '',
       publisher: '',
-      publicationDate: new Date(),
+      publicationDate: '',
       description: '',
       url: '',
       image: '',
@@ -69,6 +90,13 @@ const PublicationsForm = ({ data, onUpdate }) => {
   const handleDeletePublication = (index) => {
     const updatedPublications = [...publications];
     updatedPublications.splice(index, 1);
+    const newErrors = { ...fieldErrors };
+    Object.keys(newErrors).forEach(key => {
+      if (key.startsWith(`${index}-`)) {
+        delete newErrors[key];
+      }
+    });
+    setFieldErrors(newErrors);
     setPublications(updatedPublications);
     onUpdate(updatedPublications);
   };
@@ -92,53 +120,81 @@ const PublicationsForm = ({ data, onUpdate }) => {
       isValid = false;
     }
 
+    if (pub.url && !/^https?:\/\//.test(pub.url)) {
+      errors[`${index}-url`] = 'Invalid URL format';
+      isValid = false;
+    }
+
+    if (pub.image && !/^https?:\/\//.test(pub.image)) {
+      errors[`${index}-image`] = 'Invalid URL format';
+      isValid = false;
+    }
+
+    isValid = Object.keys(errors).length === 0;
     return { isValid, errors };
   };
 
-  const handleSavePublications = () => {
-    // Validate all publication entries
+  const handleSavePublications = async () => {
     let isValid = true;
     let allErrors = {};
     
-    if (publications.length === 0) {
-      setError('Please add at least one publication');
-      setStatus('error');
-      setTimeout(() => {
-        setStatus(null);
-        setError('');
-      }, 2000);
-      return;
-    }
-    
-    for (let i = 0; i < publications.length; i++) {
-      const { isValid: entryValid, errors } = validatePublication(publications[i], i);
-      if (!entryValid) {
-        isValid = false;
-        allErrors = { ...allErrors, ...errors };
+    if (publications.length > 0) {
+      for (let i = 0; i < publications.length; i++) {
+        const { isValid: entryValid, errors } = validatePublication(publications[i], i);
+        if (!entryValid) {
+          isValid = false;
+          allErrors = { ...allErrors, ...errors };
+        }
       }
     }
     
     if (!isValid) {
       setFieldErrors(allErrors);
       setStatus('error');
-      setError('Please fill in all required fields');
+      setError('Please fill in all required fields correctly.');
       setTimeout(() => {
         setStatus(null);
         setError('');
-      }, 2000);
+      }, 3000);
       return;
     }
 
     setStatus('saving');
-    // Simulate API call
-    setTimeout(() => {
-      // Update the parent component with the publications data
-      onUpdate(publications);
-      setStatus('success');
+    setError('');
+    setFieldErrors({});
+
+    try {
+      const apiData = publications.map(pub => ({
+        ...pub,
+        publicationDate: pub.publicationDate ? new Date(pub.publicationDate + '-01') : null
+      }));
+
+      const response = await axios.post(`http://localhost:3000/portfolio-save/publications/${userId}`, {
+        publications: apiData
+      });
+
+      if (response.data && response.data.data) {
+        const formattedData = response.data.data.map(pub => ({
+          ...pub,
+          publicationDate: pub.publicationDate ? format(new Date(pub.publicationDate), 'yyyy-MM') : ''
+        }));
+        setPublications(formattedData);
+        onUpdate(formattedData);
+        setStatus('success');
+        setTimeout(() => {
+          setStatus(null);
+        }, 2000);
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (saveError) {
+      console.error('Error saving publication data:', saveError);
+      setStatus('error');
+      setError(saveError.response?.data?.message || 'Failed to save publication data.');
       setTimeout(() => {
         setStatus(null);
-      }, 2000);
-    }, 1000);
+      }, 3000);
+    }
   };
 
   const handleInputChange = (index, field, value) => {
@@ -149,7 +205,6 @@ const PublicationsForm = ({ data, onUpdate }) => {
     };
     setPublications(updatedPublications);
     
-    // Clear error for this field when user starts typing
     if (fieldErrors[`${index}-${field}`]) {
       setFieldErrors({
         ...fieldErrors,
@@ -157,14 +212,71 @@ const PublicationsForm = ({ data, onUpdate }) => {
       });
     }
     
-    // Update parent component with the updated publications array
     onUpdate(updatedPublications);
   };
 
-  const formatDate = (date) => {
-    if (!date) return '';
-    return format(new Date(date), 'MMMM yyyy');
-  };
+  const renderLoadingPublicationCard = (key) => (
+    <div key={key} className={commonClasses.card}>
+      <div className={commonClasses.grid}>
+        <div>
+          <label className={commonClasses.label}>Title*</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+        <div>
+          <label className={commonClasses.label}>Publisher*</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-4">
+        <label className={commonClasses.label}>Publication Date*</label>
+        <div className={commonClasses.loadingPlaceholder}>
+          <Spinner size="sm" color="orange-500" />
+        </div>
+      </div>
+      <div className="mt-4">
+        <label className={commonClasses.label}>Description</label>
+        <div className={commonClasses.loadingTextareaPlaceholder}>
+          <Spinner size="sm" color="orange-500" />
+        </div>
+      </div>
+      <div className={`${commonClasses.grid} mt-4`}>
+        <div>
+          <label className={commonClasses.label}>URL</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+        <div>
+          <label className={commonClasses.label}>Image URL</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className={commonClasses.section}>
+        <div className={commonClasses.infoBox}>
+          <p className={commonClasses.infoText}>Add your publications to showcase your research, articles, or books.</p>
+        </div>
+        <div className="space-y-4">
+          {renderLoadingPublicationCard('loading-pub-0')}
+        </div>
+        <button type="button" disabled className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
+          <FiPlus className="w-4 h-4" />
+          Add Publication
+        </button>
+        <button disabled className={`${commonClasses.button} ${commonClasses.buttonDisabled}`}>Loading...</button>
+      </div>
+    );
+  }
 
   return (
     <div className={commonClasses.section}>
@@ -181,7 +293,7 @@ const PublicationsForm = ({ data, onUpdate }) => {
           <p className="text-gray-500 mb-4">Add your publications to showcase your research and writing</p>
           <button
             onClick={handleAddPublication}
-            className={commonClasses.addButton}
+            className={`${commonClasses.addButton} max-w-xs mx-auto`}
           >
             <FiPlus className="w-4 h-4" />
             Add Publication
@@ -207,7 +319,7 @@ const PublicationsForm = ({ data, onUpdate }) => {
                     <label className={commonClasses.label}>Title*</label>
                     <input
                       type="text"
-                      value={pub.title}
+                      value={pub.title || ''}
                       onChange={(e) => handleInputChange(index, 'title', e.target.value)}
                       className={fieldErrors[`${index}-title`] ? commonClasses.inputError : commonClasses.input}
                       placeholder="Publication Title"
@@ -239,8 +351,8 @@ const PublicationsForm = ({ data, onUpdate }) => {
                     </div>
                     <input
                       type="month"
-                      value={pub.publicationDate ? format(new Date(pub.publicationDate), 'yyyy-MM') : ''}
-                      onChange={(e) => handleInputChange(index, 'publicationDate', new Date(e.target.value))}
+                      value={pub.publicationDate || ''}
+                      onChange={(e) => handleInputChange(index, 'publicationDate', e.target.value)}
                       className={`${fieldErrors[`${index}-publicationDate`] ? commonClasses.inputError : commonClasses.input} pl-10`}
                     />
                   </div>
@@ -299,32 +411,29 @@ const PublicationsForm = ({ data, onUpdate }) => {
             className={commonClasses.addButton}
           >
             <FiPlus className="w-4 h-4" />
-            Add Publication
+            Add Another Publication
           </button>
         </div>
       )}
 
       <button
         onClick={handleSavePublications}
-        className={`w-full px-4 py-2 rounded-md text-white ${
-          status === 'saving' 
-            ? commonClasses.buttonDisabled
-            : status === 'success' 
-              ? commonClasses.buttonSuccess
-              : status === 'error' 
-                ? commonClasses.buttonError
-                : commonClasses.buttonPrimary
+        className={`${commonClasses.button} ${
+          status === 'saving' ? commonClasses.buttonDisabled :
+          status === 'success' ? commonClasses.buttonSuccess :
+          status === 'error' ? commonClasses.buttonError :
+          commonClasses.buttonPrimary
         }`}
         disabled={status === 'saving'}
       >
-        {status === 'saving' 
-          ? 'Saving...' 
-          : status === 'success' 
-            ? 'Saved!' 
-            : status === 'error' 
-              ? error || 'Error'
-              : 'Save Publications'}
+        {status === 'saving' ? 'Saving...' :
+         status === 'success' ? 'Saved Successfully!' :
+         status === 'error' ? error || 'Save Failed - Check Fields' :
+         'Save Publications'}
       </button>
+      {status === 'error' && !Object.keys(fieldErrors).length && error && (
+        <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+      )}
     </div>
   );
 };

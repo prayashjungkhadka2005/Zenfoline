@@ -1,60 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiPlus, FiTrash2, FiCalendar, FiMapPin, FiAward } from 'react-icons/fi';
 import { format } from 'date-fns';
+import axios from 'axios';
+import useAuthStore from '../../../store/userAuthStore';
+import Spinner from '../../../components/Spinner';
 
 const EducationForm = ({ data, onUpdate }) => {
   const [education, setEducation] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(null);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
 
   // Common classes for consistent styling
   const commonClasses = {
-    section: "space-y-4",
-    infoBox: "bg-blue-50 p-4 rounded-lg",
+    section: "space-y-6",
+    infoBox: "bg-blue-50 p-4 rounded-lg mb-6",
     infoText: "text-blue-700 text-sm",
     grid: "grid grid-cols-1 md:grid-cols-2 gap-6",
     label: "block text-sm font-medium text-gray-700 mb-1",
     input: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
     inputError: "w-full px-3 py-2 border border-red-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500",
     errorText: "text-red-500 text-xs mt-1",
-    button: "w-full px-4 py-2 rounded-md text-white",
+    button: "w-full px-4 py-2 rounded-md text-white font-medium",
     buttonPrimary: "bg-blue-500 hover:bg-blue-600",
     buttonSuccess: "bg-green-500",
     buttonError: "bg-red-500",
     buttonDisabled: "bg-gray-400 cursor-not-allowed",
-    card: "border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors",
+    card: "bg-white rounded-lg mb-4 p-6 relative border border-gray-200 shadow-sm",
     iconButton: "p-2 text-gray-500 hover:text-gray-700",
-    iconButtonDanger: "p-2 text-red-500 hover:text-red-700",
-    addButton: "w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm font-medium"
+    iconButtonDanger: "absolute top-4 right-4 p-2 text-red-400 hover:text-red-600 transition-colors",
+    addButton: "w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm font-medium",
+    loadingPlaceholder: "h-10 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200",
+    loadingTextareaPlaceholder: "h-20 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200"
   };
 
   useEffect(() => {
-    if (data) {
-      // Check if data is an array (direct education array) or has an education property
-      if (Array.isArray(data)) {
-        setEducation(data);
-        // If there are education entries, set isEditing to true
-        if (data.length > 0) {
-          setIsEditing(true);
+    const fetchEducationData = async () => {
+      if (!userId || !isInitialMount.current) return;
+      setLoading(true);
+      try {
+        const response = await axios.get(`http://localhost:3000/portfolio-save/education/${userId}`);
+        if (response.data && Array.isArray(response.data.data)) {
+          const formattedData = response.data.data.map(edu => ({
+            ...edu,
+            startDate: edu.startDate ? format(new Date(edu.startDate), 'yyyy-MM') : '',
+            endDate: edu.endDate ? format(new Date(edu.endDate), 'yyyy-MM') : '',
+            current: edu.current || false
+          }));
+          setEducation(formattedData);
+          onUpdate(formattedData);
+        } else {
+          setEducation([]);
+          onUpdate([]);
         }
-      } else if (data.education) {
-        setEducation(data.education);
-        // If there are education entries, set isEditing to true
-        if (data.education.length > 0) {
-          setIsEditing(true);
-        }
-      } else {
-        // If no education data is provided, initialize with empty array
+      } catch (fetchError) {
+        console.error('Error fetching education data:', fetchError);
+        setError('Failed to load education data.');
         setEducation([]);
+        onUpdate([]);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      // If no data is provided at all, initialize with empty array
-      setEducation([]);
-    }
-  }, [data]);
+    };
+    fetchEducationData();
+    isInitialMount.current = false;
+  }, [userId, onUpdate]);
 
   const handleAddEducation = () => {
     const newEducation = {
@@ -62,8 +76,8 @@ const EducationForm = ({ data, onUpdate }) => {
       degree: '',
       field: '',
       location: '',
-      startDate: new Date(),
-      endDate: new Date(),
+      startDate: '',
+      endDate: '',
       current: false,
       gpa: '',
       achievements: [],
@@ -73,17 +87,9 @@ const EducationForm = ({ data, onUpdate }) => {
     const updatedEducation = [...education, newEducation];
     setEducation(updatedEducation);
     setCurrentIndex(education.length);
-    setIsEditing(true);
     setFieldErrors({});
     
-    // Update parent component with the new education array
     onUpdate(updatedEducation);
-  };
-
-  const handleEditEducation = (index) => {
-    setCurrentIndex(index);
-    setIsEditing(true);
-    setFieldErrors({});
   };
 
   const handleDeleteEducation = (index) => {
@@ -92,9 +98,7 @@ const EducationForm = ({ data, onUpdate }) => {
     setEducation(updatedEducation);
     onUpdate(updatedEducation);
     
-    // If we're deleting the last education entry, reset editing state
     if (updatedEducation.length === 0) {
-      setIsEditing(false);
       setCurrentIndex(null);
     }
   };
@@ -131,57 +135,69 @@ const EducationForm = ({ data, onUpdate }) => {
     return { isValid, errors };
   };
 
-  const handleSaveEducation = () => {
-    // Validate all education entries
+  const handleSaveEducation = async () => {
     let isValid = true;
     let allErrors = {};
-    
+
     if (education.length === 0) {
-      setError('Please add at least one education entry');
-      setStatus('error');
-      setTimeout(() => {
-        setStatus(null);
-        setError('');
-      }, 2000);
-      return;
+      console.log('No education entries to save.');
+    } else {
+        for (let i = 0; i < education.length; i++) {
+            const { isValid: entryValid, errors } = validateEducation(education[i], i);
+            if (!entryValid) {
+                isValid = false;
+                allErrors = { ...allErrors, ...errors };
+            }
+        }
     }
-    
-    for (let i = 0; i < education.length; i++) {
-      const { isValid: entryValid, errors } = validateEducation(education[i], i);
-      if (!entryValid) {
-        isValid = false;
-        allErrors = { ...allErrors, ...errors };
-      }
-    }
-    
+
     if (!isValid) {
       setFieldErrors(allErrors);
       setStatus('error');
-      setError('Please fill in all required fields');
+      setError('Please fill in all required fields.');
       setTimeout(() => {
         setStatus(null);
         setError('');
-      }, 2000);
+      }, 3000);
       return;
     }
 
     setStatus('saving');
-    // Simulate API call
-    setTimeout(() => {
-      // Don't set isEditing to false here
-      // setIsEditing(false);
-      // Update the parent component with the education data
-      onUpdate(education);
-      setStatus('success');
-      setTimeout(() => {
-        setStatus(null);
-      }, 2000);
-    }, 1000);
-  };
+    setError('');
+    setFieldErrors({});
 
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setCurrentIndex(null);
+    try {
+      const apiData = education.map(edu => ({
+          ...edu,
+          startDate: edu.startDate ? new Date(edu.startDate + '-01') : null,
+          endDate: edu.endDate ? new Date(edu.endDate + '-01') : null,
+      }));
+      
+      const response = await axios.post(`http://localhost:3000/portfolio-save/education/${userId}`, {
+        education: apiData
+      });
+
+      if (response.data && response.data.data) {
+        const formattedData = response.data.data.map(edu => ({
+          ...edu,
+          startDate: edu.startDate ? format(new Date(edu.startDate), 'yyyy-MM') : '',
+          endDate: edu.endDate ? format(new Date(edu.endDate), 'yyyy-MM') : '',
+          current: edu.current || false
+        }));
+        setEducation(formattedData);
+        onUpdate(formattedData);
+        setStatus('success');
+        setTimeout(() => {
+          setStatus(null);
+        }, 2000);
+      } else {
+          throw new Error('Invalid response from server');
+      }
+    } catch (saveError) {
+      console.error('Error saving education data:', saveError);
+      setStatus('error');
+      setError(saveError.response?.data?.message || 'Failed to save education data.');
+    }
   };
 
   const handleInputChange = (index, field, value) => {
@@ -192,7 +208,6 @@ const EducationForm = ({ data, onUpdate }) => {
     };
     setEducation(updatedEducation);
     
-    // Clear error for this field when user starts typing
     if (fieldErrors[`${index}-${field}`]) {
       setFieldErrors({
         ...fieldErrors,
@@ -200,7 +215,6 @@ const EducationForm = ({ data, onUpdate }) => {
       });
     }
     
-    // Update parent component with the updated education array
     onUpdate(updatedEducation);
   };
 
@@ -209,7 +223,6 @@ const EducationForm = ({ data, onUpdate }) => {
     updatedEducation[eduIndex].achievements[achievementIndex] = value;
     setEducation(updatedEducation);
     
-    // Update parent component with the updated education array
     onUpdate(updatedEducation);
   };
 
@@ -218,7 +231,6 @@ const EducationForm = ({ data, onUpdate }) => {
     updatedEducation[eduIndex].achievements.push('');
     setEducation(updatedEducation);
     
-    // Update parent component with the updated education array
     onUpdate(updatedEducation);
   };
 
@@ -226,12 +238,27 @@ const EducationForm = ({ data, onUpdate }) => {
     const updatedEducation = [...education];
     updatedEducation[eduIndex].achievements.splice(achievementIndex, 1);
     setEducation(updatedEducation);
+    
+    onUpdate(updatedEducation);
   };
 
   const formatDate = (date) => {
     if (!date) return '';
     return format(new Date(date), 'MMMM yyyy');
   };
+
+  if (loading) {
+    return (
+      <div className={commonClasses.section}>
+        <div className={commonClasses.infoBox}>
+          <p className={commonClasses.infoText}>Add your educational background...</p>
+        </div>
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={commonClasses.section}>
@@ -274,7 +301,7 @@ const EducationForm = ({ data, onUpdate }) => {
                     <label className={commonClasses.label}>Institution*</label>
                     <input
                       type="text"
-                      value={edu.institution}
+                      value={edu.institution || ''}
                       onChange={(e) => handleInputChange(index, 'institution', e.target.value)}
                       className={fieldErrors[`${index}-institution`] ? commonClasses.inputError : commonClasses.input}
                       placeholder="University Name"
@@ -455,6 +482,9 @@ const EducationForm = ({ data, onUpdate }) => {
               ? error || 'Error'
               : 'Save Education'}
       </button>
+      {status === 'error' && !Object.keys(fieldErrors).length > 0 && error && (
+          <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+      )}
     </div>
   );
 };

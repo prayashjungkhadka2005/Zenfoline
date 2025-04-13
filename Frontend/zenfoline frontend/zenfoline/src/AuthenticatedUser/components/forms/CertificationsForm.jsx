@@ -1,58 +1,80 @@
-import React, { useState, useEffect } from 'react';
-import { FiPlus, FiTrash2, FiCalendar, FiLink, FiAward, FiCheck, FiX } from 'react-icons/fi';
+import React, { useState, useEffect, useRef } from 'react';
+import { FiPlus, FiTrash2, FiCalendar, FiLink, FiAward } from 'react-icons/fi';
 import { format } from 'date-fns';
+import axios from 'axios';
+import useAuthStore from '../../../store/userAuthStore';
+import Spinner from '../../../components/Spinner';
 
 const CertificationsForm = ({ data, onUpdate }) => {
   const [certifications, setCertifications] = useState([]);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
 
   // Common classes for consistent styling
   const commonClasses = {
-    section: "space-y-4",
-    infoBox: "bg-blue-50 p-4 rounded-lg",
+    section: "space-y-6",
+    infoBox: "bg-blue-50 p-4 rounded-lg mb-6",
     infoText: "text-blue-700 text-sm",
     grid: "grid grid-cols-1 md:grid-cols-2 gap-6",
     label: "block text-sm font-medium text-gray-700 mb-1",
     input: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
     inputError: "w-full px-3 py-2 border border-red-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500",
     errorText: "text-red-500 text-xs mt-1",
-    button: "w-full px-4 py-2 rounded-md text-white",
+    button: "w-full px-4 py-2 rounded-md text-white font-medium",
     buttonPrimary: "bg-blue-500 hover:bg-blue-600",
     buttonSuccess: "bg-green-500",
     buttonError: "bg-red-500",
     buttonDisabled: "bg-gray-400 cursor-not-allowed",
-    card: "border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors",
+    card: "bg-white rounded-lg mb-4 p-6 relative border border-gray-200 shadow-sm",
     iconButton: "p-2 text-gray-500 hover:text-gray-700",
-    iconButtonDanger: "p-2 text-red-500 hover:text-red-700",
+    iconButtonDanger: "absolute top-4 right-4 p-2 text-red-400 hover:text-red-600 transition-colors",
     addButton: "w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm font-medium",
-    textarea: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
+    textarea: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]",
+    loadingPlaceholder: "h-10 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200",
+    loadingTextareaPlaceholder: "h-24 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200"
   };
 
   useEffect(() => {
-    if (data) {
-      // Check if data is an array (direct certifications array) or has a certifications property
-      if (Array.isArray(data)) {
-        setCertifications(data);
-      } else if (data.certifications) {
-        setCertifications(data.certifications);
-      } else {
-        // If no certifications data is provided, initialize with empty array
+    const fetchCertificationData = async () => {
+      if (!userId || !isInitialMount.current) return;
+      setLoading(true);
+      try {
+        const response = await axios.get(`http://localhost:3000/portfolio-save/certifications/${userId}`);
+        if (response.data && Array.isArray(response.data.data)) {
+          const formattedData = response.data.data.map(cert => ({
+            ...cert,
+            issueDate: cert.issueDate ? format(new Date(cert.issueDate), 'yyyy-MM') : '',
+            expiryDate: cert.expiryDate ? format(new Date(cert.expiryDate), 'yyyy-MM') : ''
+          }));
+          setCertifications(formattedData);
+          onUpdate(formattedData);
+        } else {
+          setCertifications([]);
+          onUpdate([]);
+        }
+      } catch (fetchError) {
+        console.error('Error fetching certification data:', fetchError);
+        setError('Failed to load certification data.');
         setCertifications([]);
+        onUpdate([]);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      // If no data is provided at all, initialize with empty array
-      setCertifications([]);
-    }
-  }, [data]);
+    };
+    fetchCertificationData();
+    isInitialMount.current = false;
+  }, [userId, onUpdate]);
 
   const handleAddCertification = () => {
     const newCertification = {
       name: '',
       issuer: '',
-      issueDate: new Date(),
-      expiryDate: null,
+      issueDate: '',
+      expiryDate: '',
       credentialId: '',
       credentialUrl: '',
       description: '',
@@ -93,53 +115,83 @@ const CertificationsForm = ({ data, onUpdate }) => {
       isValid = false;
     }
 
+    if (cert.credentialUrl && !/^https?:\/\//.test(cert.credentialUrl)) {
+      errors[`${index}-credentialUrl`] = 'Invalid URL format';
+      isValid = false;
+    }
+
+    if (cert.issueDate && cert.expiryDate && new Date(cert.expiryDate) <= new Date(cert.issueDate)) {
+      errors[`${index}-expiryDate`] = 'Expiry date must be after issue date';
+      isValid = false;
+    }
+
+    isValid = Object.keys(errors).length === 0;
     return { isValid, errors };
   };
 
-  const handleSaveCertifications = () => {
-    // Validate all certification entries
+  const handleSaveCertifications = async () => {
     let isValid = true;
     let allErrors = {};
     
-    if (certifications.length === 0) {
-      setError('Please add at least one certification');
-      setStatus('error');
-      setTimeout(() => {
-        setStatus(null);
-        setError('');
-      }, 2000);
-      return;
-    }
-    
-    for (let i = 0; i < certifications.length; i++) {
-      const { isValid: entryValid, errors } = validateCertification(certifications[i], i);
-      if (!entryValid) {
-        isValid = false;
-        allErrors = { ...allErrors, ...errors };
+    if (certifications.length > 0) {
+      for (let i = 0; i < certifications.length; i++) {
+        const { isValid: entryValid, errors } = validateCertification(certifications[i], i);
+        if (!entryValid) {
+          isValid = false;
+          allErrors = { ...allErrors, ...errors };
+        }
       }
     }
     
     if (!isValid) {
       setFieldErrors(allErrors);
       setStatus('error');
-      setError('Please fill in all required fields');
+      setError('Please fill in all required fields correctly.');
       setTimeout(() => {
         setStatus(null);
         setError('');
-      }, 2000);
+      }, 3000);
       return;
     }
 
     setStatus('saving');
-    // Simulate API call
-    setTimeout(() => {
-      // Update the parent component with the certifications data
-      onUpdate(certifications);
-      setStatus('success');
+    setError('');
+    setFieldErrors({});
+
+    try {
+      const apiData = certifications.map(cert => ({
+        ...cert,
+        issueDate: cert.issueDate ? new Date(cert.issueDate + '-01') : null,
+        expiryDate: cert.expiryDate ? new Date(cert.expiryDate + '-01') : null
+      }));
+
+      const response = await axios.post(`http://localhost:3000/portfolio-save/certifications/${userId}`, {
+        certifications: apiData
+      });
+
+      if (response.data && response.data.data) {
+        const formattedData = response.data.data.map(cert => ({
+          ...cert,
+          issueDate: cert.issueDate ? format(new Date(cert.issueDate), 'yyyy-MM') : '',
+          expiryDate: cert.expiryDate ? format(new Date(cert.expiryDate), 'yyyy-MM') : ''
+        }));
+        setCertifications(formattedData);
+        onUpdate(formattedData);
+        setStatus('success');
+        setTimeout(() => {
+          setStatus(null);
+        }, 2000);
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (saveError) {
+      console.error('Error saving certification data:', saveError);
+      setStatus('error');
+      setError(saveError.response?.data?.message || 'Failed to save certification data.');
       setTimeout(() => {
         setStatus(null);
-      }, 2000);
-    }, 1000);
+      }, 3000);
+    }
   };
 
   const handleInputChange = (index, field, value) => {
@@ -167,6 +219,76 @@ const CertificationsForm = ({ data, onUpdate }) => {
     return format(new Date(date), 'MMMM yyyy');
   };
 
+  const renderLoadingCertificationCard = (key) => (
+    <div key={key} className={commonClasses.card}>
+      <div className={commonClasses.grid}>
+        <div>
+          <label className={commonClasses.label}>Name*</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+        <div>
+          <label className={commonClasses.label}>Issuer*</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+      </div>
+      <div className={`${commonClasses.grid} mt-4`}>
+        <div>
+          <label className={commonClasses.label}>Issue Date*</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+        <div>
+          <label className={commonClasses.label}>Expiry Date</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+      </div>
+      <div className={`${commonClasses.grid} mt-4`}>
+        <div>
+          <label className={commonClasses.label}>Credential ID</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+        <div>
+          <label className={commonClasses.label}>Credential URL</label>
+          <div className={commonClasses.loadingPlaceholder}>
+            <Spinner size="sm" color="orange-500" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-4">
+        <label className={commonClasses.label}>Description</label>
+        <div className={commonClasses.loadingTextareaPlaceholder}>
+          <Spinner size="sm" color="orange-500" />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className={commonClasses.section}>
+        <div className={commonClasses.infoBox}>
+          <p className={commonClasses.infoText}>Add your certifications to showcase your professional qualifications and achievements.</p>
+        </div>
+        <div className="space-y-4">
+          {renderLoadingCertificationCard('loading-cert-0')}
+        </div>
+        <button type="button" disabled className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
+          <FiPlus className="w-4 h-4" /> Add Certification
+        </button>
+        <button disabled className={`${commonClasses.button} ${commonClasses.buttonDisabled}`}>Loading...</button>
+      </div>
+    );
+  }
+
   return (
     <div className={commonClasses.section}>
       <div className={commonClasses.infoBox}>
@@ -182,7 +304,7 @@ const CertificationsForm = ({ data, onUpdate }) => {
           <p className="text-gray-500 mb-4">Add your certifications to showcase your professional qualifications</p>
           <button
             onClick={handleAddCertification}
-            className={commonClasses.addButton}
+            className={`${commonClasses.addButton} max-w-xs mx-auto`}
           >
             <FiPlus className="w-4 h-4" />
             Add Certification
@@ -208,7 +330,7 @@ const CertificationsForm = ({ data, onUpdate }) => {
                     <label className={commonClasses.label}>Name*</label>
                     <input
                       type="text"
-                      value={cert.name}
+                      value={cert.name || ''}
                       onChange={(e) => handleInputChange(index, 'name', e.target.value)}
                       className={fieldErrors[`${index}-name`] ? commonClasses.inputError : commonClasses.input}
                       placeholder="Certification Name"
@@ -221,7 +343,7 @@ const CertificationsForm = ({ data, onUpdate }) => {
                     <label className={commonClasses.label}>Issuer*</label>
                     <input
                       type="text"
-                      value={cert.issuer}
+                      value={cert.issuer || ''}
                       onChange={(e) => handleInputChange(index, 'issuer', e.target.value)}
                       className={fieldErrors[`${index}-issuer`] ? commonClasses.inputError : commonClasses.input}
                       placeholder="Issuing Organization"
@@ -241,8 +363,8 @@ const CertificationsForm = ({ data, onUpdate }) => {
                       </div>
                       <input
                         type="month"
-                        value={cert.issueDate ? format(new Date(cert.issueDate), 'yyyy-MM') : ''}
-                        onChange={(e) => handleInputChange(index, 'issueDate', new Date(e.target.value))}
+                        value={cert.issueDate || ''}
+                        onChange={(e) => handleInputChange(index, 'issueDate', e.target.value)}
                         className={`${fieldErrors[`${index}-issueDate`] ? commonClasses.inputError : commonClasses.input} pl-10`}
                       />
                     </div>
@@ -258,11 +380,14 @@ const CertificationsForm = ({ data, onUpdate }) => {
                       </div>
                       <input
                         type="month"
-                        value={cert.expiryDate ? format(new Date(cert.expiryDate), 'yyyy-MM') : ''}
-                        onChange={(e) => handleInputChange(index, 'expiryDate', e.target.value ? new Date(e.target.value) : null)}
-                        className={`${commonClasses.input} pl-10`}
+                        value={cert.expiryDate || ''}
+                        onChange={(e) => handleInputChange(index, 'expiryDate', e.target.value)}
+                        className={`${fieldErrors[`${index}-expiryDate`] ? commonClasses.inputError : commonClasses.input} pl-10`}
                       />
                     </div>
+                    {fieldErrors[`${index}-expiryDate`] && (
+                      <p className={commonClasses.errorText}>{fieldErrors[`${index}-expiryDate`]}</p>
+                    )}
                   </div>
                 </div>
 
@@ -271,7 +396,7 @@ const CertificationsForm = ({ data, onUpdate }) => {
                     <label className={commonClasses.label}>Credential ID</label>
                     <input
                       type="text"
-                      value={cert.credentialId}
+                      value={cert.credentialId || ''}
                       onChange={(e) => handleInputChange(index, 'credentialId', e.target.value)}
                       className={commonClasses.input}
                       placeholder="Credential ID or License Number"
@@ -285,7 +410,7 @@ const CertificationsForm = ({ data, onUpdate }) => {
                       </div>
                       <input
                         type="url"
-                        value={cert.credentialUrl}
+                        value={cert.credentialUrl || ''}
                         onChange={(e) => handleInputChange(index, 'credentialUrl', e.target.value)}
                         className={`${commonClasses.input} pl-10`}
                         placeholder="https://example.com/credential"
@@ -297,7 +422,7 @@ const CertificationsForm = ({ data, onUpdate }) => {
                 <div>
                   <label className={commonClasses.label}>Description</label>
                   <textarea
-                    value={cert.description}
+                    value={cert.description || ''}
                     onChange={(e) => handleInputChange(index, 'description', e.target.value)}
                     className={commonClasses.textarea}
                     placeholder="Brief description of the certification"
@@ -312,32 +437,29 @@ const CertificationsForm = ({ data, onUpdate }) => {
             className={commonClasses.addButton}
           >
             <FiPlus className="w-4 h-4" />
-            Add Certification
+            Add Another Certification
           </button>
         </div>
       )}
 
       <button
         onClick={handleSaveCertifications}
-        className={`w-full px-4 py-2 rounded-md text-white ${
-          status === 'saving' 
-            ? commonClasses.buttonDisabled
-            : status === 'success' 
-              ? commonClasses.buttonSuccess
-              : status === 'error' 
-                ? commonClasses.buttonError
-                : commonClasses.buttonPrimary
+        className={`${commonClasses.button} ${
+          status === 'saving' ? commonClasses.buttonDisabled :
+          status === 'success' ? commonClasses.buttonSuccess :
+          status === 'error' ? commonClasses.buttonError :
+          commonClasses.buttonPrimary
         }`}
         disabled={status === 'saving'}
       >
-        {status === 'saving' 
-          ? 'Saving...' 
-          : status === 'success' 
-            ? 'Saved!' 
-            : status === 'error' 
-              ? error || 'Error'
-              : 'Save Certifications'}
+        {status === 'saving' ? 'Saving...' :
+         status === 'success' ? 'Saved Successfully!' :
+         status === 'error' ? error || 'Save Failed - Check Fields' :
+         'Save Certifications'}
       </button>
+      {status === 'error' && !Object.keys(fieldErrors).length && error && (
+        <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+      )}
     </div>
   );
 };

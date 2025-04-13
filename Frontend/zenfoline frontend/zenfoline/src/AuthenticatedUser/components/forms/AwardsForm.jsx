@@ -1,57 +1,78 @@
-import React, { useState, useEffect } from 'react';
-import { FiPlus, FiTrash2, FiCalendar, FiImage, FiAward, FiCheck, FiX } from 'react-icons/fi';
+import React, { useState, useEffect, useRef } from 'react';
+import { FiPlus, FiTrash2, FiCalendar, FiImage, FiAward } from 'react-icons/fi';
 import { format } from 'date-fns';
+import axios from 'axios';
+import useAuthStore from '../../../store/userAuthStore';
+import Spinner from '../../../components/Spinner';
 
 const AwardsForm = ({ data, onUpdate }) => {
   const [awards, setAwards] = useState([]);
   const [status, setStatus] = useState(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(true);
+  const userId = useAuthStore((state) => state.userId);
+  const isInitialMount = useRef(true);
 
   // Common classes for consistent styling
   const commonClasses = {
-    section: "space-y-4",
-    infoBox: "bg-blue-50 p-4 rounded-lg",
+    section: "space-y-6",
+    infoBox: "bg-blue-50 p-4 rounded-lg mb-6",
     infoText: "text-blue-700 text-sm",
     grid: "grid grid-cols-1 md:grid-cols-2 gap-6",
     label: "block text-sm font-medium text-gray-700 mb-1",
     input: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500",
     inputError: "w-full px-3 py-2 border border-red-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500",
     errorText: "text-red-500 text-xs mt-1",
-    button: "w-full px-4 py-2 rounded-md text-white",
+    button: "w-full px-4 py-2 rounded-md text-white font-medium",
     buttonPrimary: "bg-blue-500 hover:bg-blue-600",
     buttonSuccess: "bg-green-500",
     buttonError: "bg-red-500",
     buttonDisabled: "bg-gray-400 cursor-not-allowed",
-    card: "border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors",
+    card: "bg-white rounded-lg mb-4 p-6 relative border border-gray-200 shadow-sm",
     iconButton: "p-2 text-gray-500 hover:text-gray-700",
-    iconButtonDanger: "p-2 text-red-500 hover:text-red-700",
+    iconButtonDanger: "absolute top-4 right-4 p-2 text-red-400 hover:text-red-600 transition-colors",
     addButton: "w-full py-3 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-all flex items-center justify-center gap-2 cursor-pointer text-sm font-medium",
-    textarea: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
+    textarea: "w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]",
+    loadingPlaceholder: "h-10 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200",
+    loadingTextareaPlaceholder: "h-24 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200"
   };
 
   useEffect(() => {
-    if (data) {
-      // Check if data is an array (direct awards array) or has an awards property
-      if (Array.isArray(data)) {
-        setAwards(data);
-      } else if (data.awards) {
-        setAwards(data.awards);
-      } else {
-        // If no awards data is provided, initialize with empty array
+    const fetchAwardData = async () => {
+      if (!userId || !isInitialMount.current) return;
+      setLoading(true);
+      try {
+        const response = await axios.get(`http://localhost:3000/portfolio-save/awards/${userId}`);
+        if (response.data && Array.isArray(response.data.data)) {
+          const formattedData = response.data.data.map(award => ({
+            ...award,
+            date: award.date ? format(new Date(award.date), 'yyyy-MM') : ''
+          }));
+          setAwards(formattedData);
+          onUpdate(formattedData);
+        } else {
+          setAwards([]);
+          onUpdate([]);
+        }
+      } catch (fetchError) {
+        console.error('Error fetching award data:', fetchError);
+        setError('Failed to load award data.');
         setAwards([]);
+        onUpdate([]);
+      } finally {
+        setLoading(false);
       }
-    } else {
-      // If no data is provided at all, initialize with empty array
-      setAwards([]);
-    }
-  }, [data]);
+    };
+    fetchAwardData();
+    isInitialMount.current = false;
+  }, [userId, onUpdate]);
 
   const handleAddAward = () => {
     const newAward = {
       title: '',
       issuer: '',
-      date: new Date(),
+      date: '',
       description: '',
       image: '',
       isVisible: true
@@ -68,6 +89,14 @@ const AwardsForm = ({ data, onUpdate }) => {
   const handleDeleteAward = (index) => {
     const updatedAwards = [...awards];
     updatedAwards.splice(index, 1);
+    // Clear errors
+    const newErrors = { ...fieldErrors };
+    Object.keys(newErrors).forEach(key => {
+      if (key.startsWith(`${index}-`)) {
+        delete newErrors[key];
+      }
+    });
+    setFieldErrors(newErrors);
     setAwards(updatedAwards);
     onUpdate(updatedAwards);
   };
@@ -94,50 +123,67 @@ const AwardsForm = ({ data, onUpdate }) => {
     return { isValid, errors };
   };
 
-  const handleSaveAwards = () => {
-    // Validate all award entries
+  const handleSaveAwards = async () => {
     let isValid = true;
     let allErrors = {};
     
-    if (awards.length === 0) {
-      setError('Please add at least one award');
-      setStatus('error');
-      setTimeout(() => {
-        setStatus(null);
-        setError('');
-      }, 2000);
-      return;
-    }
-    
-    for (let i = 0; i < awards.length; i++) {
-      const { isValid: entryValid, errors } = validateAward(awards[i], i);
-      if (!entryValid) {
-        isValid = false;
-        allErrors = { ...allErrors, ...errors };
+    if (awards.length > 0) {
+      for (let i = 0; i < awards.length; i++) {
+        const { isValid: entryValid, errors } = validateAward(awards[i], i);
+        if (!entryValid) {
+          isValid = false;
+          allErrors = { ...allErrors, ...errors };
+        }
       }
     }
     
     if (!isValid) {
       setFieldErrors(allErrors);
       setStatus('error');
-      setError('Please fill in all required fields');
+      setError('Please fill in all required fields correctly.');
       setTimeout(() => {
         setStatus(null);
         setError('');
-      }, 2000);
+      }, 3000);
       return;
     }
 
     setStatus('saving');
-    // Simulate API call
-    setTimeout(() => {
-      // Update the parent component with the awards data
-      onUpdate(awards);
-      setStatus('success');
+    setError('');
+    setFieldErrors({});
+
+    try {
+      const apiData = awards.map(award => ({
+        ...award,
+        date: award.date ? new Date(award.date + '-01') : null
+      }));
+
+      const response = await axios.post(`http://localhost:3000/portfolio-save/awards/${userId}`, {
+        awards: apiData
+      });
+
+      if (response.data && response.data.data) {
+        const formattedData = response.data.data.map(award => ({
+          ...award,
+          date: award.date ? format(new Date(award.date), 'yyyy-MM') : ''
+        }));
+        setAwards(formattedData);
+        onUpdate(formattedData);
+        setStatus('success');
+        setTimeout(() => {
+          setStatus(null);
+        }, 2000);
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (saveError) {
+      console.error('Error saving award data:', saveError);
+      setStatus('error');
+      setError(saveError.response?.data?.message || 'Failed to save award data.');
       setTimeout(() => {
         setStatus(null);
-      }, 2000);
-    }, 1000);
+      }, 3000);
+    }
   };
 
   const handleInputChange = (index, field, value) => {
@@ -165,6 +211,51 @@ const AwardsForm = ({ data, onUpdate }) => {
     return format(new Date(date), 'MMMM yyyy');
   };
 
+  // Skeleton loader function
+  const renderLoadingAwardCard = (key) => (
+    <div key={key} className={commonClasses.card}>
+      <div className={commonClasses.grid}>
+        <div>
+          <label className={commonClasses.label}>Title*</label>
+          <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+        </div>
+        <div>
+          <label className={commonClasses.label}>Issuer*</label>
+          <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+        </div>
+      </div>
+      <div className="mt-4">
+        <label className={commonClasses.label}>Date*</label>
+        <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+      </div>
+      <div className="mt-4">
+        <label className={commonClasses.label}>Image URL</label>
+        <div className={commonClasses.loadingPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+      </div>
+      <div className="mt-4">
+        <label className={commonClasses.label}>Description</label>
+        <div className={commonClasses.loadingTextareaPlaceholder}><Spinner size="sm" color="orange-500" /></div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className={commonClasses.section}>
+        <div className={commonClasses.infoBox}>
+          <p className={commonClasses.infoText}>Add your awards and achievements to showcase your recognition and accomplishments.</p>
+        </div>
+        <div className="space-y-4">
+          {renderLoadingAwardCard('loading-award-0')}
+        </div>
+        <button type="button" disabled className={`${commonClasses.addButton} bg-gray-100 text-gray-400 cursor-not-allowed`}>
+          <FiPlus className="w-4 h-4" /> Add Award
+        </button>
+        <button disabled className={`${commonClasses.button} ${commonClasses.buttonDisabled}`}>Loading...</button>
+      </div>
+    );
+  }
+
   return (
     <div className={commonClasses.section}>
       <div className={commonClasses.infoBox}>
@@ -180,7 +271,7 @@ const AwardsForm = ({ data, onUpdate }) => {
           <p className="text-gray-500 mb-4">Add your awards to showcase your recognition and accomplishments</p>
           <button
             onClick={handleAddAward}
-            className={commonClasses.addButton}
+            className={`${commonClasses.addButton} max-w-xs mx-auto`}
           >
             <FiPlus className="w-4 h-4" />
             Add Award
@@ -206,7 +297,7 @@ const AwardsForm = ({ data, onUpdate }) => {
                     <label className={commonClasses.label}>Title*</label>
                     <input
                       type="text"
-                      value={award.title}
+                      value={award.title || ''}
                       onChange={(e) => handleInputChange(index, 'title', e.target.value)}
                       className={fieldErrors[`${index}-title`] ? commonClasses.inputError : commonClasses.input}
                       placeholder="Award Title"
@@ -238,8 +329,8 @@ const AwardsForm = ({ data, onUpdate }) => {
                     </div>
                     <input
                       type="month"
-                      value={award.date ? format(new Date(award.date), 'yyyy-MM') : ''}
-                      onChange={(e) => handleInputChange(index, 'date', new Date(e.target.value))}
+                      value={award.date || ''}
+                      onChange={(e) => handleInputChange(index, 'date', e.target.value)}
                       className={`${fieldErrors[`${index}-date`] ? commonClasses.inputError : commonClasses.input} pl-10`}
                     />
                   </div>
@@ -282,32 +373,29 @@ const AwardsForm = ({ data, onUpdate }) => {
             className={commonClasses.addButton}
           >
             <FiPlus className="w-4 h-4" />
-            Add Award
+            Add Another Award
           </button>
         </div>
       )}
 
       <button
         onClick={handleSaveAwards}
-        className={`w-full px-4 py-2 rounded-md text-white ${
-          status === 'saving' 
-            ? commonClasses.buttonDisabled
-            : status === 'success' 
-              ? commonClasses.buttonSuccess
-              : status === 'error' 
-                ? commonClasses.buttonError
-                : commonClasses.buttonPrimary
+        className={`${commonClasses.button} ${
+          status === 'saving' ? commonClasses.buttonDisabled :
+          status === 'success' ? commonClasses.buttonSuccess :
+          status === 'error' ? commonClasses.buttonError :
+          commonClasses.buttonPrimary
         }`}
         disabled={status === 'saving'}
       >
-        {status === 'saving' 
-          ? 'Saving...' 
-          : status === 'success' 
-            ? 'Saved!' 
-            : status === 'error' 
-              ? error || 'Error'
-              : 'Save Awards'}
+        {status === 'saving' ? 'Saving...' :
+         status === 'success' ? 'Saved Successfully!' :
+         status === 'error' ? error || 'Save Failed - Check Fields' :
+         'Save Awards'}
       </button>
+      {status === 'error' && !Object.keys(fieldErrors).length && error && (
+        <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
+      )}
     </div>
   );
 };
