@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { saveBasicInfo, saveAboutInfo, getAboutInfo, upload, getBasicInfo, saveSkillsInfo, getSkillsInfo, saveExperienceInfo, getExperienceInfo, saveProjectsInfo, getProjectsInfo, updateSectionVisibility, getSectionVisibility, getTemplateSections, getEducationInfo, saveEducationInfo, getPublicationsInfo, savePublicationsInfo, getCertificationsInfo, saveCertificationsInfo, getAwardsInfo, saveAwardsInfo } = require('../controllers/PortfolioDataController');
+const { saveBasicInfo, saveAboutInfo, getAboutInfo, upload, getBasicInfo, saveSkillsInfo, getSkillsInfo, saveExperienceInfo, getExperienceInfo, saveProjectsInfo, getProjectsInfo, updateSectionVisibility, getSectionVisibility, getTemplateSections, getEducationInfo, saveEducationInfo, getPublicationsInfo, savePublicationsInfo, getCertificationsInfo, saveCertificationsInfo, getAwardsInfo, saveAwardsInfo, getServicesInfo, saveServicesInfo } = require('../controllers/PortfolioDataController');
 const PortfolioData = require('../models/PortfolioData');
 
 // // Get complete portfolio data
@@ -385,6 +385,10 @@ router.post('/certifications/:userId', saveCertificationsInfo);
 // Awards routes
 router.get('/awards/:userId', getAwardsInfo);
 router.post('/awards/:userId', saveAwardsInfo);
+
+// Services routes
+router.get('/services/:userId', getServicesInfo);
+router.post('/services/:userId', saveServicesInfo);
 
 // Section visibility routes
 router.put('/section-visibility/:userId', updateSectionVisibility);

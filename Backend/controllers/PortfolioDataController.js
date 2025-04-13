@@ -598,6 +598,77 @@ exports.getAwardsInfo = async (req, res) => {
     }
 };
 
+// Save services information
+exports.saveServicesInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[saveServicesInfo] Saving services for user: ${userId}`);
+        const servicesData = req.body.services || [];
+        console.log('Request body (services):', servicesData);
+
+        if (!Array.isArray(servicesData)) {
+             return res.status(400).json({ message: 'Invalid services data format. Expected an array.' });
+        }
+
+        let portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio) {
+            return res.status(404).json({ message: 'Portfolio not found' });
+        }
+
+        // Map data, ensuring features is always an array
+        portfolio.services = servicesData.map(service => ({
+            title: service.title,
+            description: service.description,
+            image: service.image,
+            price: service.price,
+            features: Array.isArray(service.features) ? service.features : [], // Ensure features is an array
+            isVisible: service.isVisible !== undefined ? service.isVisible : true
+        }));
+
+        await portfolio.save();
+        console.log(`[saveServicesInfo] Successfully saved services for user: ${userId}`);
+
+        res.json({
+            message: 'Services information updated successfully',
+            data: portfolio.services
+        });
+    } catch (error) {
+        console.error('[saveServicesInfo] Error:', error);
+        res.status(500).json({ message: 'Error saving services information', error: error.message });
+    }
+};
+
+// Get services information
+exports.getServicesInfo = async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        console.log(`[getServicesInfo] Getting services for user: ${userId}`);
+
+        const portfolio = await PortfolioData.findOne({ userId });
+        if (!portfolio || !portfolio.services) {
+             console.log(`[getServicesInfo] Portfolio or services not found for user: ${userId}. Returning empty array.`);
+            return res.json({
+                message: 'Services information retrieved successfully (or empty)',
+                data: []
+            });
+        }
+
+        console.log(`[getServicesInfo] Successfully retrieved services for user: ${userId}`);
+        // Ensure features is always an array in the response
+        const responseData = portfolio.services.map(service => ({
+             ...service.toObject(), // Convert Mongoose doc to plain object if needed
+             features: Array.isArray(service.features) ? service.features : []
+        }));
+        res.json({
+            message: 'Services information retrieved successfully',
+            data: responseData
+        });
+    } catch (error) {
+        console.error('[getServicesInfo] Error:', error);
+        res.status(500).json({ message: 'Error retrieving services information', error: error.message });
+    }
+};
+
 // Update section visibility settings
 exports.updateSectionVisibility = async (req, res) => {
     try {

@@ -3,7 +3,7 @@ import { useParams, useLocation } from 'react-router-dom';
 import useTemplateStore from '../../store/userTemplateStore';
 import useAuthStore from '../../store/userAuthStore';
 import { templateComponents } from '../../RenderedTemplate/templateComponents';
-import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool, FiSettings, FiTrash2, FiCheck, FiX } from 'react-icons/fi';
+import { FiUser, FiInfo, FiCode, FiBriefcase, FiBook, FiAward, FiFileText, FiStar, FiTool, FiSettings, FiTrash2, FiCheck, FiX, FiServer } from 'react-icons/fi';
 import { FaCode, FaServer, FaDatabase, FaTools, FaCloud, FaEnvelope, FaMapMarkerAlt, FaPhone, FaGlobe } from 'react-icons/fa';
 import profile from "../../assets/profile.png";
 import { showNotification } from '../../utils/notifications';
@@ -21,6 +21,7 @@ import EducationForm from './forms/EducationForm';
 import PublicationsForm from './forms/PublicationsForm';
 import CertificationsForm from './forms/CertificationsForm';
 import AwardsForm from './forms/AwardsForm';
+import ServicesForm from './forms/ServicesForm';
 import SettingsForm from './forms/SettingsForm';
 
 // API base URL
@@ -45,6 +46,7 @@ const TemplateEditor = () => {
     { id: 'certifications', label: 'Certifications', icon: <FiAward /> },
     { id: 'awards', label: 'Awards', icon: <FiStar /> },
     { id: 'projects', label: 'Projects', icon: <FiFileText /> },
+    { id: 'services', label: 'Services', icon: <FiServer /> },
     { id: 'settings', label: 'Settings', icon: <FiSettings />, required: true }
   ];
   const [sections, setSections] = useState(initialSections);
@@ -364,6 +366,7 @@ const TemplateEditor = () => {
       case 'publications': FormComponent = PublicationsForm; break;
       case 'certifications': FormComponent = CertificationsForm; break;
       case 'awards': FormComponent = AwardsForm; break;
+      case 'services': FormComponent = ServicesForm; break;
       case 'settings': FormComponent = SettingsForm; break;
       default: return <div id={formContainerId}>Select a section</div>;
     }
