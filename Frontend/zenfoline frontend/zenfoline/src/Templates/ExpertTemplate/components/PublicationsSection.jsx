@@ -70,7 +70,6 @@ const PublicationsSection = ({ data, theme }) => {
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/400x200?text=Publication+Image';
-                    e.target.style.display = 'none';
                   }}
                 />
               </div>

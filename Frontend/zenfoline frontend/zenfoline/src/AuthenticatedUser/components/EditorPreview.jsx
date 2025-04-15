@@ -126,7 +126,8 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
           publisher: pub.publisher || '',
           date: pub.publicationDate || '',
           description: pub.description || '',
-          url: pub.url || ''
+          url: pub.url || '',
+          image: pub.image || ''
         }));
       }
 

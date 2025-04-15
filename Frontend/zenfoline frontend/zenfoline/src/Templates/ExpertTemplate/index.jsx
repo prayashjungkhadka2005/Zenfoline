@@ -16,6 +16,7 @@ import CertificationsSection from './components/CertificationsSection';
 import ServicesSection from './components/ServicesSection';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 import { getThemeColors } from './styles/theme';
 
 const ExpertPortfolioTemplate = ({ 
@@ -140,6 +141,7 @@ const ExpertPortfolioTemplate = ({
       }
 
       <Footer theme={currentTheme} />
+      <ScrollToTop theme={currentTheme} />
     </div>
   );
 };

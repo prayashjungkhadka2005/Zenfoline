@@ -33,7 +33,7 @@ const ProjectsSection = ({ data, theme }) => {
 
   const tagStyle = {
     backgroundColor: theme.highlight,
-    opacity: 0.3,
+    opacity: 0.9,
     color: theme.text,
     padding: '0.25rem 0.5rem',
     borderRadius: '9999px',
