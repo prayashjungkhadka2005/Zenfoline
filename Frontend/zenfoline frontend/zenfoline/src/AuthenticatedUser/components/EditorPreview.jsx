@@ -6,199 +6,201 @@ import { FiMonitor, FiSmartphone, FiMaximize, FiShare2, FiX } from 'react-icons/
 import IframePreview from './IframePreview';
 
 const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotification, sectionVisibility, previewMode, setPreviewMode }) => {
-  const [loadingState, setLoadingState] = useState({
-    data: true
+  // --- LOG PROPS --- 
+  console.log("\n--- EditorPreview RENDER START ---");
+  console.log("EditorPreview RENDER: formData prop:", JSON.stringify(formData)?.substring(0, 300) + '...'); // Log truncated data
+  console.log("EditorPreview RENDER: sectionVisibility prop:", JSON.stringify(sectionVisibility));
+  // --- END LOG PROPS ---
+
+  const [loadingState, setLoadingState] = useState({ data: true });
+  // Use state for derived values that need to be passed down
+  const [derivedProps, setDerivedProps] = useState({ 
+    processedData: null, 
+    sectionsForTemplate: [] 
   });
-  const [availableSections, setAvailableSections] = useState([]);
-  const [processedFormData, setProcessedFormData] = useState(formData);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  // Update processedFormData when formData changes
+  // Combined effect for processing data and calculating available sections
   useEffect(() => {
+    console.log("EditorPreview EFFECT [formData, sectionVisibility] START");
+    let newProcessedData = null;
+    let newAvailableSections = [];
+    let dataIsLoading = true;
+
+    // --- Determine availableSections FIRST ---
+    if (sectionVisibility && Object.keys(sectionVisibility).length > 0) {
+      console.log("EditorPreview EFFECT: Processing sectionVisibility:", JSON.stringify(sectionVisibility));
+
+      // Check the structure of the first value (excluding potential 'customSections')
+      const firstSectionKey = Object.keys(sectionVisibility).find(k => k !== 'customSections');
+      const isComplexStructure = firstSectionKey && typeof sectionVisibility[firstSectionKey] === 'object' && sectionVisibility[firstSectionKey] !== null && 'isEnabled' in sectionVisibility[firstSectionKey];
+
+      if (isComplexStructure) {
+        console.log("EditorPreview EFFECT: Detected COMPLEX sectionVisibility structure.");
+        newAvailableSections = Object.entries(sectionVisibility)
+          .filter(([key, value]) => key !== 'customSections' && value && value.isEnabled === true) // Filter complex structure
+          .map(([key]) => key);
+      } else {
+        console.log("EditorPreview EFFECT: Detected FLAT sectionVisibility structure.");
+        newAvailableSections = Object.entries(sectionVisibility)
+          .filter(([key, isEnabled]) => key !== 'customSections' && isEnabled === true) // Filter flat structure
+          .map(([key]) => key);
+      }
+      console.log("EditorPreview EFFECT: Calculated availableSections:", newAvailableSections);
+
+    } else {
+      console.log("EditorPreview EFFECT: sectionVisibility empty, using fallback.");
+      const templateSections = activeTemplate?.sections || [];
+      newAvailableSections = templateSections
+        .filter(section => section.enabled !== false)
+        .map(s => s.id);
+      console.log("EditorPreview EFFECT: Fallback availableSections:", newAvailableSections);
+    }
+
+    // --- Process formData --- 
     if (formData) {
-      // Create a deep copy of formData to avoid reference issues
-      const newFormData = JSON.parse(JSON.stringify(formData));
+      console.log("EditorPreview EFFECT: Processing formData");
+      newProcessedData = JSON.parse(JSON.stringify(formData));
       
-      // Format basics section
-      if (newFormData.basics) {
-        newFormData.basics = {
-          ...newFormData.basics,
-          name: newFormData.basics.name || '',
-          title: newFormData.basics.role || '',
-          summary: newFormData.basics.bio || '',
-          email: newFormData.basics.email || '',
-          phone: newFormData.basics.phone || '',
-          location: newFormData.basics.location || '',
-          profileImage: newFormData.basics.profileImage || null
+      // Format basics section (Example - keep all formatting logic)
+      if (newProcessedData.basics) {
+        newProcessedData.basics = {
+          ...newProcessedData.basics,
+          name: newProcessedData.basics.name || '',
+          title: newProcessedData.basics.role || '',
+          summary: newProcessedData.basics.bio || '',
+          email: newProcessedData.basics.email || '',
+          phone: newProcessedData.basics.phone || '',
+          location: newProcessedData.basics.location || '',
+          profileImage: newProcessedData.basics.profileImage || null
         };
       }
-
-      // Format about section
-      if (newFormData.about) {
-        newFormData.about = {
-          ...newFormData.about,
-          description: newFormData.about.description || '',
-          highlights: newFormData.about.highlights || []
+      // ... include ALL other formatting logic here (about, skills, projects, etc.) ...
+       // Format about section
+      if (newProcessedData.about) {
+        newProcessedData.about = {
+          ...newProcessedData.about,
+          description: newProcessedData.about.description || '',
+          highlights: newProcessedData.about.highlights || []
         };
       }
 
       // Format skills section
-      if (newFormData.skills) {
-        // Check if skills is an array (from API) or an object (from form)
-        if (Array.isArray(newFormData.skills)) {
-          // Convert array format to object format
-          const technicalSkills = newFormData.skills.filter(skill => skill.category === 'Technical');
-          const softSkills = newFormData.skills.filter(skill => skill.category === 'Soft');
-          
-          newFormData.skills = {
-            technical: technicalSkills,
-            soft: softSkills
-          };
+      if (newProcessedData.skills) {
+        if (Array.isArray(newProcessedData.skills)) {
+          const technicalSkills = newProcessedData.skills.filter(skill => skill.category === 'Technical');
+          const softSkills = newProcessedData.skills.filter(skill => skill.category === 'Soft');
+          newProcessedData.skills = { technical: technicalSkills, soft: softSkills };
         } else {
-          // Already in object format
-          newFormData.skills = {
-            technical: newFormData.skills.technical || [],
-            soft: newFormData.skills.soft || []
-          };
+          newProcessedData.skills = { technical: newProcessedData.skills.technical || [], soft: newProcessedData.skills.soft || [] };
         }
       }
 
       // Format experience section
-      if (newFormData.experience) {
-        newFormData.experience = (newFormData.experience || []).map(exp => ({
-          ...exp,
-          company: exp.company || '',
-          title: exp.title || '',
-          position: exp.title || '',
-          location: exp.location || '',
-          startDate: exp.startDate || '',
-          endDate: exp.isCurrentPosition ? null : (exp.endDate || ''),
-          current: exp.isCurrentPosition || false,
-          description: exp.description || '',
-          achievements: exp.achievements || []
+      if (newProcessedData.experience) {
+        newProcessedData.experience = (newProcessedData.experience || []).map(exp => ({
+          ...exp, company: exp.company || '', title: exp.title || '', position: exp.title || '', location: exp.location || '', startDate: exp.startDate || '', endDate: exp.isCurrentPosition ? null : (exp.endDate || ''), current: exp.isCurrentPosition || false, description: exp.description || '', achievements: exp.achievements || []
         }));
       }
 
-      // Format projects section
-      if (newFormData.projects) {
-        newFormData.projects = (newFormData.projects || []).map(project => {
-          // Handle both base64 and file path image formats
+       // Format projects section
+      if (newProcessedData.projects) {
+        newProcessedData.projects = (newProcessedData.projects || []).map(project => {
           let processedImages = [];
           if (project.images && project.images.length > 0) {
-            processedImages = project.images.map(img => {
-              if (img.startsWith('data:image')) {
-                // Base64 image
-                return img;
-              } else if (img.startsWith('/uploads/')) {
-                // File path - construct full URL
-                return `${window.location.origin}${img}`;
-              }
-              return img;
-            });
+            processedImages = project.images.map(img => img.startsWith('data:image') ? img : (img.startsWith('/uploads/') ? `${window.location.origin}${img}` : img));
           } else if (project.image) {
-            // Fallback to image field - handle both base64 and file path
-            if (project.image.startsWith('data:image')) {
-              processedImages = [project.image];
-            } else if (project.image.startsWith('/uploads/')) {
-              processedImages = [`${window.location.origin}${project.image}`];
-            } else {
-              processedImages = [project.image];
-            }
+            processedImages = [project.image.startsWith('data:image') ? project.image : (project.image.startsWith('/uploads/') ? `${window.location.origin}${project.image}` : project.image)];
           }
-          
-          return {
-            ...project,
-            title: project.title || '',
-            description: project.description || '',
-            technologies: project.technologies || [],
-            images: processedImages,
-            liveUrl: project.liveUrl || project.liveLink || '',
-            sourceUrl: project.sourceUrl || project.sourceCode || '',
-            isVisible: project.isVisible !== false
-          };
+          return { ...project, title: project.title || '', description: project.description || '', technologies: project.technologies || [], images: processedImages, liveUrl: project.liveUrl || project.liveLink || '', sourceUrl: project.sourceUrl || project.sourceCode || '', isVisible: project.isVisible !== false };
         });
       }
 
       // Format publications section
-      if (newFormData.publications) {
-        newFormData.publications = (newFormData.publications || []).map(pub => ({
-          ...pub,
-          title: pub.title || '',
-          publisher: pub.publisher || '',
-          date: pub.publicationDate || '',
-          description: pub.description || '',
-          url: pub.url || '',
-          image: pub.image || ''
-        }));
+      if (newProcessedData.publications) {
+        newProcessedData.publications = (newProcessedData.publications || []).map(pub => ({ ...pub, title: pub.title || '', publisher: pub.publisher || '', date: pub.publicationDate || '', description: pub.description || '', url: pub.url || '', image: pub.image || '' }));
       }
 
       // Format certifications section
-      if (newFormData.certifications) {
-        newFormData.certifications = (newFormData.certifications || []).map(cert => ({
-          ...cert,
-          name: cert.name || '',
-          issuer: cert.issuer || '',
-          issueDate: cert.issueDate || '',
-          expiryDate: cert.expiryDate || '',
-          credentialId: cert.credentialId || '',
-          credentialUrl: cert.credentialUrl || ''
-        }));
+      if (newProcessedData.certifications) {
+        newProcessedData.certifications = (newProcessedData.certifications || []).map(cert => ({ ...cert, name: cert.name || '', issuer: cert.issuer || '', issueDate: cert.issueDate || '', expiryDate: cert.expiryDate || '', credentialId: cert.credentialId || '', credentialUrl: cert.credentialUrl || '' }));
       }
 
       // Format services section
-      if (newFormData.services) {
-        newFormData.services = (newFormData.services || []).map(service => ({
-          ...service,
-          title: service.title || '',
-          description: service.description || '',
-          icon: service.icon || 'FaCode'
-        }));
+      if (newProcessedData.services) {
+        newProcessedData.services = (newProcessedData.services || []).map(service => ({ ...service, title: service.title || '', description: service.description || '', icon: service.icon || 'FaCode' }));
       }
-      
-      setProcessedFormData(newFormData);
-    }
-  }, [formData]);
 
-  // Determine availableSections based on the sectionVisibility prop
-  useEffect(() => {
-    if (sectionVisibility && Object.keys(sectionVisibility).length > 0) {
-      const enabledSections = Object.entries(sectionVisibility)
-        .filter(([key, value]) => value.isEnabled)
-        .sort(([, a], [, b]) => a.order - b.order)
-        .map(([key]) => key);
-      setAvailableSections(enabledSections);
+      console.log("EditorPreview EFFECT: Finished initial data formatting.");
     } else {
-      const templateSections = activeTemplate?.sections || []; 
-      setAvailableSections(templateSections.filter(section => section.enabled !== false).map(s => s.id));
+       console.log("EditorPreview EFFECT: formData is null/undefined, initializing empty object.");
+       newProcessedData = {}; // Start with an empty object if formData is null
     }
-    setLoadingState(prev => ({ ...prev, data: false }));
-  }, [sectionVisibility, activeTemplate]);
+    
+    // --- Ensure keys exist for all available sections --- 
+    console.log("EditorPreview EFFECT: Ensuring data keys exist for available sections.");
+    newAvailableSections.forEach(sectionId => {
+      if (!(sectionId in newProcessedData)) {
+        console.log(`EditorPreview EFFECT: Initializing placeholder data for missing section: ${sectionId}`);
+        // Initialize with empty array/object based on common patterns
+        if (['experience', 'projects', 'education', 'publications', 'certifications', 'awards', 'services', 'highlights'].includes(sectionId)) {
+           newProcessedData[sectionId] = [];
+        } else if (sectionId === 'skills') {
+           newProcessedData[sectionId] = { technical: [], soft: [] };
+        } else if (sectionId === 'about'){
+           newProcessedData[sectionId] = { description: '', highlights: [] };
+        } else if (sectionId === 'basics'){ // Ensure basics has a placeholder if enabled but missing
+           newProcessedData[sectionId] = { name: '', role: '', bio: '', email: '', phone: '', location: '', profileImage: null };
+        } else {
+           newProcessedData[sectionId] = {}; // Default to object
+        }
+      }
+    });
+    console.log("EditorPreview EFFECT: Finished ensuring data keys.");
 
-  // Check if section has data
+    // --- Update State --- 
+    setDerivedProps({ 
+      processedData: newProcessedData, 
+      sectionsForTemplate: newAvailableSections 
+    });
+
+    // --- Update Loading State --- 
+    dataIsLoading = !newProcessedData; // Loading if no processed data object exists
+    setLoadingState({ data: dataIsLoading });
+
+    console.log("EditorPreview EFFECT [formData, sectionVisibility] END");
+
+  }, [formData, sectionVisibility, activeTemplate]); // Dependencies
+
+
+  // Check if section has data (now uses derivedProps.processedData)
   const hasSectionData = (sectionId) => {
-    if (!processedFormData || !processedFormData[sectionId]) return false;
+    const currentProcessedData = derivedProps.processedData;
+    // Log here to see what processedData is when check is called
+    // console.log(`EditorPreview: hasSectionData check for ${sectionId}, processedData keys: ${currentProcessedData ? Object.keys(currentProcessedData) : 'null'}`); 
+    if (!currentProcessedData || !currentProcessedData[sectionId]) return false;
     
     switch (sectionId) {
       case 'basics':
-        return processedFormData.basics?.name || processedFormData.basics?.title || processedFormData.basics?.summary;
+        return currentProcessedData.basics?.name || currentProcessedData.basics?.title || currentProcessedData.basics?.summary;
       case 'about':
-        return processedFormData.about?.description && processedFormData.about.description.trim() !== '';
+        return currentProcessedData.about?.description && currentProcessedData.about.description.trim() !== '';
       case 'skills':
-        return processedFormData.skills?.technical?.length > 0 || processedFormData.skills?.soft?.length > 0;
+        return currentProcessedData.skills?.technical?.length > 0 || currentProcessedData.skills?.soft?.length > 0;
       case 'experience':
-        return processedFormData.experience?.length > 0;
+        return currentProcessedData.experience?.length > 0;
       case 'education':
-        return processedFormData.education?.length > 0;
+        return currentProcessedData.education?.length > 0;
       case 'projects':
-        return processedFormData.projects?.length > 0;
+        return currentProcessedData.projects?.length > 0;
       case 'publications':
-        return processedFormData.publications?.length > 0;
+        return currentProcessedData.publications?.length > 0;
       case 'certifications':
-        return processedFormData.certifications?.length > 0;
+        return currentProcessedData.certifications?.length > 0;
       case 'awards':
-        return processedFormData.awards?.length > 0;
+        return currentProcessedData.awards?.length > 0;
       case 'services':
-        return processedFormData.services?.length > 0;
+        return currentProcessedData.services?.length > 0;
       default:
         return false;
     }
@@ -215,6 +217,13 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
   };
+  
+  // --- LOG STATE BEFORE RENDER --- 
+  console.log("EditorPreview RENDER: loadingState:", loadingState);
+  console.log("EditorPreview RENDER: derivedProps.processedData keys:", derivedProps.processedData ? Object.keys(derivedProps.processedData) : 'null');
+  console.log("EditorPreview RENDER: derivedProps.sectionsForTemplate:", derivedProps.sectionsForTemplate);
+  console.log("--- EditorPreview RENDER END ---");
+  // --- END LOG STATE BEFORE RENDER ---
 
   return (
     <>
@@ -283,8 +292,8 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
             </div>
           </div>
           <div className="flex-1 overflow-hidden bg-gradient-to-br from-gray-100 to-blue-50 flex justify-center items-start">
-            <div className="shadow-lg border border-gray-300 bg-white relative w-full h-full flex justify-center items-center overflow-hidden">
-              {loadingState.data && (
+             <div className="shadow-lg border border-gray-300 bg-white relative w-full h-full flex justify-center items-center overflow-hidden">
+               {loadingState.data && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500 mx-auto"></div>
@@ -302,19 +311,19 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
               
               {!loadingState.data && TemplateComponent && (
                 <IframePreview 
-                  key={activeTemplate?.predefinedTemplate || 'no-template'}
                   width={iframeWidth}
                   height={iframeHeight}
-                  fontStyle={fontStyle}
+                  fontStyle={fontStyle || derivedProps.processedData?.theme?.fontStyle}
                 >
                   <TemplateProvider mode="preview">
                     <TemplateComponent 
                       template={activeTemplate} 
-                      data={processedFormData}
+                      data={derivedProps.processedData}
                       fontStyle={fontStyle}
-                      availableSections={availableSections}
+                      availableSections={derivedProps.sectionsForTemplate}
                       checkSectionData={hasSectionData}
                       sectionVisibility={sectionVisibility}
+                      isPreviewMode={true}
                     />
                   </TemplateProvider>
                 </IframePreview>
@@ -340,19 +349,19 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
           <div className="h-[calc(100vh-4rem)] overflow-hidden">
             {!loadingState.data && TemplateComponent && (
               <IframePreview 
-                key={activeTemplate?.predefinedTemplate || 'no-template'}
                 width="100%"
                 height="100%"
-                fontStyle={fontStyle}
+                fontStyle={fontStyle || derivedProps.processedData?.theme?.fontStyle}
               >
                 <TemplateProvider mode="preview">
                   <TemplateComponent 
                     template={activeTemplate} 
-                    data={processedFormData}
+                    data={derivedProps.processedData}
                     fontStyle={fontStyle}
-                    availableSections={availableSections}
+                    availableSections={derivedProps.sectionsForTemplate}
                     checkSectionData={hasSectionData}
                     sectionVisibility={sectionVisibility}
+                    isPreviewMode={true}
                   />
                 </TemplateProvider>
               </IframePreview>

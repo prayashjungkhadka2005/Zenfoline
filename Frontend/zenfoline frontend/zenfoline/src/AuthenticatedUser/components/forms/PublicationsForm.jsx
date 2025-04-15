@@ -51,7 +51,7 @@ const PublicationsForm = ({ data, onUpdate }) => {
           }));
           setPublications(formattedData);
           onUpdate(formattedData);
-        } else {
+      } else {
           setPublications([]);
           onUpdate([]);
         }
@@ -139,11 +139,11 @@ const PublicationsForm = ({ data, onUpdate }) => {
     let allErrors = {};
     
     if (publications.length > 0) {
-      for (let i = 0; i < publications.length; i++) {
-        const { isValid: entryValid, errors } = validatePublication(publications[i], i);
-        if (!entryValid) {
-          isValid = false;
-          allErrors = { ...allErrors, ...errors };
+    for (let i = 0; i < publications.length; i++) {
+      const { isValid: entryValid, errors } = validatePublication(publications[i], i);
+      if (!entryValid) {
+        isValid = false;
+        allErrors = { ...allErrors, ...errors };
         }
       }
     }
@@ -181,7 +181,7 @@ const PublicationsForm = ({ data, onUpdate }) => {
         setPublications(formattedData);
         onUpdate(formattedData);
         setStatus('success');
-        setTimeout(() => {
+    setTimeout(() => {
           setStatus(null);
         }, 2000);
       } else {
