@@ -77,21 +77,19 @@ const AwardsSection = ({ data, theme }) => {
             whileHover={{ y: -5 }}
           >
             {award.image && (
-              <motion.div 
-                className="w-full h-64 overflow-hidden rounded-t-[1rem]"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.3 }}
-              >
-                <img 
+              <div className="w-full h-64 overflow-hidden rounded-t-[1rem]">
+                <motion.img 
                   src={award.image} 
                   alt={award.title}
                   className="w-full h-full object-cover"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = 'https://via.placeholder.com/400x200?text=Award+Image';
                   }}
                 />
-              </motion.div>
+              </div>
             )}
             
             <div className="p-6 flex flex-col flex-grow">
