@@ -10,6 +10,7 @@ import AboutSection from './components/AboutSection';
 import SkillsSection from './components/SkillsSection';
 import ProjectsSection from './components/ProjectsSection';
 import ExperienceSection from './components/ExperienceSection';
+import EducationSection from './components/EducationSection';
 import PublicationsSection from './components/PublicationsSection';
 import CertificationsSection from './components/CertificationsSection';
 import ServicesSection from './components/ServicesSection';
@@ -53,7 +54,8 @@ const ExpertPortfolioTemplate = ({
     'basics', 
     'about', 
     'skills', 
-    'experience', 
+    'experience',
+    'education',
     'projects', 
     'publications', 
     'certifications', 
@@ -117,6 +119,9 @@ const ExpertPortfolioTemplate = ({
         }
         {sectionsToRender.includes('experience') && checkSectionData('experience') && 
           <ExperienceSection data={data.experience} theme={currentTheme} />
+        }
+        {sectionsToRender.includes('education') && checkSectionData('education') && 
+          <EducationSection data={data.education} theme={currentTheme} />
         }
         {sectionsToRender.includes('publications') && checkSectionData('publications') && 
           <PublicationsSection data={data.publications} theme={currentTheme} />
