@@ -91,7 +91,7 @@ const TemplateEditor = () => {
   const [activeTemplate, setActiveTemplate] = useState(null);
   const [sectionVisibility, setSectionVisibility] = useState({});
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
-  const [previewMode, setPreviewMode] = useState('desktop');
+  const [previewMode, setPreviewMode] = useState('responsive');
 
   // Effect to scroll to section based on hash (after loading)
   useEffect(() => {

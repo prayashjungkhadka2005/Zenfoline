@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TemplateProvider } from '../../Templates/TemplateContext';
 import { templateComponents } from '../../Templates/templateComponents';
 import axios from 'axios';
-import { FiMonitor, FiSmartphone, FiShare2 } from 'react-icons/fi';
+import { FiMonitor, FiSmartphone, FiMaximize, FiShare2 } from 'react-icons/fi';
 import IframePreview from './IframePreview';
 
 const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotification, sectionVisibility, previewMode, setPreviewMode }) => {
@@ -217,6 +217,17 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
         </h2>
         <div className={`flex items-center ${previewMode === 'mobile' ? 'space-x-2' : 'space-x-3 sm:space-x-4'}`}>
           <div className="flex items-center space-x-1 border border-gray-200 rounded-md p-0.5">
+            <button
+              onClick={() => setPreviewMode('responsive')}
+              title="Responsive Preview"
+              className={`p-1.5 rounded ${
+                previewMode === 'responsive'
+                  ? 'bg-orange-100 text-orange-600'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+              } transition-colors`}
+            >
+              <FiMaximize className="w-4 h-4" />
+            </button>
             <button
               onClick={() => setPreviewMode('desktop')}
               title="Desktop Preview"
