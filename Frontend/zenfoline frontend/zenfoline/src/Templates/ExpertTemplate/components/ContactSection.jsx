@@ -29,7 +29,7 @@ const ContactSection = ({ data, theme }) => {
     backgroundColor: theme.highlight,
     color: 'white',
     borderRadius: '9999px',
-    fontWeight: '600',
+    fontWeight: 'normal',
     transition: 'opacity 0.3s'
   };
 

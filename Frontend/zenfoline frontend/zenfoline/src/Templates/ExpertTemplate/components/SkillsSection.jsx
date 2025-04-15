@@ -50,8 +50,8 @@ const SkillsSection = ({ data, theme }) => {
     title: 'text-3xl md:text-4xl font-bold',
     skillsGrid: 'grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto',
     skillsContainer: 'grid grid-cols-1 sm:grid-cols-2 gap-4',
-    categoryTitle: 'text-2xl font-semibold',
-    skillName: 'font-semibold mb-2',
+    categoryTitle: 'text-2xl font-normal',
+    skillName: 'font-normal mb-2',
     skillLevel: 'text-xs mt-1 text-right block'
   };
 

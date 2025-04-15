@@ -38,7 +38,7 @@ const ProjectsSection = ({ data, theme }) => {
     padding: '0.25rem 0.5rem',
     borderRadius: '9999px',
     fontSize: '0.75rem',
-    fontWeight: '500'
+    fontWeight: '400'
   };
 
   const linkStyle = {
@@ -110,7 +110,7 @@ const ProjectsSection = ({ data, theme }) => {
                 />
               )}
               <div className="p-6 flex flex-col flex-grow">
-                <h3 className="text-xl font-semibold mb-2" style={projectTitleStyle}>{project.title}</h3>
+                <h3 className="text-xl font-normal mb-2" style={projectTitleStyle}>{project.title}</h3>
                 <p className="text-sm mb-4 flex-grow" style={descriptionStyle}>{project.description}</p>
                 
                 {project.technologies && project.technologies.length > 0 && (

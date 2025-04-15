@@ -194,7 +194,11 @@ const Navigation = ({ data, sectionsToRender, isPreviewMode, theme }) => {
     <nav className="fixed w-full z-40" style={navStyle}>
       <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl sm:text-2xl font-bold" style={titleStyle}>
+          <h1 
+            className="text-xl sm:text-2xl font-bold cursor-pointer hover:opacity-80 transition-opacity" 
+            style={titleStyle}
+            onClick={() => window.location.reload()}
+          >
             {data?.basics?.name || 'Developer Portfolio'}
           </h1>
           
