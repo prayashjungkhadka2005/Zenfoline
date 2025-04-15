@@ -83,12 +83,20 @@ const HeroSection = ({ data, hasSectionData, theme }) => {
               href="#contact" 
               style={secondaryButtonStyle}
               onMouseOver={(e) => {
-                e.target.style.backgroundColor = theme.highlight;
-                e.target.style.color = 'white';
+                e.currentTarget.style.backgroundColor = theme.highlight;
+                e.currentTarget.style.color = 'white';
+                const icon = e.currentTarget.querySelector('svg');
+                if (icon) {
+                  icon.style.fill = 'white';
+                }
               }}
               onMouseOut={(e) => {
-                e.target.style.backgroundColor = 'transparent';
-                e.target.style.color = theme.highlight;
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.color = theme.highlight;
+                const icon = e.currentTarget.querySelector('svg');
+                if (icon) {
+                  icon.style.fill = theme.highlight;
+                }
               }}
             >
               <FaEnvelope className="w-5 h-5" />

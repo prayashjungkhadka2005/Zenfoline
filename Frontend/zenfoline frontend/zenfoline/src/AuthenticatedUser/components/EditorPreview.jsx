@@ -288,6 +288,7 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
               key={activeTemplate?.predefinedTemplate || 'no-template'}
               width={iframeWidth}
               height={iframeHeight}
+              fontStyle={fontStyle}
             >
               <TemplateProvider mode="preview">
                 <TemplateComponent 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import WebFont from 'webfontloader';
 
-const IframePreview = ({ children, width = '100%', height = '100%', title = 'Preview' }) => {
+const IframePreview = ({ children, width = '100%', height = '100%', title = 'Preview', fontStyle = 'Poppins' }) => {
   const iframeRef = useRef(null);
   const [mountNode, setMountNode] = useState(null);
 
@@ -17,8 +18,20 @@ const IframePreview = ({ children, width = '100%', height = '100%', title = 'Pre
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>${title}</title>
             <script src="https://cdn.tailwindcss.com"></script>
+            <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+            <script>
+              WebFont.load({
+                google: {
+                  families: ['${fontStyle}']
+                }
+              });
+            </script>
             <style>
-              body { margin: 0; overflow-x: hidden; }
+              body { 
+                margin: 0; 
+                overflow-x: hidden;
+                font-family: '${fontStyle}', sans-serif;
+              }
             </style>
           </head>
           <body>
@@ -29,7 +42,7 @@ const IframePreview = ({ children, width = '100%', height = '100%', title = 'Pre
       iframeDoc.close();
       setMountNode(iframeDoc.getElementById('iframe-root'));
     }
-  }, [title]);
+  }, [title, fontStyle]);
 
   return (
     <iframe

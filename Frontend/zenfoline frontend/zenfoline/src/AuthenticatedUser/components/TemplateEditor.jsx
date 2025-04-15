@@ -125,6 +125,15 @@ const TemplateEditor = () => {
           setActiveTemplate(template);
           setLoadingProgress(30);
 
+          // Fetch theme settings
+          const themeResponse = await fetch(`${API_BASE_URL}/authenticated-user/gettheme?userId=${userId}`);
+          if (!themeResponse.ok) {
+            throw new Error('Failed to fetch theme settings');
+          }
+          const themeResult = await themeResponse.json();
+          const themeSettings = themeResult.theme || {};
+          setLoadingProgress(35);
+
           // First fetch section visibility
           const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
           if (!visibilityResponse.ok) {
@@ -175,7 +184,7 @@ const TemplateEditor = () => {
           // Wait for all enabled section data to be fetched
           await Promise.all(sectionPromises);
           
-          // Initialize form data with fetched section data
+          // Initialize form data with fetched section data and theme settings
           setFormData(prev => ({
             ...prev,
             basics: sectionData.basics || prev.basics,
@@ -190,7 +199,8 @@ const TemplateEditor = () => {
             services: sectionData.services || prev.services,
             theme: {
               ...prev.theme,
-              fontStyle: template.data?.theme?.fontStyle || prev.theme.fontStyle,
+              ...themeSettings,
+              fontStyle: themeSettings.fontStyle || template.data?.theme?.fontStyle || prev.theme.fontStyle,
               enabledSections: Object.fromEntries(
                 Object.entries(sectionVisibility).map(([key, value]) => [key, value.isEnabled])
               )
@@ -198,21 +208,19 @@ const TemplateEditor = () => {
           }));
 
           // Update section visibility state
-          setSectionVisibility(
-            Object.fromEntries(
-              Object.entries(sectionVisibility).map(([key, value]) => [key, value.isEnabled])
-            )
-          );
-
+          setSectionVisibility(sectionVisibility);
+          
+          // Update font style from theme settings
+          if (themeSettings.fontStyle) {
+            setFontStyle(themeSettings.fontStyle);
+          }
+          
           setLoadingProgress(100);
-          // Add a small delay before hiding the loading screen for smooth transition
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 500);
         }
       } catch (error) {
-        console.error('Error loading template data:', error);
-        showNotification('Error loading template data', 'error');
+        console.error('Error loading data:', error);
+        showNotification('Failed to load portfolio data. Please try again.', 'error');
+      } finally {
         setIsLoading(false);
       }
     };
@@ -220,7 +228,7 @@ const TemplateEditor = () => {
     if (userId && templateId) {
       loadData();
     }
-  }, [userId, templateId, fetchTemplates]);
+  }, [userId, templateId, templates, fetchTemplates, showNotification]);
 
   // Handle form updates
   const handleFormUpdate = (sectionId, data) => {
