@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { expertStyles } from '../styles/expertStyles';
 import { FaBars, FaTimes } from 'react-icons/fa';
 
-const Navigation = ({ data, sectionsToRender, isPreviewMode }) => {
+const Navigation = ({ data, sectionsToRender, isPreviewMode, theme }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -13,76 +12,204 @@ const Navigation = ({ data, sectionsToRender, isPreviewMode }) => {
     setIsMenuOpen(false);
   };
 
+  const navStyle = {
+    backgroundColor: isPreviewMode ? theme.primary : theme.background,
+    opacity: 1,
+    backdropFilter: 'blur(8px)',
+    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)'
+  };
+
+  const titleStyle = {
+    color: theme.text
+  };
+
+  const menuButtonStyle = {
+    color: theme.text
+  };
+
+  const linkStyle = {
+    color: theme.text,
+    transition: 'color 0.3s'
+  };
+
+  const mobileMenuStyle = {
+    backgroundColor: theme.primary,
+    borderRadius: '0.375rem',
+    marginTop: '0.5rem',
+    paddingTop: '1rem',
+    paddingBottom: '0.5rem'
+  };
+
+  const handleLinkHover = (e, isHover) => {
+    e.target.style.color = isHover ? theme.highlight : theme.text;
+  };
+
   return (
-    <nav className={`fixed w-full ${isPreviewMode ? 'bg-gray-800 top-0' : 'bg-black bg-opacity-50 backdrop-blur-sm top-0'} z-40`}>
+    <nav className="fixed w-full z-40" style={navStyle}>
       <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-xl sm:text-2xl font-bold">{data?.basics?.name || 'Developer Portfolio'}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold" style={titleStyle}>
+            {data?.basics?.name || 'Developer Portfolio'}
+          </h1>
           
-          {/* Mobile menu button - Block by default, hidden on sm and larger */}
           <button 
-            className="block sm:hidden text-white focus:outline-none"
+            className="block sm:hidden focus:outline-none"
             onClick={toggleMenu}
             aria-label="Toggle menu"
+            style={menuButtonStyle}
           >
             {isMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
           </button>
           
-          {/* Desktop menu - Hidden by default, flex on sm and larger */}
           <div className="hidden sm:flex gap-6 text-base">
             {sectionsToRender.includes('about') && (
-              <a href="#about" className="hover:text-orange-500 transition-colors">About</a>
+              <a 
+                href="#about" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+              >About</a>
             )}
             {sectionsToRender.includes('skills') && (
-              <a href="#skills" className="hover:text-orange-500 transition-colors">Skills</a>
+              <a 
+                href="#skills" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+              >Skills</a>
             )}
             {sectionsToRender.includes('projects') && (
-              <a href="#projects" className="hover:text-orange-500 transition-colors">Projects</a>
+              <a 
+                href="#projects" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+              >Projects</a>
             )}
             {sectionsToRender.includes('experience') && (
-              <a href="#experience" className="hover:text-orange-500 transition-colors">Experience</a>
+              <a 
+                href="#experience" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+              >Experience</a>
             )}
             {sectionsToRender.includes('publications') && (
-              <a href="#publications" className="hover:text-orange-500 transition-colors">Publications</a>
+              <a 
+                href="#publications" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+              >Publications</a>
             )}
             {sectionsToRender.includes('certifications') && (
-              <a href="#certifications" className="hover:text-orange-500 transition-colors">Certifications</a>
+              <a 
+                href="#certifications" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+              >Certifications</a>
             )}
             {sectionsToRender.includes('services') && (
-              <a href="#services" className="hover:text-orange-500 transition-colors">Services</a>
+              <a 
+                href="#services" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+              >Services</a>
             )}
             {sectionsToRender.includes('basics') && (
-              <a href="#contact" className="hover:text-orange-500 transition-colors">Contact</a>
+              <a 
+                href="#contact" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+              >Contact</a>
             )}
           </div>
         </div>
         
-        {/* Mobile menu - Block by default (controlled by isMenuOpen), hidden on sm and larger */}
-        <div className={`block sm:hidden ${isMenuOpen ? 'block' : 'hidden'} pt-4 pb-2`}>
-          <div className="flex flex-col space-y-3">
+        <div className={`block sm:hidden ${isMenuOpen ? 'block' : 'hidden'}`} style={mobileMenuStyle}>
+          <div className="flex flex-col space-y-3 px-4">
             {sectionsToRender.includes('about') && (
-              <a href="#about" className="hover:text-orange-500 transition-colors" onClick={closeMenu}>About</a>
+              <a 
+                href="#about" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+                onClick={closeMenu}
+                className="py-1"
+              >About</a>
             )}
             {sectionsToRender.includes('skills') && (
-              <a href="#skills" className="hover:text-orange-500 transition-colors" onClick={closeMenu}>Skills</a>
+              <a 
+                href="#skills" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+                onClick={closeMenu}
+                className="py-1"
+              >Skills</a>
             )}
             {sectionsToRender.includes('projects') && (
-              <a href="#projects" className="hover:text-orange-500 transition-colors" onClick={closeMenu}>Projects</a>
+              <a 
+                href="#projects" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+                onClick={closeMenu}
+                className="py-1"
+              >Projects</a>
             )}
             {sectionsToRender.includes('experience') && (
-              <a href="#experience" className="hover:text-orange-500 transition-colors" onClick={closeMenu}>Experience</a>
+              <a 
+                href="#experience" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+                onClick={closeMenu}
+                className="py-1"
+              >Experience</a>
             )}
             {sectionsToRender.includes('publications') && (
-              <a href="#publications" className="hover:text-orange-500 transition-colors" onClick={closeMenu}>Publications</a>
+              <a 
+                href="#publications" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+                onClick={closeMenu}
+                className="py-1"
+              >Publications</a>
             )}
             {sectionsToRender.includes('certifications') && (
-              <a href="#certifications" className="hover:text-orange-500 transition-colors" onClick={closeMenu}>Certifications</a>
+              <a 
+                href="#certifications" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+                onClick={closeMenu}
+                className="py-1"
+              >Certifications</a>
             )}
             {sectionsToRender.includes('services') && (
-              <a href="#services" className="hover:text-orange-500 transition-colors" onClick={closeMenu}>Services</a>
+              <a 
+                href="#services" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+                onClick={closeMenu}
+                className="py-1"
+              >Services</a>
             )}
             {sectionsToRender.includes('basics') && (
-              <a href="#contact" className="hover:text-orange-500 transition-colors" onClick={closeMenu}>Contact</a>
+              <a 
+                href="#contact" 
+                style={linkStyle}
+                onMouseOver={(e) => handleLinkHover(e, true)}
+                onMouseOut={(e) => handleLinkHover(e, false)}
+                onClick={closeMenu}
+                className="py-1"
+              >Contact</a>
             )}
           </div>
         </div>

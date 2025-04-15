@@ -1,85 +1,126 @@
 import React from 'react';
 import { FaCode, FaGlobe } from 'react-icons/fa';
-import { expertStyles } from '../styles/expertStyles';
 
-const ProjectsSection = ({ data }) => {
+// Accept theme prop
+const ProjectsSection = ({ data, theme }) => {
+  const titleStyle = {
+    color: theme.highlight
+  };
+
+  const textStyle = {
+    color: theme.text,
+    opacity: 0.9
+  };
+
+  const cardStyle = {
+    backgroundColor: theme.primary,
+    opacity: 0.9,
+    borderRadius: '0.5rem',
+    overflow: 'hidden',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    display: 'flex',
+    flexDirection: 'column'
+  };
+
+  const projectTitleStyle = {
+    color: theme.text
+  };
+
+  const descriptionStyle = {
+    color: theme.text,
+    opacity: 0.9
+  };
+
+  const tagStyle = {
+    backgroundColor: theme.highlight,
+    opacity: 0.3,
+    color: theme.text,
+    padding: '0.25rem 0.5rem',
+    borderRadius: '9999px',
+    fontSize: '0.75rem',
+    fontWeight: '500'
+  };
+
+  const linkStyle = {
+    color: theme.secondary,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.25rem',
+    transition: 'color 0.3s'
+  };
+
+  const handleLinkHover = (e, isHover) => {
+    e.target.style.color = isHover ? theme.highlight : theme.secondary;
+  };
+
   return (
-    <section id="projects" className="py-20 bg-black bg-opacity-50 relative">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
-      <div className="container mx-auto px-6 relative z-10">
-        <h2 className="text-4xl font-bold text-center mb-12">Featured Projects</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
-          {data.projects.map((project, index) => (
-            <div
-              key={index}
-              className="bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300"
-            >
-              <div className="relative h-56 overflow-hidden">
-                <img
-                  src={project.images && project.images.length > 0 ? project.images[0] : [
-                    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                    'https://images.unsplash.com/photo-1555066931-bf19f8e1083d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                    'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                    'https://images.unsplash.com/photo-1504639725590-34d0984388bd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-                  ][index % 4]}
-                  alt={project.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    console.error('Image load error:', e.target.src);
-                    e.target.onerror = null;
-                    e.target.src = [
-                      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                      'https://images.unsplash.com/photo-1555066931-bf19f8e1083d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                      'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                      'https://images.unsplash.com/photo-1504639725590-34d0984388bd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
-                    ][index % 4];
-                  }}
-                />
-              </div>
-              <div className="p-8">
-                <h3 className="text-2xl font-bold mb-4">{project.title}</h3>
-                <p className="text-gray-400 mb-6 line-clamp-3 text-lg">{project.description}</p>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {(Array.isArray(project.technologies) 
-                    ? project.technologies 
-                    : project.technologies?.split(',').map(tech => tech.trim())
-                  )?.map((tech, i) => (
-                    <span
-                      key={i}
-                      className="px-4 py-2 bg-orange-500 bg-opacity-20 text-orange-500 rounded-full text-sm"
-                    >
-                      {tech}
-                    </span>
+    <section id="projects" className="py-8 md:py-12">
+      <div className="text-center mb-12 md:mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4" style={titleStyle}>Projects</h2>
+        {/* Optional Subtitle */}
+        {/* <p className={`text-lg md:text-xl ${textColor} max-w-3xl mx-auto`}>Selected works showcasing my skills.</p> */}
+      </div>
+
+      {/* Using flex-grow and basis for flexible item sizing */}
+      <div className="flex flex-wrap justify-center gap-8 md:gap-10 max-w-6xl mx-auto px-4"> {/* Changed from 7xl */}
+        {data?.map((project, index) => (
+          // Removed fixed widths, added flex-grow and basis
+          <div 
+            key={index} 
+            style={cardStyle} 
+            className="flex-grow flex-shrink-0 basis-[350px] max-w-full" // Adjust basis-[...] as needed 
+          >
+            {project.images && project.images.length > 0 && (
+              <img 
+                src={project.images[0]} 
+                alt={project.title} 
+                className="w-full h-48 object-cover" 
+                onError={(e) => { e.target.style.display = 'none' }} // Hide broken images
+              />
+            )}
+            <div className="p-6 flex flex-col flex-grow">
+              <h3 className="text-xl font-semibold mb-2" style={projectTitleStyle}>{project.title}</h3>
+              <p className="text-sm mb-4 flex-grow" style={descriptionStyle}>{project.description}</p>
+              
+              {project.technologies && project.technologies.length > 0 && (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {project.technologies.map((tech, idx) => (
+                    <span key={idx} style={tagStyle}>{tech}</span>
                   ))}
                 </div>
-                <div className="flex gap-6">
-                  {project.liveUrl && (
-                    <a
-                      href={project.liveUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-orange-500 hover:text-orange-400 flex items-center gap-2 text-lg"
-                    >
-                      <FaGlobe className="w-5 h-5" />
-                      Live Demo
-                    </a>
-                  )}
-                  {project.sourceUrl && (
-                    <a
-                      href={project.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-orange-500 hover:text-orange-400 flex items-center gap-2 text-lg"
-                    >
-                      <FaCode className="w-5 h-5" />
-                      Source Code
-                    </a>
-                  )}
-                </div>
+              )}
+              
+              <div className="mt-auto flex justify-end space-x-4">
+                {project.liveUrl && (
+                  <a 
+                    href={project.liveUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={linkStyle}
+                    onMouseOver={(e) => handleLinkHover(e, true)}
+                    onMouseOut={(e) => handleLinkHover(e, false)}
+                    title="Live Demo"
+                  >
+                    <FaGlobe /> Live
+                  </a>
+                )}
+                {project.sourceUrl && (
+                  <a 
+                    href={project.sourceUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={linkStyle}
+                    onMouseOver={(e) => handleLinkHover(e, true)}
+                    onMouseOut={(e) => handleLinkHover(e, false)}
+                    title="Source Code"
+                  >
+                    <FaCode /> Code
+                  </a>
+                )}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </section>
   );

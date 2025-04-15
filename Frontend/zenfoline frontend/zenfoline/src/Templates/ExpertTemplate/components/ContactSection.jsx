@@ -1,18 +1,79 @@
 import React from 'react';
 import { FaEnvelope, FaLinkedin, FaGithub, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
-import { expertStyles } from '../styles/expertStyles';
 import { getSocialLink } from '../utils/helpers';
 
-const ContactSection = ({ data }) => {
+const ContactSection = ({ data, theme }) => {
   const basics = data?.basics || {};
   const socialLinks = data?.socialLinks || {};
   
+  const sectionStyle = {
+    backgroundColor: theme.primary,
+    opacity: 0.9
+  };
+
+  const titleStyle = {
+    color: theme.highlight
+  };
+
+  const textStyle = {
+    color: theme.text,
+    opacity: 0.9
+  };
+
+  const primaryButtonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    padding: '0.75rem 1.5rem',
+    backgroundColor: theme.highlight,
+    color: 'white',
+    borderRadius: '9999px',
+    fontWeight: '600',
+    transition: 'opacity 0.3s'
+  };
+
+  const secondaryButtonStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    padding: '0.75rem 1.5rem',
+    border: `2px solid ${theme.highlight}`,
+    color: theme.highlight,
+    borderRadius: '9999px',
+    fontWeight: '600',
+    transition: 'all 0.3s'
+  };
+
+  const infoStyle = {
+    color: theme.text,
+    opacity: 0.8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    padding: '0.75rem 1.5rem'
+  };
+
+  const iconStyle = {
+    color: theme.highlight
+  };
+
+  const handleButtonHover = (e, isHover, isPrimary) => {
+    if (isPrimary) {
+      e.target.style.opacity = isHover ? '0.9' : '1';
+    } else {
+      e.target.style.backgroundColor = isHover ? theme.highlight : 'transparent';
+      e.target.style.color = isHover ? 'white' : theme.highlight;
+    }
+  };
+
   return (
-    <section id="contact" className="py-20 bg-black bg-opacity-50 relative">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
+    <section id="contact" className="pt-8 pb-16 relative overflow-hidden" style={sectionStyle}>
       <div className="container mx-auto px-6 text-center relative z-10">
-        <h2 className="text-4xl font-bold mb-8">Let's Connect</h2>
-        <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+        <h2 className="text-4xl font-bold mb-8" style={titleStyle}>Let's Connect</h2>
+        <p className="text-xl mb-12 max-w-2xl mx-auto" style={textStyle}>
           Ready to start your next project? Get in touch!
         </p>
         
@@ -20,7 +81,9 @@ const ContactSection = ({ data }) => {
           {basics.email && (
             <a
               href={`mailto:${basics.email}`}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 rounded-full hover:bg-orange-600 transition-colors"
+              style={primaryButtonStyle}
+              onMouseOver={(e) => handleButtonHover(e, true, true)}
+              onMouseOut={(e) => handleButtonHover(e, false, true)}
             >
               <FaEnvelope className="w-5 h-5" />
               Email Me
@@ -32,7 +95,9 @@ const ContactSection = ({ data }) => {
               href={`https://linkedin.com/in/${getSocialLink('linkedin', socialLinks)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
+              style={secondaryButtonStyle}
+              onMouseOver={(e) => handleButtonHover(e, true, false)}
+              onMouseOut={(e) => handleButtonHover(e, false, false)}
             >
               <FaLinkedin className="w-5 h-5" />
               LinkedIn
@@ -44,7 +109,9 @@ const ContactSection = ({ data }) => {
               href={`https://github.com/${getSocialLink('github', socialLinks)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
+              style={secondaryButtonStyle}
+              onMouseOver={(e) => handleButtonHover(e, true, false)}
+              onMouseOut={(e) => handleButtonHover(e, false, false)}
             >
               <FaGithub className="w-5 h-5" />
               GitHub
@@ -54,7 +121,9 @@ const ContactSection = ({ data }) => {
           {basics.phone && (
             <a
               href={`tel:${basics.phone}`}
-              className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-full hover:bg-orange-500 hover:text-white transition-all"
+              style={secondaryButtonStyle}
+              onMouseOver={(e) => handleButtonHover(e, true, false)}
+              onMouseOut={(e) => handleButtonHover(e, false, false)}
             >
               <FaPhone className="w-5 h-5" />
               Call Me
@@ -62,8 +131,8 @@ const ContactSection = ({ data }) => {
           )}
           
           {basics.location && (
-            <div className="flex items-center justify-center gap-2 text-gray-300 px-6 py-3 col-span-1 sm:col-span-2 lg:col-span-1">
-              <FaMapMarkerAlt className="w-5 h-5 text-orange-500" />
+            <div className="col-span-1 sm:col-span-2 lg:col-span-1" style={infoStyle}>
+              <FaMapMarkerAlt className="w-5 h-5" style={iconStyle} />
               <span className="truncate">{basics.location}</span>
             </div>
           )}

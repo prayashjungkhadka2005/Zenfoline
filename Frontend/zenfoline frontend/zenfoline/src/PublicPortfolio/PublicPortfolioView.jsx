@@ -157,15 +157,17 @@ const PublicPortfolioView = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <TemplateProvider mode="public">
-        <TemplateComponent
-          template={template}
-          data={enhancedData}
-          fontStyle={themeSettings?.fontStyle || 'Poppins'}
-          checkSectionData={checkSectionData}
-          sectionVisibility={sectionVisibility}
-        />
+        <div className="w-full h-full">
+          <TemplateComponent
+            template={template}
+            data={enhancedData}
+            fontStyle={themeSettings?.fontStyle || 'Poppins'}
+            checkSectionData={checkSectionData}
+            sectionVisibility={sectionVisibility}
+          />
+        </div>
       </TemplateProvider>
     </div>
   );

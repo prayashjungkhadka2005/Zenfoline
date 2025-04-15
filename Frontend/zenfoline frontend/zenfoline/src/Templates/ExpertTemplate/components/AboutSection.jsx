@@ -1,31 +1,90 @@
 import React from 'react';
-import { FiCode } from 'react-icons/fi';
-import { expertStyles } from '../styles/expertStyles';
 
-const AboutSection = ({ data }) => {
+// Accept theme prop
+const AboutSection = ({ data, theme }) => {
+  const sectionStyle = {
+    position: 'relative',
+    backgroundColor: `${theme.primary}33`, // Increased opacity to ~20% (from 1A)
+    color: theme.text,
+    width: '100%',
+    overflow: 'hidden'
+  };
+
+  const containerStyle = {
+    maxWidth: '1152px',
+    margin: '0 auto',
+    padding: '4rem 1rem',
+    position: 'relative',
+    textAlign: 'center'
+  };
+
+  const titleStyle = {
+    color: theme.highlight,
+    fontSize: '2.5rem',
+    fontWeight: 'bold',
+    marginBottom: '1rem'
+  };
+
+  const titleUnderlineStyle = {
+    display: 'block',
+    width: '60px',
+    height: '4px',
+    backgroundColor: theme.highlight,
+    margin: '0.5rem auto 2rem',
+    borderRadius: '2px'
+  };
+
+  const contentTextStyle = {
+    color: theme.text,
+    fontSize: '1.15rem', // Slightly larger font size
+    lineHeight: '1.8', // Adjusted line height
+    textAlign: 'center',
+    opacity: 0.9,
+    fontWeight: '400',
+    marginBottom: '1.5rem' // Keep default margin between paragraphs
+  };
+
+  const highlightTagStyle = {
+    display: 'inline-block',
+    backgroundColor: `${theme.highlight}2A`, // Slightly more opaque tag background
+    color: theme.highlight,
+    padding: '0.3rem 0.8rem',
+    borderRadius: '0.375rem',
+    fontSize: '0.9rem',
+    fontWeight: '500',
+    lineHeight: '1.4',
+    margin: '0.25rem' 
+  };
+
   return (
-    <section id="about" className="py-20 bg-black bg-opacity-50 relative">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center opacity-5"></div>
-      <div className="container mx-auto px-6 relative z-10">
-        <h2 className="text-4xl font-bold text-center mb-12">About Me</h2>
-        <div className="max-w-3xl mx-auto">
-          <p className="text-lg text-gray-300 mb-8">{data.about.description}</p>
-          
-          {/* Vision Statement Display */}
-          {data.about.vision && (
-            <div className="mb-8 border-l-4 border-orange-500 pl-4 italic">
-              <h4 className="text-xl font-semibold mb-2 text-orange-500">My Vision</h4>
-              <p className="text-lg text-gray-300">{data.about.vision}</p>
-            </div>
+    <section id="about" style={sectionStyle} className="py-8 md:py-12">
+      <div style={containerStyle}>
+        <h2 style={titleStyle}>
+          About Me
+        </h2>
+        <div style={titleUnderlineStyle}></div>
+
+        <div>
+          {data?.description && (
+            <p style={contentTextStyle}>
+              {data.description}
+            </p>
           )}
 
-          {data.about.highlights?.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {data.about.highlights.map((highlight, index) => (
-                <div key={index} className="flex items-center space-x-3 bg-gray-800 p-4 rounded-lg">
-                  <FiCode className="text-orange-500 w-5 h-5" />
-                  <span className="text-gray-300">{highlight.text}</span>
-                </div>
+          {data?.vision && (
+            <p style={{ ...contentTextStyle, fontStyle: 'italic', opacity: 0.8, marginBottom: '2.5rem' }}>
+              {data.vision}
+            </p>
+          )}
+
+          {data?.highlights && data.highlights.filter(h => h.isVisible).length > 0 && (
+            <div className="mt-8 pt-6 border-t border-gray-700/30"> 
+              {data.highlights.map((highlight, index) => (
+                highlight.isVisible && (
+                  <span key={index} style={highlightTagStyle}>
+                    {highlight.text}
+                  </span>
+                )
               ))}
             </div>
           )}
