@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 const EditorLayout = ({ sidebar, form, preview, previewMode }) => {
   // State to track the widths of the sections
   const [sidebarWidth, setSidebarWidth] = useState(256); // 16rem = 256px
-  const [previewWidth, setPreviewWidth] = useState(45); // 45% of the container width
+  const [previewWidth, setPreviewWidth] = useState(54); // Increased default from 45% to 54%
   
   // Refs for the resize handles
   const sidebarResizeHandleRef = useRef(null);
@@ -62,7 +62,7 @@ const EditorLayout = ({ sidebar, form, preview, previewMode }) => {
   // Add useEffect to reset previewWidth when switching back to desktop mode
   useEffect(() => {
     if (previewMode === 'desktop') {
-      setPreviewWidth(45); // Reset to default percentage
+      setPreviewWidth(54); // Reset to new default percentage (54%)
     }
   }, [previewMode]);
 
@@ -102,8 +102,10 @@ const EditorLayout = ({ sidebar, form, preview, previewMode }) => {
       <div 
         className="bg-[#f8fafc] border-l border-gray-200 flex flex-col overflow-hidden"
         style={{ 
-          width: previewMode === 'desktop' ? `${previewWidth}%` : '400px',
-          transition: isResizingPreview ? 'none' : 'width 150ms ease-out'
+          width: previewMode === 'mobile' ? '375px' : 
+                 `${previewWidth}%`, // Desktop uses percentage (Tablet removed)
+          transition: isResizingPreview ? 'none' : 'width 150ms ease-out',
+          flexShrink: 0
         }}
       >
         {preview}

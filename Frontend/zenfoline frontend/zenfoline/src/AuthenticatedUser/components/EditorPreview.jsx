@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { TemplateProvider } from '../../Templates/TemplateContext';
+import { templateComponents } from '../../Templates/templateComponents';
 import axios from 'axios';
-import { FiMonitor, FiSmartphone, FiTablet, FiShare2 } from 'react-icons/fi';
+import { FiMonitor, FiSmartphone, FiShare2 } from 'react-icons/fi';
+import IframePreview from './IframePreview';
 
-const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, formData, fontStyle, userId, showNotification, sectionVisibility, previewMode, setPreviewMode }) => {
+const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotification, sectionVisibility, previewMode, setPreviewMode }) => {
   const [loadingState, setLoadingState] = useState({
     data: true
   });
@@ -116,28 +118,15 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
         });
       }
 
-      // Format education section
-      if (newFormData.education) {
-        newFormData.education = (newFormData.education || []).map(edu => ({
-          ...edu,
-          institution: edu.institution || '',
-          degree: edu.degree || '',
-          field: edu.field || '',
-          startDate: edu.startDate || '',
-          endDate: edu.endDate || '',
-          description: edu.description || ''
-        }));
-      }
-
       // Format publications section
       if (newFormData.publications) {
         newFormData.publications = (newFormData.publications || []).map(pub => ({
           ...pub,
           title: pub.title || '',
-          authors: pub.authors || '',
-          publicationDate: pub.publicationDate || '',
+          publisher: pub.publisher || '',
+          date: pub.publicationDate || '',
           description: pub.description || '',
-          link: pub.link || ''
+          url: pub.url || ''
         }));
       }
 
@@ -160,8 +149,7 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
           ...service,
           title: service.title || '',
           description: service.description || '',
-          price: service.price || '',
-          duration: service.duration || ''
+          icon: service.icon || 'FaCode'
         }));
       }
       
@@ -177,18 +165,12 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
         .sort(([, a], [, b]) => a.order - b.order)
         .map(([key]) => key);
       setAvailableSections(enabledSections);
-      console.log('Available sections from prop:', enabledSections); 
     } else {
-      // Fallback or default if visibility prop is empty/undefined
-      // You might want a more robust fallback based on activeTemplate
       const templateSections = activeTemplate?.sections || []; 
       setAvailableSections(templateSections.filter(section => section.enabled !== false).map(s => s.id));
-      console.log('Available sections (fallback):', availableSections);
     }
-    // Set data loading state to false once sections are determined
     setLoadingState(prev => ({ ...prev, data: false }));
-
-  }, [sectionVisibility, activeTemplate]); // Depend on the prop
+  }, [sectionVisibility, activeTemplate]);
 
   // Check if section has data
   const hasSectionData = (sectionId) => {
@@ -200,12 +182,7 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
       case 'about':
         return processedFormData.about?.description && processedFormData.about.description.trim() !== '';
       case 'skills':
-        // Check if skills is an array or an object
-        if (Array.isArray(processedFormData.skills)) {
-          return processedFormData.skills.length > 0;
-        } else {
-          return (processedFormData.skills?.technical?.length > 0 || processedFormData.skills?.soft?.length > 0);
-        }
+        return processedFormData.skills?.technical?.length > 0 || processedFormData.skills?.soft?.length > 0;
       case 'experience':
         return processedFormData.experience?.length > 0;
       case 'education':
@@ -224,6 +201,13 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
         return false;
     }
   };
+
+  // Get the appropriate template component
+  const TemplateComponent = templateComponents[activeTemplate?.predefinedTemplate];
+  
+  // Determine iframe dimensions based on previewMode
+  const iframeWidth = previewMode === 'mobile' ? '375px' : '100%';
+  const iframeHeight = '100%';
 
   return (
     <>
@@ -245,17 +229,6 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
               <FiMonitor className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setPreviewMode('tablet')}
-              title="Tablet Preview"
-              className={`p-1.5 rounded ${
-                previewMode === 'tablet'
-                  ? 'bg-orange-100 text-orange-600'
-                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-              } transition-colors`}
-            >
-              <FiTablet className="w-4 h-4" />
-            </button>
-            <button
               onClick={() => setPreviewMode('mobile')}
               title="Mobile Preview"
               className={`p-1.5 rounded ${
@@ -267,24 +240,6 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
               <FiSmartphone className="w-4 h-4" />
             </button>
           </div>
-          {/* Show scale slider only for desktop */}
-          {previewMode === 'desktop' && (
-            <div className="flex items-center space-x-1">
-              <label className={`text-sm text-gray-600 hidden md:block`}>Scale:</label>
-              <input
-                type="range"
-                min="0.3"
-                max="1"
-                step="0.05"
-                value={scale}
-                onChange={(e) => setScale(parseFloat(e.target.value))}
-                className={`h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500 w-16 md:w-24`}
-              />
-              <span className={`text-xs text-gray-500 w-8 text-right`}>
-                {(scale * 100).toFixed(0)}%
-              </span>
-            </div>
-          )}
           <button
             onClick={() => {
               const portfolioUrl = `${window.location.origin}/portfolio/${userId}`;
@@ -299,20 +254,8 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-100 to-blue-50 flex justify-center items-start">
-        <div
-          className={`
-            transition-all duration-300 ease-in-out shadow-lg border border-gray-300 bg-white relative
-            ${previewMode === 'mobile' ? 'w-[375px] h-full' : 
-              previewMode === 'tablet' ? 'w-[768px] h-full' : 
-              'w-full'
-            }
-          `}
-          style={{
-            transform: `scale(${scale})`,
-            transformOrigin: 'top center',
-          }}
-        >
+      <div className="flex-1 overflow-hidden bg-gradient-to-br from-gray-100 to-blue-50 flex justify-center items-start">
+        <div className="shadow-lg border border-gray-300 bg-white relative w-full h-full flex justify-center items-center overflow-hidden">
           {loadingState.data && (
             <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
               <div className="text-center">
@@ -321,8 +264,20 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
               </div>
             </div>
           )}
-          <div className={`w-full h-full overflow-hidden ${previewMode === 'mobile' || previewMode === 'tablet' ? 'overflow-y-auto' : ''}`}>
-            {!loadingState.data && TemplateComponent && (
+          
+          {!loadingState.data && !TemplateComponent && (
+            <div className="text-gray-500 text-center p-8">
+              <h2 className="text-2xl font-bold mb-2">Template Not Supported</h2>
+              <p>The template type "{activeTemplate?.predefinedTemplate}" is not currently supported.</p>
+            </div>
+          )}
+          
+          {!loadingState.data && TemplateComponent && (
+            <IframePreview 
+              key={activeTemplate?.predefinedTemplate || 'no-template'}
+              width={iframeWidth}
+              height={iframeHeight}
+            >
               <TemplateProvider mode="preview">
                 <TemplateComponent 
                   template={activeTemplate} 
@@ -333,8 +288,8 @@ const EditorPreview = ({ scale, setScale, TemplateComponent, activeTemplate, for
                   sectionVisibility={sectionVisibility}
                 />
               </TemplateProvider>
-            )}
-          </div>
+            </IframePreview>
+          )}
         </div>
       </div>
     </>

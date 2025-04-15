@@ -1,4 +1,4 @@
-import ExpertPortfolioTemplate from '../Templates/ExpertPortfolioTemplate';
+import ExpertPortfolioTemplate from '../Templates/ExpertTemplate';
 import SimplePortfolioTemplate from '../Templates/SimplePortfolioTemplate';
 
 export const templateComponents = {

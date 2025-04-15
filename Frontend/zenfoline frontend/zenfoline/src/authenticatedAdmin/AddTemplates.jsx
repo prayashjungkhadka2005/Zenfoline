@@ -4,7 +4,7 @@ import useAuthStore from '../store/userAuthStore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import SimplePortfolioTemplate from '../Templates/SimplePortfolioTemplate';
-import ExpertPortfolioTemplate from '../Templates/ExpertPortfolioTemplate';
+import ExpertPortfolioTemplate from '../Templates/ExpertTemplate';
 
 const AdminTemplates = () => {
   const {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { templateComponents } from '../RenderedTemplate/templateComponents';
+import { templateComponents } from '../Templates/templateComponents';
 import { TemplateProvider } from '../Templates/TemplateContext';
 import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
@@ -24,7 +24,7 @@ const PublicPortfolioView = () => {
       case 'about':
         return portfolioData.about?.description && portfolioData.about.description.trim() !== '';
       case 'skills':
-        return portfolioData.skills?.length > 0;
+        return portfolioData.skills?.technical?.length > 0 || portfolioData.skills?.soft?.length > 0;
       case 'experience':
         return portfolioData.experience?.length > 0;
       case 'education':
@@ -47,7 +47,6 @@ const PublicPortfolioView = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch portfolio data, template information, and theme settings
         const [portfolioResponse, templateResponse, themeResponse] = await Promise.all([
           axios.get(`http://localhost:3000/portfolio/${userId}`),
           axios.get(`http://localhost:3000/portfolio/template/${userId}`),
@@ -81,7 +80,6 @@ const PublicPortfolioView = () => {
           setPortfolioData(portfolioData);
           setTemplate(templateResponse.data.data);
           
-          // Set theme settings from the response
           if (themeResponse.data.theme) {
             setThemeSettings(themeResponse.data.theme);
           }
@@ -91,17 +89,11 @@ const PublicPortfolioView = () => {
             const config = portfolioData.sectionConfiguration;
             const transformedVisibility = {};
             Object.keys(config).forEach(key => {
-              // Ensure we only process sections with an isEnabled property
               if (config[key] && typeof config[key].isEnabled === 'boolean') {
                 transformedVisibility[key] = config[key].isEnabled;
               }
             });
-            console.log('Transformed Visibility (Public View):', transformedVisibility); // Debug log
-            setSectionVisibility(transformedVisibility); // Set state with the simple object
-          } else {
-             // Handle cases where sectionConfiguration might be missing - perhaps set a default?
-             console.warn('sectionConfiguration not found in portfolioData');
-             // setSectionVisibility({}); // Or set based on theme/template defaults if needed
+            setSectionVisibility(transformedVisibility);
           }
         } else {
           throw new Error(portfolioResponse.data.message || templateResponse.data.message);
@@ -145,13 +137,24 @@ const PublicPortfolioView = () => {
     );
   }
 
+  // Get the appropriate template component
+  const TemplateComponent = templateComponents[template.predefinedTemplate];
+  if (!TemplateComponent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500 text-center">
+          <h2 className="text-2xl font-bold mb-2">Template Not Supported</h2>
+          <p>The template type "{template.predefinedTemplate}" is not currently supported.</p>
+        </div>
+      </div>
+    );
+  }
+
   // Merge theme settings with portfolio data
   const enhancedData = {
     ...portfolioData,
     theme: themeSettings
   };
-
-  const TemplateComponent = templateComponents[template.predefinedTemplate];
 
   return (
     <div className="min-h-screen">

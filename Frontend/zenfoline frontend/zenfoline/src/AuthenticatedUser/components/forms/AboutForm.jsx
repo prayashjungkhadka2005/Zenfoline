@@ -154,49 +154,8 @@ const AboutForm = ({ data, onUpdate }) => {
         <div className={commonClasses.infoBox}>
           <p className={commonClasses.infoText}>Tell your story. Share your professional journey and what drives you.</p>
         </div>
-
-        <div className={commonClasses.grid}>
-          <div className="col-span-2">
-            <label className={commonClasses.label}>About Me *</label>
-            <div className="h-32 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
-              <Spinner size="sm" color="orange-500" />
-            </div>
-          </div>
-
-          <div className="col-span-2">
-            <label className={commonClasses.label}>Vision</label>
-            <div className="h-24 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200">
-              <Spinner size="sm" color="orange-500" />
-            </div>
-          </div>
-
-          <div className="col-span-2">
-            <div className="flex items-center justify-between mb-3">
-              <label className={commonClasses.label}>Key Highlights</label>
-              <button
-                disabled
-                className="px-3 py-1 bg-gray-100 text-gray-400 rounded-md flex items-center text-sm cursor-not-allowed"
-              >
-                <FiPlus className="mr-1" />
-                Add Highlight
-              </button>
-            </div>
-            
-            <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="h-20 flex items-center justify-center">
-                <Spinner size="sm" color="orange-500" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <button
-            disabled
-            className="w-full px-4 py-2 rounded-md text-white bg-gray-400 cursor-not-allowed"
-          >
-            Loading...
-          </button>
+        <div className="flex justify-center items-center h-40">
+          <Spinner size="lg" color="orange-500" />
         </div>
       </div>
     );
