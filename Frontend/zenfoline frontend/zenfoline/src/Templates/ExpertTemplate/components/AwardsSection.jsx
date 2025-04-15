@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaAward } from 'react-icons/fa';
 import { formatDate } from '../utils/helpers';
+import { motion } from 'framer-motion';
 
 const AwardsSection = ({ data, theme }) => {
   const titleStyle = {
@@ -8,13 +9,18 @@ const AwardsSection = ({ data, theme }) => {
   };
 
   const cardStyle = {
-    backgroundColor: theme.primary,
-    opacity: 0.95,
-    borderRadius: '0.75rem',
-    boxShadow: '0 6px 12px -3px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden'
+    backgroundColor: `${theme.primary}80`,
+    backdropFilter: 'blur(8px)',
+    borderRadius: '1rem',
+    boxShadow: `0 10px 30px ${theme.primary}20`,
+    border: `1px solid ${theme.highlight}20`,
+    transition: 'all 0.3s ease',
+    cursor: 'default',
+    ':hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: `0 15px 35px ${theme.primary}30`,
+      border: `1px solid ${theme.highlight}40`,
+    }
   };
 
   const awardTitleStyle = {
@@ -23,8 +29,12 @@ const AwardsSection = ({ data, theme }) => {
   };
 
   const issuerStyle = {
-    color: theme.secondary,
-    fontSize: '0.9rem'
+    color: theme.highlight,
+    fontSize: '0.9rem',
+    display: 'inline-block',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '9999px',
+    backgroundColor: `${theme.highlight}15`
   };
 
   const descriptionStyle = {
@@ -34,21 +44,44 @@ const AwardsSection = ({ data, theme }) => {
     lineHeight: '1.6'
   };
 
+  const awardIconStyle = {
+    color: theme.highlight,
+    width: '1.5rem',
+    height: '1.5rem',
+    filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.3))'
+  };
+
   return (
-    <section id="awards" className="py-8 md:py-12">
+    <section id="awards" className="py-12 md:py-16">
       <div className="text-center mb-12 md:mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4" style={titleStyle}>Awards & Recognition</h2>
+        <motion.h2 
+          className="text-3xl md:text-4xl font-bold mb-4" 
+          style={titleStyle}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Awards & Recognition
+        </motion.h2>
       </div>
 
       <div className="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto px-4">
         {data?.map((award, index) => (
-          <div 
+          <motion.div 
             key={index} 
             style={cardStyle} 
             className="flex-grow flex-shrink-0 basis-[400px] max-w-full flex flex-col"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            whileHover={{ y: -5 }}
           >
             {award.image && (
-              <div className="w-full h-64 overflow-hidden">
+              <motion.div 
+                className="w-full h-64 overflow-hidden rounded-t-[1rem]"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+              >
                 <img 
                   src={award.image} 
                   alt={award.title}
@@ -58,12 +91,17 @@ const AwardsSection = ({ data, theme }) => {
                     e.target.src = 'https://via.placeholder.com/400x200?text=Award+Image';
                   }}
                 />
-              </div>
+              </motion.div>
             )}
             
             <div className="p-6 flex flex-col flex-grow">
-              <div className="flex items-center gap-2 mb-2">
-                <FaAward className="text-yellow-500" />
+              <div className="flex items-center gap-3 mb-3">
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <FaAward style={awardIconStyle} />
+                </motion.div>
                 <h3 className="text-xl font-semibold" style={awardTitleStyle}>{award.title}</h3>
               </div>
               <p className="mb-3" style={issuerStyle}>
@@ -71,7 +109,7 @@ const AwardsSection = ({ data, theme }) => {
               </p>
               <p className="mb-4 flex-grow" style={descriptionStyle}>{award.description}</p>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>

@@ -76,7 +76,7 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
         };
       }
       // ... include ALL other formatting logic here (about, skills, projects, etc.) ...
-       // Format about section
+      // Format about section
       if (newProcessedData.about) {
         newProcessedData.about = {
           ...newProcessedData.about,
@@ -90,9 +90,34 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
         if (Array.isArray(newProcessedData.skills)) {
           const technicalSkills = newProcessedData.skills.filter(skill => skill.category === 'Technical');
           const softSkills = newProcessedData.skills.filter(skill => skill.category === 'Soft');
-          newProcessedData.skills = { technical: technicalSkills, soft: softSkills };
+          
+          // Transform skills to include level property
+          newProcessedData.skills = { 
+            technical: technicalSkills.map(skill => ({
+              name: skill.name,
+              level: skill.proficiency || 'Intermediate',
+              isVisible: skill.isVisible
+            })), 
+            soft: softSkills.map(skill => ({
+              name: skill.name,
+              level: skill.proficiency || 'Intermediate',
+              isVisible: skill.isVisible
+            }))
+          };
         } else {
-          newProcessedData.skills = { technical: newProcessedData.skills.technical || [], soft: newProcessedData.skills.soft || [] };
+          // If it's already an object with technical and soft arrays
+          newProcessedData.skills = { 
+            technical: (newProcessedData.skills.technical || []).map(skill => ({
+              name: skill.name,
+              level: skill.level || skill.proficiency || 'Intermediate',
+              isVisible: skill.isVisible
+            })), 
+            soft: (newProcessedData.skills.soft || []).map(skill => ({
+              name: skill.name,
+              level: skill.level || skill.proficiency || 'Intermediate',
+              isVisible: skill.isVisible
+            }))
+          };
         }
       }
 
@@ -103,7 +128,7 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
         }));
       }
 
-       // Format projects section
+      // Format projects section
       if (newProcessedData.projects) {
         newProcessedData.projects = (newProcessedData.projects || []).map(project => {
           let processedImages = [];
@@ -269,12 +294,12 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
                   <FiSmartphone className="w-4 h-4" />
                 </button>
               </div>
-              <button
-                onClick={() => {
-                  const portfolioUrl = `${window.location.origin}/portfolio/${userId}`;
-                  navigator.clipboard.writeText(portfolioUrl);
-                  showNotification('Portfolio URL copied to clipboard!');
-                }}
+          <button
+            onClick={() => {
+              const portfolioUrl = `${window.location.origin}/portfolio/${userId}`;
+              navigator.clipboard.writeText(portfolioUrl);
+              showNotification('Portfolio URL copied to clipboard!');
+            }}
                 title="Copy Portfolio Link"
                 className="px-2 py-1.5 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors flex items-center space-x-1.5"
               >
@@ -288,48 +313,48 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
               >
                 <FiMaximize className="w-4 h-4" />
                 <span className={`${previewMode === 'mobile' ? 'hidden' : 'hidden lg:inline'}`}>Full Screen</span>
-              </button>
+          </button>
             </div>
           </div>
           <div className="flex-1 overflow-hidden bg-gradient-to-br from-gray-100 to-blue-50 flex justify-center items-start">
              <div className="shadow-lg border border-gray-300 bg-white relative w-full h-full flex justify-center items-center overflow-hidden">
                {loadingState.data && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
-                  <div className="text-center">
+              <div className="text-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500 mx-auto"></div>
                     <p className="mt-3 text-gray-600 text-sm">Loading preview...</p>
-                  </div>
-                </div>
-              )}
-              
+              </div>
+            </div>
+          )}
+          
               {!loadingState.data && !TemplateComponent && (
                 <div className="text-gray-500 text-center p-8">
                   <h2 className="text-2xl font-bold mb-2">Template Not Supported</h2>
                   <p>The template type "{activeTemplate?.predefinedTemplate}" is not currently supported.</p>
-                </div>
-              )}
-              
+            </div>
+          )}
+
               {!loadingState.data && TemplateComponent && (
                 <IframePreview 
                   width={iframeWidth}
                   height={iframeHeight}
                   fontStyle={fontStyle || derivedProps.processedData?.theme?.fontStyle}
                 >
-                  <TemplateProvider mode="preview">
-                    <TemplateComponent 
-                      template={activeTemplate} 
+            <TemplateProvider mode="preview">
+              <TemplateComponent 
+                template={activeTemplate} 
                       data={derivedProps.processedData}
-                      fontStyle={fontStyle}
+                fontStyle={fontStyle}
                       availableSections={derivedProps.sectionsForTemplate}
-                      checkSectionData={hasSectionData}
-                      sectionVisibility={sectionVisibility}
+                checkSectionData={hasSectionData}
+                sectionVisibility={sectionVisibility}
                       isPreviewMode={true}
-                    />
-                  </TemplateProvider>
+              />
+            </TemplateProvider>
                 </IframePreview>
-              )}
-            </div>
-          </div>
+          )}
+        </div>
+      </div>
         </>
       ) : (
         <div className="fixed inset-0 z-50 bg-white">
@@ -373,4 +398,4 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
   );
 };
 
-export default EditorPreview;
+export default EditorPreview; 

@@ -34,16 +34,16 @@ const ScrollToTop = ({ theme }) => {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 p-2.5 sm:p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 p-2 sm:p-2.5 rounded-full shadow-lg transition-all duration-300 hover:scale-105 z-50 backdrop-blur-sm"
           style={{
-            backgroundColor: '#FF6B6B',
-            color: 'white',
-            boxShadow: '0 4px 15px rgba(255, 107, 107, 0.4)',
-            border: '2px solid white',
+            backgroundColor: `${theme.highlight}15`,
+            color: theme.highlight,
+            boxShadow: `0 2px 10px ${theme.highlight}20`,
+            border: `1px solid ${theme.highlight}30`,
           }}
           aria-label="Scroll to top"
         >
-          <FaArrowUp size={18} className="sm:w-5 sm:h-5" />
+          <FaArrowUp size={16} className="sm:w-4 sm:h-4" />
         </button>
       )}
     </>

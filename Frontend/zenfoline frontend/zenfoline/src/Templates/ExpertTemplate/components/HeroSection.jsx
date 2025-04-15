@@ -55,7 +55,7 @@ const HeroSection = ({ data, hasSectionData, theme }) => {
       <div className="absolute inset-0" style={overlayStyle}></div>
       
       <div className="container mx-auto px-4 sm:px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
-        <div className="w-full md:w-1/2 text-center md:text-left space-y-6">
+        <div className="w-full md:w-1/2 text-center md:text-left space-y-6 order-2 md:order-1">
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold">
               <span style={nameStyle}>{basics.name || 'Your Name'}</span>
@@ -105,7 +105,7 @@ const HeroSection = ({ data, hasSectionData, theme }) => {
           </div>
         </div>
 
-        <div className="w-full md:w-1/2 flex justify-center">
+        <div className="w-full md:w-1/2 flex justify-center order-1 md:order-2">
           <div className="relative w-64 h-64 md:w-80 md:h-80">
             <div 
               className="absolute inset-0 rounded-full overflow-hidden shadow-2xl transform hover:scale-105 transition-transform duration-300"

@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaLink } from 'react-icons/fa';
 import { formatDate } from '../utils/helpers';
+import { motion } from 'framer-motion';
 
 const PublicationsSection = ({ data, theme }) => {
   const titleStyle = {
@@ -8,13 +9,18 @@ const PublicationsSection = ({ data, theme }) => {
   };
 
   const cardStyle = {
-    backgroundColor: theme.primary,
-    opacity: 0.95,
-    borderRadius: '0.75rem',
-    boxShadow: '0 6px 12px -3px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden'
+    backgroundColor: `${theme.primary}80`,
+    backdropFilter: 'blur(8px)',
+    borderRadius: '1rem',
+    boxShadow: `0 10px 30px ${theme.primary}20`,
+    border: `1px solid ${theme.highlight}20`,
+    transition: 'all 0.3s ease',
+    cursor: 'default',
+    ':hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: `0 15px 35px ${theme.primary}30`,
+      border: `1px solid ${theme.highlight}40`,
+    }
   };
 
   const pubTitleStyle = {
@@ -23,8 +29,12 @@ const PublicationsSection = ({ data, theme }) => {
   };
 
   const publisherStyle = {
-    color: theme.secondary,
-    fontSize: '0.9rem'
+    color: theme.highlight,
+    fontSize: '0.9rem',
+    display: 'inline-block',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '9999px',
+    backgroundColor: `${theme.highlight}15`
   };
 
   const descriptionStyle = {
@@ -38,31 +48,50 @@ const PublicationsSection = ({ data, theme }) => {
     color: theme.highlight,
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.25rem',
+    gap: '0.5rem',
     fontSize: '0.9rem',
-    transition: 'color 0.3s',
-    fontWeight: 500
-  };
-
-  const handleLinkHover = (e, isHover) => {
-    e.target.style.color = isHover ? theme.secondary : theme.highlight;
+    transition: 'all 0.3s ease',
+    fontWeight: 500,
+    padding: '0.5rem 1rem',
+    borderRadius: '9999px',
+    backgroundColor: `${theme.highlight}15`,
+    ':hover': {
+      backgroundColor: `${theme.highlight}30`,
+      transform: 'translateY(-2px)'
+    }
   };
 
   return (
-    <section id="publications" className="py-8 md:py-12">
+    <section id="publications" className="py-12 md:py-16">
       <div className="text-center mb-12 md:mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4" style={titleStyle}>Publications</h2>
+        <motion.h2 
+          className="text-3xl md:text-4xl font-bold mb-4" 
+          style={titleStyle}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Publications
+        </motion.h2>
       </div>
 
       <div className="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto px-4">
         {data?.map((pub, index) => (
-          <div 
+          <motion.div 
             key={index} 
             style={cardStyle} 
-            className="flex-grow flex-shrink-0 basis-[400px] max-w-full flex flex-col"
+            className="flex-grow flex-shrink-0 basis-[400px] max-w-full flex flex-col overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            whileHover={{ y: -5 }}
           >
             {pub.image && (
-              <div className="w-full h-64 overflow-hidden">
+              <motion.div 
+                className="w-full h-64 overflow-hidden rounded-t-[1rem]"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+              >
                 <img 
                   src={pub.image} 
                   alt={pub.title}
@@ -72,7 +101,7 @@ const PublicationsSection = ({ data, theme }) => {
                     e.target.src = 'https://via.placeholder.com/400x200?text=Publication+Image';
                   }}
                 />
-              </div>
+              </motion.div>
             )}
             
             <div className="p-6 flex flex-col flex-grow">
@@ -83,20 +112,20 @@ const PublicationsSection = ({ data, theme }) => {
               <p className="mb-4 flex-grow" style={descriptionStyle}>{pub.description}</p>
               {pub.url && (
                 <div className="mt-auto pt-3 border-t border-gray-700/50">
-                  <a 
+                  <motion.a 
                     href={pub.url} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     style={linkStyle}
-                    onMouseOver={(e) => handleLinkHover(e, true)}
-                    onMouseOut={(e) => handleLinkHover(e, false)}
+                    whileHover={{ y: -2 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <FaLink /> Read More
-                  </a>
+                    <FaLink className="w-4 h-4" /> Read More
+                  </motion.a>
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </section>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { formatDate } from '../utils/helpers';
 import { FaBriefcase } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 // Accept theme prop
 const ExperienceSection = ({ data, theme }) => {
@@ -14,45 +15,62 @@ const ExperienceSection = ({ data, theme }) => {
   };
 
   const cardStyle = {
-    backgroundColor: `${theme.primary}1A`, // Subtle background using primary with alpha
-    borderRadius: '0.75rem', // Larger radius
-    padding: '1.5rem', // Added padding
-    border: `1px solid ${theme.primary}40` // Subtle border
+    backgroundColor: `${theme.primary}80`,
+    backdropFilter: 'blur(8px)',
+    borderRadius: '1rem',
+    padding: '1.5rem',
+    boxShadow: `0 10px 30px ${theme.primary}20`,
+    border: `1px solid ${theme.highlight}20`,
+    transition: 'all 0.3s ease',
+    cursor: 'default',
+    ':hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: `0 15px 35px ${theme.primary}30`,
+      border: `1px solid ${theme.highlight}40`,
+    }
   };
 
   const dateStyle = {
-    color: theme.secondary,
-    fontSize: '0.8rem', // Slightly smaller
+    color: theme.highlight,
+    fontSize: '0.8rem',
     fontWeight: '500',
-    marginBottom: '0.5rem' // Space below date
+    marginBottom: '0.5rem',
+    display: 'inline-block',
+    padding: '0.25rem 0.75rem',
+    borderRadius: '9999px',
+    backgroundColor: `${theme.highlight}15`
   };
 
   const positionStyle = {
-    color: theme.highlight, // Use highlight color for position
-    fontSize: '1.3rem', // Larger size
-    fontWeight: '700', // Bolder
+    color: theme.text,
+    fontSize: '1.3rem',
+    fontWeight: '600',
     marginBottom: '0.25rem'
   };
 
   const companyStyle = {
-    color: theme.text,
-    opacity: 0.85, // Slightly more opaque
+    color: theme.highlight,
+    opacity: 0.9,
     fontSize: '1rem',
     fontWeight: '500',
-    marginBottom: '0.75rem' // Space below company
+    marginBottom: '0.75rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem'
   };
 
   const descriptionStyle = {
     color: theme.text,
-    opacity: 0.8, // Slightly less opaque for contrast
+    opacity: 0.8,
     fontSize: '0.9rem',
     lineHeight: '1.6'
   };
 
   const timelineLineStyle = {
-    borderColor: theme.highlight,
-    opacity: 0.3,
-    borderWidth: '1px' // Slightly thicker line
+    borderColor: `${theme.highlight}40`,
+    opacity: 0.5,
+    borderWidth: '2px',
+    borderRadius: '9999px'
   };
 
   const timelineDotStyle = {
@@ -62,62 +80,98 @@ const ExperienceSection = ({ data, theme }) => {
     borderRadius: '9999px',
     position: 'absolute',
     left: '-1.25rem',
-    top: '0.35rem', // Matches the line's top offset
-    boxShadow: `0 0 0 5px ${theme.background}`
+    top: '0.35rem',
+    boxShadow: `0 0 0 5px ${theme.background}`,
+    zIndex: 1
   };
 
   // New style for achievement tags
   const achievementTagStyle = {
     display: 'inline-block',
-    backgroundColor: `${theme.highlight}20`, // Highlight color with low alpha
-    color: theme.highlight, // Use highlight color for text
-    padding: '0.25rem 0.6rem',
-    borderRadius: '0.375rem', // Rounded corners
-    fontSize: '0.8rem', // Slightly smaller font
+    backgroundColor: `${theme.highlight}15`,
+    color: theme.highlight,
+    padding: '0.25rem 0.75rem',
+    borderRadius: '9999px',
+    fontSize: '0.8rem',
     fontWeight: '500',
-    lineHeight: '1.4' // Adjust line height
+    lineHeight: '1.4',
+    transition: 'all 0.3s ease',
+    ':hover': {
+      backgroundColor: `${theme.highlight}30`,
+      transform: 'translateY(-2px)'
+    }
   };
 
   return (
-    <section id="experience" className="py-8 md:py-12">
+    <section id="experience" className="py-12 md:py-16">
       <div className="text-center mb-12 md:mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4" style={titleStyle}>Experience</h2>
+        <motion.h2 
+          className="text-3xl md:text-4xl font-bold mb-4" 
+          style={titleStyle}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Experience
+        </motion.h2>
         {/* Optional Subtitle */}
         {/* <p className={`text-lg md:text-xl ${textColor} max-w-3xl mx-auto`}>My professional journey.</p> */}
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4"> {/* Changed from 4xl */}
+      <div className="relative max-w-6xl mx-auto px-4">
         {/* Timeline Line - Adjusted top offset */}
         <div className="absolute left-5 top-[0.35rem] bottom-0 w-px" style={timelineLineStyle}></div>
         
-        <div className="space-y-8"> {/* Reduced space between items */}
+        <div className="space-y-8">
           {data?.map((job, index) => (
             job.isVisible && (
-              <div key={index} className="relative pl-10"> {/* Increased left padding for dot */}
+              <motion.div 
+                key={index} 
+                className="relative pl-10"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
                 {/* Timeline Dot */}
-                <div style={timelineDotStyle}></div>
+                <motion.div 
+                  style={timelineDotStyle}
+                  whileHover={{ scale: 1.2 }}
+                  transition={{ duration: 0.2 }}
+                ></motion.div>
                 
                 {/* Experience Card */}
-                <div style={cardStyle}>
+                <motion.div 
+                  style={cardStyle}
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.3 }}
+                >
                   <div style={dateStyle}>
                     {formatDate(job.startDate)} - {job.current ? 'Present' : formatDate(job.endDate)}
                   </div>
                   <h3 style={positionStyle}>{job.position || job.title}</h3>
-                  <p style={companyStyle}>{job.company} {job.location ? `| ${job.location}` : ''}</p>
+                  <p style={companyStyle}>
+                    <FaBriefcase className="w-4 h-4" />
+                    {job.company} {job.location ? `| ${job.location}` : ''}
+                  </p>
                   <p style={descriptionStyle}>{job.description}</p>
                   
                   {/* Achievements as Tags */}
                   {job.achievements && job.achievements.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2"> {/* Use flex container */}
+                    <div className="mt-4 flex flex-wrap gap-2">
                       {job.achievements.map((achievement, idx) => (
-                        <span key={idx} style={achievementTagStyle}>
+                        <motion.span 
+                          key={idx} 
+                          style={achievementTagStyle}
+                          whileHover={{ y: -2 }}
+                          transition={{ duration: 0.2 }}
+                        >
                           {achievement}
-                        </span>
+                        </motion.span>
                       ))}
                     </div>
                   )}
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             )
           ))}
         </div>
