@@ -62,7 +62,7 @@ const PublicationsSection = ({ data, theme }) => {
             className="flex-grow flex-shrink-0 basis-[400px] max-w-full flex flex-col"
           >
             {pub.image && (
-              <div className="w-full h-48 overflow-hidden">
+              <div className="w-full h-64 overflow-hidden">
                 <img 
                   src={pub.image} 
                   alt={pub.title}

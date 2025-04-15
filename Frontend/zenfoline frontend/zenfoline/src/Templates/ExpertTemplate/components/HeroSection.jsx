@@ -17,7 +17,7 @@ const HeroSection = ({ data, hasSectionData, theme }) => {
     borderRadius: '9999px',
     backgroundColor: theme.highlight,
     color: 'white',
-    fontWeight: '600',
+    fontWeight: '400',
     transition: 'opacity 0.3s',
   };
 
@@ -29,7 +29,7 @@ const HeroSection = ({ data, hasSectionData, theme }) => {
     borderRadius: '9999px',
     border: `2px solid ${theme.highlight}`,
     color: theme.highlight,
-    fontWeight: '600',
+    fontWeight: '400',
     transition: 'all 0.3s',
   };
 

@@ -105,7 +105,7 @@ const ProjectsSection = ({ data, theme }) => {
                 <img 
                   src={imageSource} 
                   alt={project.title} 
-                  className="w-full h-48 object-cover" 
+                  className="w-full h-64 object-cover"
                   onError={(e) => { e.target.style.display = 'none' }} // Hide broken images
                 />
               )}

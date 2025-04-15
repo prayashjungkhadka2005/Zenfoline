@@ -14,6 +14,7 @@ import EducationSection from './components/EducationSection';
 import PublicationsSection from './components/PublicationsSection';
 import CertificationsSection from './components/CertificationsSection';
 import ServicesSection from './components/ServicesSection';
+import AwardsSection from './components/AwardsSection';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -60,7 +61,8 @@ const ExpertPortfolioTemplate = ({
     'projects', 
     'publications', 
     'certifications', 
-    'services'
+    'services',
+    'awards'
   ];
 
   // Use default sections if no sections are available, but filter out disabled ones
@@ -132,6 +134,9 @@ const ExpertPortfolioTemplate = ({
         }
         {sectionsToRender.includes('services') && checkSectionData('services') && 
           <ServicesSection data={data.services} theme={currentTheme} />
+        }
+        {sectionsToRender.includes('awards') && checkSectionData('awards') && 
+          <AwardsSection data={data.awards} theme={currentTheme} />
         }
       </main>
 

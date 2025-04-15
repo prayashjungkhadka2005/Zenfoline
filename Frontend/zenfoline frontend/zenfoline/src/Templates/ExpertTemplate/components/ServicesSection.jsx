@@ -106,7 +106,7 @@ const ServicesSection = ({ data, theme }) => {
             >
               {/* Service Image */}
               {service.image && (
-                <div className="w-full h-48 overflow-hidden">
+                <div className="w-full h-64 overflow-hidden">
                   <img 
                     src={service.image} 
                     alt={service.title}
