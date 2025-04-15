@@ -53,6 +53,34 @@ const ProjectsSection = ({ data, theme }) => {
     e.target.style.color = isHover ? theme.highlight : theme.secondary;
   };
 
+  // Function to get the image source
+  const getImageSource = (project) => {
+    // First check if there's a direct image property
+    if (project.image) {
+      return project.image;
+    }
+    
+    // Then check if there are images in the array
+    if (project.images && project.images.length > 0) {
+      const imageUrl = project.images[0];
+      
+      // Check if it's a base64 image
+      if (imageUrl.startsWith('data:image')) {
+        return imageUrl;
+      }
+      
+      // Check if it's a file path
+      if (imageUrl.startsWith('/uploads/')) {
+        // Construct the full URL
+        return `http://localhost:3000${imageUrl}`;
+      }
+      
+      return imageUrl;
+    }
+    
+    return null;
+  };
+
   return (
     <section id="projects" className="py-8 md:py-12">
       <div className="text-center mb-12 md:mb-16">
@@ -63,64 +91,68 @@ const ProjectsSection = ({ data, theme }) => {
 
       {/* Using flex-grow and basis for flexible item sizing */}
       <div className="flex flex-wrap justify-center gap-8 md:gap-10 max-w-6xl mx-auto px-4"> {/* Changed from 7xl */}
-        {data?.map((project, index) => (
-          // Removed fixed widths, added flex-grow and basis
-          <div 
-            key={index} 
-            style={cardStyle} 
-            className="flex-grow flex-shrink-0 basis-[350px] max-w-full" // Adjust basis-[...] as needed 
-          >
-            {project.images && project.images.length > 0 && (
-              <img 
-                src={project.images[0]} 
-                alt={project.title} 
-                className="w-full h-48 object-cover" 
-                onError={(e) => { e.target.style.display = 'none' }} // Hide broken images
-              />
-            )}
-            <div className="p-6 flex flex-col flex-grow">
-              <h3 className="text-xl font-semibold mb-2" style={projectTitleStyle}>{project.title}</h3>
-              <p className="text-sm mb-4 flex-grow" style={descriptionStyle}>{project.description}</p>
-              
-              {project.technologies && project.technologies.length > 0 && (
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {project.technologies.map((tech, idx) => (
-                    <span key={idx} style={tagStyle}>{tech}</span>
-                  ))}
-                </div>
+        {data?.map((project, index) => {
+          const imageSource = getImageSource(project);
+          
+          return (
+            // Removed fixed widths, added flex-grow and basis
+            <div 
+              key={index} 
+              style={cardStyle} 
+              className="flex-grow flex-shrink-0 basis-[350px] max-w-full" // Adjust basis-[...] as needed 
+            >
+              {imageSource && (
+                <img 
+                  src={imageSource} 
+                  alt={project.title} 
+                  className="w-full h-48 object-cover" 
+                  onError={(e) => { e.target.style.display = 'none' }} // Hide broken images
+                />
               )}
-              
-              <div className="mt-auto flex justify-end space-x-4">
-                {project.liveUrl && (
-                  <a 
-                    href={project.liveUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={linkStyle}
-                    onMouseOver={(e) => handleLinkHover(e, true)}
-                    onMouseOut={(e) => handleLinkHover(e, false)}
-                    title="Live Demo"
-                  >
-                    <FaGlobe /> Live
-                  </a>
+              <div className="p-6 flex flex-col flex-grow">
+                <h3 className="text-xl font-semibold mb-2" style={projectTitleStyle}>{project.title}</h3>
+                <p className="text-sm mb-4 flex-grow" style={descriptionStyle}>{project.description}</p>
+                
+                {project.technologies && project.technologies.length > 0 && (
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {project.technologies.map((tech, idx) => (
+                      <span key={idx} style={tagStyle}>{tech}</span>
+                    ))}
+                  </div>
                 )}
-                {project.sourceUrl && (
-                  <a 
-                    href={project.sourceUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={linkStyle}
-                    onMouseOver={(e) => handleLinkHover(e, true)}
-                    onMouseOut={(e) => handleLinkHover(e, false)}
-                    title="Source Code"
-                  >
-                    <FaCode /> Code
-                  </a>
-                )}
+                
+                <div className="mt-auto flex justify-end space-x-4">
+                  {project.liveUrl && (
+                    <a 
+                      href={project.liveUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={linkStyle}
+                      onMouseOver={(e) => handleLinkHover(e, true)}
+                      onMouseOut={(e) => handleLinkHover(e, false)}
+                      title="Live Demo"
+                    >
+                      <FaGlobe /> Live
+                    </a>
+                  )}
+                  {project.sourceUrl && (
+                    <a 
+                      href={project.sourceUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={linkStyle}
+                      onMouseOver={(e) => handleLinkHover(e, true)}
+                      onMouseOut={(e) => handleLinkHover(e, false)}
+                      title="Source Code"
+                    >
+                      <FaCode /> Code
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

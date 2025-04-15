@@ -157,14 +157,15 @@ const ProjectsForm = ({ data, onUpdate }) => {
       reader.onloadend = () => {
         // Store the image as a base64 string
         const base64Image = reader.result;
-        handleProjectChange(index, 'image', base64Image);
         
-        // Also update the images array for API compatibility
+        // Update both image and images array
         const newData = [...formData];
         newData[index] = {
           ...newData[index],
+          image: base64Image,
           images: [base64Image]
         };
+        
         setFormData(newData);
         onUpdate(newData);
       };
@@ -244,54 +245,20 @@ const ProjectsForm = ({ data, onUpdate }) => {
         title: project.title,
         description: project.description,
         technologies: project.technologies || [],
-        // Keep existing images if no new image was uploaded
-        images: project.images || [],
+        // Use the image field if available, otherwise use the first image from images array
+        images: project.image ? [project.image] : (project.images || []),
         liveUrl: project.liveLink,
         sourceUrl: project.sourceCode,
         isVisible: project.isVisible !== false
       }));
 
-      // Create FormData for file uploads
-      const formDataToSend = new FormData();
-      formDataToSend.append('projects', JSON.stringify(apiData));
-      
-      // Only process and upload images that have actually changed
-      formData.forEach((project, index) => {
-        // Check if this is a new base64 image that's different from the original
-        const hasNewImage = project.image && 
-                           project.image.startsWith('data:image') && 
-                           (!project.images || 
-                            !project.images[0] || 
-                            project.images[0] !== project.image);
-        
-        if (hasNewImage) {
-          // Convert base64 to file
-          const base64Data = project.image.split(',')[1];
-          const byteCharacters = atob(base64Data);
-          const byteArrays = [];
-          
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteArrays.push(byteCharacters.charCodeAt(i));
-          }
-          
-          const byteArray = new Uint8Array(byteArrays);
-          const blob = new Blob([byteArray], { type: 'image/jpeg' });
-          const file = new File([blob], `project-${index}.jpg`, { type: 'image/jpeg' });
-          
-          formDataToSend.append('projectImages', file);
-          
-          // Update the images array in apiData to include the new image
-          apiData[index].images = [project.image];
-        }
-      });
-
-      // Save to the API
+      // Send the data directly without FormData
       const response = await axios.post(
         `${API_BASE_URL}/portfolio-save/projects/${userId}`,
-        formDataToSend,
+        { projects: apiData },
         {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'application/json'
           }
         }
       );
@@ -350,9 +317,9 @@ const ProjectsForm = ({ data, onUpdate }) => {
                   <label className={commonClasses.label}>Project Image</label>
                   <div className="flex items-start space-x-6 mt-2">
                     <div className="w-40 h-40 rounded-lg overflow-hidden border-2 border-gray-200 shadow-lg hover:border-blue-500 transition-colors bg-gray-50 relative group">
-                      {(project.image || (project.images && project.images.length > 0)) ? (
+                      {project.image ? (
                         <img
-                          src={project.image || project.images[0]}
+                          src={project.image}
                           alt={project.title || 'Project preview'}
                           className="w-full h-full object-cover"
                         />
