@@ -183,15 +183,17 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
     });
     console.log("EditorPreview EFFECT: Finished ensuring data keys.");
 
-    // --- Update State --- 
-    setDerivedProps({ 
-      processedData: newProcessedData, 
-      sectionsForTemplate: newAvailableSections 
-    });
-
     // --- Update Loading State --- 
-    dataIsLoading = !newProcessedData; // Loading if no processed data object exists
+    dataIsLoading = !newProcessedData || !Object.keys(newProcessedData).length;
     setLoadingState({ data: dataIsLoading });
+
+    // Only update derivedProps if we have valid data
+    if (newProcessedData && Object.keys(newProcessedData).length) {
+      setDerivedProps({ 
+        processedData: newProcessedData, 
+        sectionsForTemplate: newAvailableSections 
+      });
+    }
 
     console.log("EditorPreview EFFECT [formData, sectionVisibility] END");
 
@@ -318,43 +320,43 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
           </div>
           <div className="flex-1 overflow-hidden bg-gradient-to-br from-gray-100 to-blue-50 flex justify-center items-start">
              <div className="shadow-lg border border-gray-300 bg-white relative w-full h-full flex justify-center items-center overflow-hidden">
-               {loadingState.data && (
+               {(loadingState.data || !derivedProps.processedData || !Object.keys(derivedProps.processedData).length) && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10">
-              <div className="text-center">
+                  <div className="text-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500 mx-auto"></div>
                     <p className="mt-3 text-gray-600 text-sm">Loading preview...</p>
-              </div>
-            </div>
-          )}
-          
-              {!loadingState.data && !TemplateComponent && (
+                  </div>
+                </div>
+               )}
+
+              {!loadingState.data && derivedProps.processedData && Object.keys(derivedProps.processedData).length > 0 && !TemplateComponent && (
                 <div className="text-gray-500 text-center p-8">
                   <h2 className="text-2xl font-bold mb-2">Template Not Supported</h2>
                   <p>The template type "{activeTemplate?.predefinedTemplate}" is not currently supported.</p>
-            </div>
-          )}
+                </div>
+              )}
 
-              {!loadingState.data && TemplateComponent && (
+              {!loadingState.data && derivedProps.processedData && Object.keys(derivedProps.processedData).length > 0 && TemplateComponent && (
                 <IframePreview 
                   width={iframeWidth}
                   height={iframeHeight}
                   fontStyle={fontStyle || derivedProps.processedData?.theme?.fontStyle}
                 >
-            <TemplateProvider mode="preview">
-              <TemplateComponent 
-                template={activeTemplate} 
+                  <TemplateProvider mode="preview">
+                    <TemplateComponent 
+                      template={activeTemplate} 
                       data={derivedProps.processedData}
-                fontStyle={fontStyle}
+                      fontStyle={fontStyle}
                       availableSections={derivedProps.sectionsForTemplate}
-                checkSectionData={hasSectionData}
-                sectionVisibility={sectionVisibility}
+                      checkSectionData={hasSectionData}
+                      sectionVisibility={sectionVisibility}
                       isPreviewMode={true}
-              />
-            </TemplateProvider>
+                    />
+                  </TemplateProvider>
                 </IframePreview>
-          )}
-        </div>
-      </div>
+              )}
+            </div>
+          </div>
         </>
       ) : (
         <div className="fixed inset-0 z-50 bg-white">
