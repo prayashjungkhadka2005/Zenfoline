@@ -81,7 +81,13 @@ const useAuthStore = create(
           }
 
           const data = await response.json();
-          set({ error: null, username: data.username, adminId: data.admin_id });
+          set({ 
+            error: null, 
+            username: data.username, 
+            adminId: data.admin_id,
+            token: data.token,
+            isAuthenticated: true
+          });
           return data;
         } catch (err) {
           set({ error: err.message, success: null });

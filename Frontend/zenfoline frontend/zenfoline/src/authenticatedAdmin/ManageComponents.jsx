@@ -48,39 +48,26 @@ const ManageComponents = () => {
     // Prevent duplicate component while adding
     const isDuplicate = components.some(
       (comp) =>
-        comp.name === newComponent.name &&
-        comp.linkedTemplate === newComponent.linkedTemplate
+        comp.componentType === newComponent.componentType &&
+        comp.componentSubType === newComponent.componentSubType &&
+        comp.category === newComponent.category
     );
-  
+
     if (isDuplicate) {
-      setErrorMessage("This component already exists.");
+      setErrorMessage("This component already exists for the selected template.");
       return;
     }
-  
-    const componentData = {
-      ...newComponent,
-      isActive: true,
-    };
-  
+
     try {
-      const addedComponent = await addComponent(componentData, adminId);
-      if (!addedComponent) {
-        throw new Error("Failed to add component.");
-      }
-  
-      fetchComponents();
+      await addComponent(newComponent, adminId);
       setSuccessMessage("Component added successfully!");
-  
       resetForm();
-  
-      setTimeout(() => setSuccessMessage(""), 3000);
+      setIsModalOpen(false);
     } catch (error) {
-      console.error("Error adding component:", error);
-      setErrorMessage(error.message || "Failed to add component. Please try again.");
+      setErrorMessage(error.message || "Failed to add component.");
     }
   };
 
-  
   const resetForm = () => {
     setNewComponent({
       name: "",
@@ -90,63 +77,60 @@ const ManageComponents = () => {
       componentSubType: "",
     });
     setPreviewComponent(null);
-    setIsModalOpen(false);
     setErrorMessage("");
   };
-  
-  
-
 
   const handleToggleStatus = async (componentId, currentStatus) => {
     try {
-        const response = await fetch(`http://localhost:3000/authenticated-admin/updatecomponent/${componentId}`, {
-            method: "PUT",
-            body: JSON.stringify({ isActive: !currentStatus }), // Toggle status
-            headers: { "Content-Type": "application/json" },
-        });
-
-        const data = await response.json(); 
-
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to update component status.");
+      const response = await fetch(
+        `http://localhost:3000/authenticated-admin/togglecomponentstatus/${componentId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: !currentStatus }),
         }
-
-        // Updates UI instantly
-        fetchComponents();
-        setSuccessMessage(data.message || "Component status updated successfully!"); 
-        setTimeout(() => setSuccessMessage(""), 3000);
-    } catch (error) {
-        setErrorMessage(error.message || "Failed to update component status.");
-        setTimeout(() => setErrorMessage(""), 3000);
-    }
-};
-
-const handleDeleteComponent = async (componentId) => {
-  try {
-      const response = await fetch(`http://localhost:3000/authenticated-admin/deletecomponent/${componentId}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-      });
-
-      const data = await response.json(); 
+      );
 
       if (!response.ok) {
-          throw new Error(data.message || "Failed to delete component.");
+        throw new Error("Failed to toggle component status");
       }
 
-      fetchComponents();
-      setSuccessMessage(data.message || "Component deleted successfully!"); 
-      setTimeout(() => setSuccessMessage(""), 3000);
-  } catch (error) {
-      setErrorMessage(error.message || "Failed to delete component.");
-      setTimeout(() => setErrorMessage(""), 3000);
+      // Update the component status in the local state
+      const updatedComponents = components.map((comp) =>
+        comp._id === componentId ? { ...comp, status: !currentStatus } : comp
+      );
+      useTemplateStore.setState({ components: updatedComponents });
+      setSuccessMessage("Component status updated successfully!");
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to toggle component status");
+    }
+  };
+
+const handleDeleteComponent = async (componentId) => {
+  if (window.confirm("Are you sure you want to delete this component?")) {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/authenticated-admin/deletecomponent/${componentId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete component");
+      }
+
+      // Remove the component from the local state
+      const updatedComponents = components.filter((comp) => comp._id !== componentId);
+      useTemplateStore.setState({ components: updatedComponents });
+      setSuccessMessage("Component deleted successfully!");
+    } catch (error) {
+      setErrorMessage(error.message || "Failed to delete component");
+    }
   }
 };
-
-
-
-  
-  
 
   const availableComponents = {
     Developer: {
@@ -162,6 +146,30 @@ const handleDeleteComponent = async (componentId) => {
     Simple: {
       Footer: {
         "Stylish Footer": <SimpleFooter />,
+      },
+    },
+    Designer: {
+      Header: {
+        "Modern Designer Header": <div>Modern Designer Header</div>,
+        "Creative Header": <div>Creative Designer Header</div>,
+      },
+      Footer: {
+        "Designer Footer": <div>Designer Footer</div>,
+      },
+      Hero: {
+        "Design Hero": <div>Design Hero Section</div>,
+      },
+      About: {
+        "Design About": <div>Design About Section</div>,
+      },
+      Skills: {
+        "Design Skills": <div>Design Skills Section</div>,
+      },
+      Projects: {
+        "Design Projects": <div>Design Projects Section</div>,
+      },
+      Contact: {
+        "Design Contact": <div>Design Contact Section</div>,
       },
     },
   };

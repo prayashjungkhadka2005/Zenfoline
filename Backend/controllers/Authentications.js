@@ -107,10 +107,21 @@ const adminLogin = async (req, res) => {
             return res.status(400).json({ message: 'Username or password incorrect.' });
         }
 
+        // Generate JWT token
+        const token = jwt.sign(
+            { 
+                userId: admin._id,
+                role: 'admin'
+            }, 
+            JWT_SECRET, 
+            { expiresIn: '24h' }
+        );
+
         return res.status(200).json({ 
             message: 'Admin login successful.', 
-            admin_id: admin._id ,
+            admin_id: admin._id,
             username: admin.username,
+            token
         });
     } catch (error) {
         console.error('Error during login:', error);

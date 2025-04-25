@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import SimplePortfolioTemplate from '../Templates/SimplePortfolioTemplate';
 import ExpertPortfolioTemplate from '../Templates/ExpertTemplate';
+import DesignerPortfolioTemplate from '../Templates/DesignerTemplate';
 
 const AdminTemplates = () => {
   const {
@@ -20,6 +21,7 @@ const AdminTemplates = () => {
   const templateComponents = {
     SimplePortfolioTemplate,
     ExpertPortfolioTemplate,
+    DesignerPortfolioTemplate,
   };
 
   const adminId = useAuthStore((state) => state.adminId);
@@ -36,14 +38,22 @@ const AdminTemplates = () => {
 
   // Get all available categories and predefined templates
   const allCategories = ['developer', 'expert', 'student', 'content-creator', 'designer', 'lawyer'];
-  const allPredefinedTemplates = ['SimplePortfolioTemplate', 'ExpertPortfolioTemplate'];
+  const allPredefinedTemplates = ['SimplePortfolioTemplate', 'ExpertPortfolioTemplate', 'DesignerPortfolioTemplate'];
 
   // Filter out categories and predefined templates that are already in use
-  const usedCategories = templates.map(template => template.category);
+  const usedCategories = templates.map(template => template.category.toLowerCase());
   const usedPredefinedTemplates = templates.map(template => template.predefinedTemplate);
 
-  const availableCategories = allCategories.filter(cat => !usedCategories.includes(cat));
-  const availablePredefinedTemplates = allPredefinedTemplates.filter(temp => !usedPredefinedTemplates.includes(temp));
+  // Always include 'designer' category and 'DesignerPortfolioTemplate' in the available options
+  const availableCategories = allCategories.filter(cat => 
+    !usedCategories.includes(cat.toLowerCase()) || 
+    cat.toLowerCase() === 'designer'
+  );
+  
+  const availablePredefinedTemplates = allPredefinedTemplates.filter(temp => 
+    !usedPredefinedTemplates.includes(temp) || 
+    temp === 'DesignerPortfolioTemplate'
+  );
 
   // If editing, add the current template's category and predefined template to the available options
   const categoriesToShow = editingTemplate 
@@ -265,7 +275,9 @@ const AdminTemplates = () => {
                   <option value="">Select a category</option>
                   {categoriesToShow.map((cat) => (
                     <option key={cat} value={cat}>
-                      {cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}
+                      {cat.split('-').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                      ).join(' ')}
                     </option>
                   ))}
                 </select>
