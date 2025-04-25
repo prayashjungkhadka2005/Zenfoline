@@ -49,6 +49,12 @@ const DesignerTemplate = ({
   // Get theme colors based on theme data
   const currentTheme = getThemeColors(themeData);
 
+  // Create MUI theme with spacing function
+  const theme = createTheme({
+    ...currentTheme,
+    spacing: (factor) => `${0.25 * factor}rem`,
+  });
+
   // Default sections for designer category
   const defaultDesignerSections = [
     'basics', 
@@ -107,8 +113,6 @@ const DesignerTemplate = ({
     );
   }
 
-  const theme = createTheme(currentTheme);
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -142,7 +146,7 @@ const DesignerTemplate = ({
         }
 
         {sectionsToRender.includes('publications') && checkSectionData('publications') && 
-          <PublicationsSection data={data?.publications} />
+          <PublicationsSection data={data?.publications} theme={theme} />
         }
 
         {sectionsToRender.includes('certifications') && checkSectionData('certifications') && 
@@ -150,11 +154,11 @@ const DesignerTemplate = ({
         }
 
         {sectionsToRender.includes('services') && checkSectionData('services') && 
-          <ServicesSection data={data?.services} />
+          <ServicesSection data={data?.services} theme={theme} />
         }
 
         {sectionsToRender.includes('awards') && checkSectionData('awards') && 
-          <AwardsSection data={data?.awards} />
+          <AwardsSection data={data?.awards} theme={theme} />
         }
 
         {/* Contact Section (tied to basics data) */}
