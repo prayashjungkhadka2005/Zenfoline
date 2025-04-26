@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import WebFont from 'webfontloader';
+import createCache from '@emotion/cache';
+import { CacheProvider } from '@emotion/react';
 
 const IframePreview = ({ children, width = '100%', height = '100%', title = 'Preview', fontStyle = 'Poppins' }) => {
   const iframeRef = useRef(null);
   const [mountNode, setMountNode] = useState(null);
+  const [iframeCache, setIframeCache] = useState(null);
 
   useEffect(() => {
     if (iframeRef.current) {
@@ -41,6 +44,8 @@ const IframePreview = ({ children, width = '100%', height = '100%', title = 'Pre
       `);
       iframeDoc.close();
       setMountNode(iframeDoc.getElementById('iframe-root'));
+      // Create a new emotion cache for the iframe
+      setIframeCache(createCache({ key: 'css', container: iframeDoc.head }));
     }
   }, [title, fontStyle]);
 
@@ -55,7 +60,12 @@ const IframePreview = ({ children, width = '100%', height = '100%', title = 'Pre
         transition: 'width 0.3s ease-in-out'
       }}
     >
-      {mountNode && createPortal(children, mountNode)}
+      {mountNode && iframeCache && createPortal(
+        <CacheProvider value={iframeCache}>
+          {children}
+        </CacheProvider>,
+        mountNode
+      )}
     </iframe>
   );
 };

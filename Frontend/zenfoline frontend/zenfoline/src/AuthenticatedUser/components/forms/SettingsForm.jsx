@@ -149,13 +149,16 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
 
   // Handle section toggle in local state only
   const handleSectionToggle = (sectionId, isEnabled) => {
-    console.log(`Toggling ${sectionId} to ${isEnabled}`);
     setLocalEnabledSections(prev => {
+      // Defensive: ensure prev has all sections, not just toggled ones
+      const fullState = { ...allSections.reduce((acc, s) => ({ ...acc, [s.id]: prev[s.id] ?? false }), {}), ...prev };
       const newState = {
-        ...prev,
+        ...fullState,
         [sectionId]: isEnabled
       };
-      console.log('New state:', newState);
+      if (onSettingsSaved) {
+        onSettingsSaved(newState);
+      }
       return newState;
     });
   };

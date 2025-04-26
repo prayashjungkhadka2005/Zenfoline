@@ -163,7 +163,7 @@ const DesignerTemplate = ({
         }
 
         {/* Contact Section: show if basics is enabled and has data, like ExpertTemplate */}
-        {sectionConfig['basics']?.isEnabled && checkSectionData('basics') && 
+        {(typeof sectionConfig['basics'] === 'boolean' ? sectionConfig['basics'] : sectionConfig['basics']?.isEnabled) && checkSectionData('basics') && 
           <ContactSection data={data} />
         }
         
