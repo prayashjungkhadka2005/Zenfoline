@@ -37,7 +37,7 @@ const DesignerTemplate = ({
   data, 
   availableSections, 
   checkSectionData, 
-  sectionVisibility = {}, 
+  sectionVisibility, 
   isPreviewMode = false
 }) => {
   const { mode } = useTemplateMode();
@@ -70,6 +70,9 @@ const DesignerTemplate = ({
     'contact'
   ];
 
+  // Always use sectionConfiguration from data if available
+  const sectionConfig = data?.sectionConfiguration || sectionVisibility || {};
+
   // Check if any sections are available
   const hasAvailableSections = availableSections && availableSections.length > 0;
 
@@ -78,14 +81,12 @@ const DesignerTemplate = ({
     .filter(sectionId => {
       // First check if section has data (if checkSectionData is provided)
       const hasData = checkSectionData ? checkSectionData(sectionId) : true;
-      
-      // Then check visibility settings
-      const isVisible = !sectionVisibility[sectionId] || (
-        typeof sectionVisibility[sectionId] === 'boolean' 
-          ? sectionVisibility[sectionId] 
-          : sectionVisibility[sectionId]?.isEnabled
+      // Use sectionConfig for visibility
+      const isVisible = !sectionConfig[sectionId] || (
+        typeof sectionConfig[sectionId] === 'boolean' 
+          ? sectionConfig[sectionId] 
+          : sectionConfig[sectionId]?.isEnabled
       );
-
       return hasData && isVisible;
     });
 
@@ -161,8 +162,8 @@ const DesignerTemplate = ({
           <AwardsSection data={data?.awards} theme={theme} />
         }
 
-        {/* Contact Section (tied to basics data) */}
-        {sectionsToRender.includes('contact') && checkSectionData('basics') && 
+        {/* Contact Section: show if basics is enabled and has data, like ExpertTemplate */}
+        {sectionConfig['basics']?.isEnabled && checkSectionData('basics') && 
           <ContactSection data={data} />
         }
         
