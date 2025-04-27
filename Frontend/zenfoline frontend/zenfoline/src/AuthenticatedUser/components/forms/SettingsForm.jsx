@@ -14,6 +14,7 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
   const [defaultSections, setDefaultSections] = useState([]);
   const [optionalSections, setOptionalSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [templateCategory, setTemplateCategory] = useState('');
 
   const commonClasses = {
@@ -149,6 +150,9 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
 
   // Handle section toggle in local state only
   const handleSectionToggle = (sectionId, isEnabled) => {
+    // Prevent toggling if saving is in progress
+    if (status === 'saving') return;
+    
     setLocalEnabledSections(prev => {
       // Defensive: ensure prev has all sections, not just toggled ones
       const fullState = { ...allSections.reduce((acc, s) => ({ ...acc, [s.id]: prev[s.id] ?? false }), {}), ...prev };
@@ -156,9 +160,11 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
         ...fullState,
         [sectionId]: isEnabled
       };
-      if (onSettingsSaved) {
-        onSettingsSaved(newState);
-      }
+      // Update parent component for preview only
+      onUpdate({
+        ...data,
+        enabledSections: newState
+      });
       return newState;
     });
   };
@@ -201,6 +207,16 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
       }
       
       setStatus('success');
+      
+      // Show refreshing state
+      setIsRefreshing(true);
+      
+      // Refresh settings data after successful save
+      await refreshSettingsData();
+      
+      // Hide refreshing state
+      setIsRefreshing(false);
+      
       setTimeout(() => {
         setStatus(null);
       }, 3000);
@@ -208,6 +224,7 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
       console.error('Error saving settings:', error);
       setStatus('error');
       setError('Failed to save settings');
+      setIsRefreshing(false);
       setTimeout(() => {
         setStatus(null);
         setError('');
@@ -215,34 +232,75 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
     }
   };
 
-  // Render a section toggle
-  const renderSectionToggle = (section) => (
-    <div key={section.id} className={commonClasses.toggleContainer}>
-      <div>
-        <h4 className={commonClasses.toggleLabel}>{section.label}</h4>
-        {section.required && (
-          <p className={commonClasses.toggleDescription}>Required section</p>
-        )}
-      </div>
-      <div className="flex items-center">
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={section.required || localEnabledSections[section.id] || false}
-            onChange={(e) => handleSectionToggle(section.id, e.target.checked)}
-            disabled={section.required}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-        </label>
-      </div>
-    </div>
-  );
+  // Function to refresh settings data from the API
+  const refreshSettingsData = async () => {
+    try {
+      // Fetch section visibility
+      const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
+      if (!visibilityResponse.ok) {
+        throw new Error('Failed to fetch section visibility');
+      }
+      const visibilityData = await visibilityResponse.json();
+      
+      // Process section visibility data
+      if (visibilityData.data) {
+        const sectionConfig = {};
+        Object.keys(visibilityData.data).forEach(section => {
+          if (section !== 'customSections') {
+            sectionConfig[section] = visibilityData.data[section].isEnabled;
+          }
+        });
+        
+        // Update local state with fresh data from server
+        setLocalEnabledSections(sectionConfig);
+        
+        // Update parent component with the fetched section configuration
+        onUpdate({
+          ...data,
+          enabledSections: sectionConfig
+        });
+      }
+    } catch (error) {
+      console.error('Error refreshing settings data:', error);
+      // Don't show error to user, just log it
+    }
+  };
 
-  if (isLoading) {
+  // Render a section toggle
+  const renderSectionToggle = (section) => {
+    // Store the current state of the toggle to prevent visual changes during saving
+    const isChecked = section.required || localEnabledSections[section.id] || false;
+    
+    return (
+      <div key={section.id} className={commonClasses.toggleContainer}>
+        <div>
+          <h4 className={commonClasses.toggleLabel}>{section.label}</h4>
+          {section.required && (
+            <p className={commonClasses.toggleDescription}>Required section</p>
+          )}
+        </div>
+        <div className="flex items-center">
+          <label className={`relative inline-flex items-center ${status === 'saving' ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}>
+            <input
+              type="checkbox"
+              checked={isChecked}
+              onChange={(e) => handleSectionToggle(section.id, e.target.checked)}
+              disabled={section.required || status === 'saving'}
+              className="sr-only peer"
+            />
+            <div className={`w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${
+              isChecked ? 'peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white' : ''
+            }`}></div>
+          </label>
+        </div>
+      </div>
+    );
+  };
+
+  if (isLoading || isRefreshing) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Spinner size="lg"  />
+        <Spinner size="lg" />
       </div>
     );
   }

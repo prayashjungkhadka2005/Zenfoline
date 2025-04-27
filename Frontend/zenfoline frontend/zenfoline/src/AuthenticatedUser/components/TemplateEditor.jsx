@@ -121,102 +121,104 @@ const TemplateEditor = () => {
         
         const template = templates.find(t => t._id === templateId);
         
-        if (template) {
-          setActiveTemplate(template);
-          setLoadingProgress(30);
-
-          // Fetch theme settings
-          const themeResponse = await fetch(`${API_BASE_URL}/authenticated-user/gettheme?userId=${userId}`);
-          if (!themeResponse.ok) {
-            throw new Error('Failed to fetch theme settings');
-          }
-          const themeResult = await themeResponse.json();
-          const themeSettings = themeResult.theme || {};
-          setLoadingProgress(35);
-
-          // First fetch section visibility
-          const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
-          if (!visibilityResponse.ok) {
-            throw new Error('Failed to fetch section visibility');
-          }
-          const visibilityResult = await visibilityResponse.json();
-          const sectionVisibility = visibilityResult.data || {};
-          setLoadingProgress(40);
-
-          // Define all possible sections with their endpoints
-          const allSections = [
-            { id: 'basics', endpoint: 'basic-info' },
-            { id: 'about', endpoint: 'about' },
-            { id: 'skills', endpoint: 'skills' },
-            { id: 'experience', endpoint: 'experience' },
-            { id: 'education', endpoint: 'education' },
-            { id: 'projects', endpoint: 'projects' },
-            { id: 'publications', endpoint: 'publications' },
-            { id: 'certifications', endpoint: 'certifications' },
-            { id: 'awards', endpoint: 'awards' },
-            { id: 'services', endpoint: 'services' }
-          ];
-
-          // Filter sections based on visibility
-          const sectionsToFetch = allSections.filter(section => 
-            sectionVisibility[section.id]?.isEnabled !== false
-          );
-
-          const sectionData = {};
-          
-          // Fetch data only for enabled sections
-          const sectionPromises = sectionsToFetch.map(async (section) => {
-            try {
-              const response = await fetch(`${API_BASE_URL}/portfolio-save/${section.endpoint}/${userId}`);
-              if (response.ok) {
-                const result = await response.json();
-                if (result.data) {
-                  sectionData[section.id] = result.data;
-                }
-              } else {
-                console.warn(`Failed to fetch ${section.id} data: ${response.status} ${response.statusText}`);
-              }
-            } catch (error) {
-              console.error(`Error fetching ${section.id} data:`, error);
-            }
-          });
-          
-          // Wait for all enabled section data to be fetched
-          await Promise.all(sectionPromises);
-          
-          // Initialize form data with fetched section data and theme settings
-          setFormData(prev => ({
-            ...prev,
-            basics: sectionData.basics || prev.basics,
-            about: sectionData.about || prev.about,
-            skills: sectionData.skills || prev.skills,
-            experience: sectionData.experience || prev.experience,
-            education: sectionData.education || prev.education,
-            publications: sectionData.publications || prev.publications,
-            certifications: sectionData.certifications || prev.certifications,
-            awards: sectionData.awards || prev.awards,
-            projects: sectionData.projects || prev.projects,
-            services: sectionData.services || prev.services,
-            theme: {
-              ...prev.theme,
-              ...themeSettings,
-              fontStyle: themeSettings.fontStyle || template.data?.theme?.fontStyle || prev.theme.fontStyle,
-              enabledSections: Object.fromEntries(
-                Object.entries(sectionVisibility).map(([key, value]) => [key, value.isEnabled])
-              )
-            }
-          }));
-
-          // Update section visibility state
-          setSectionVisibility(sectionVisibility);
-          
-          // Update font style from theme settings
-          if (themeSettings.fontStyle) {
-            setFontStyle(themeSettings.fontStyle);
-          }
-          
-          setLoadingProgress(100);
+        if (!template) {
+          throw new Error('Template not found');
         }
+        
+        setActiveTemplate(template);
+        setLoadingProgress(30);
+
+        // Fetch theme settings
+        const themeResponse = await fetch(`${API_BASE_URL}/authenticated-user/gettheme?userId=${userId}`);
+        if (!themeResponse.ok) {
+          throw new Error('Failed to fetch theme settings');
+        }
+        const themeResult = await themeResponse.json();
+        const themeSettings = themeResult.theme || {};
+        setLoadingProgress(35);
+
+        // First fetch section visibility
+        const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
+        if (!visibilityResponse.ok) {
+          throw new Error('Failed to fetch section visibility');
+        }
+        const visibilityResult = await visibilityResponse.json();
+        const sectionVisibility = visibilityResult.data || {};
+        setLoadingProgress(40);
+
+        // Define all possible sections with their endpoints
+        const allSections = [
+          { id: 'basics', endpoint: 'basic-info' },
+          { id: 'about', endpoint: 'about' },
+          { id: 'skills', endpoint: 'skills' },
+          { id: 'experience', endpoint: 'experience' },
+          { id: 'education', endpoint: 'education' },
+          { id: 'projects', endpoint: 'projects' },
+          { id: 'publications', endpoint: 'publications' },
+          { id: 'certifications', endpoint: 'certifications' },
+          { id: 'awards', endpoint: 'awards' },
+          { id: 'services', endpoint: 'services' }
+        ];
+
+        // Filter sections based on visibility
+        const sectionsToFetch = allSections.filter(section => 
+          sectionVisibility[section.id]?.isEnabled !== false
+        );
+
+        const sectionData = {};
+        
+        // Fetch data only for enabled sections
+        const sectionPromises = sectionsToFetch.map(async (section) => {
+          try {
+            const response = await fetch(`${API_BASE_URL}/portfolio-save/${section.endpoint}/${userId}`);
+            if (response.ok) {
+              const result = await response.json();
+              if (result.data) {
+                sectionData[section.id] = result.data;
+              }
+            } else {
+              console.warn(`Failed to fetch ${section.id} data: ${response.status} ${response.statusText}`);
+            }
+          } catch (error) {
+            console.error(`Error fetching ${section.id} data:`, error);
+          }
+        });
+        
+        // Wait for all enabled section data to be fetched
+        await Promise.all(sectionPromises);
+        
+        // Initialize form data with fetched section data and theme settings
+        setFormData(prev => ({
+          ...prev,
+          basics: sectionData.basics || prev.basics,
+          about: sectionData.about || prev.about,
+          skills: sectionData.skills || prev.skills,
+          experience: sectionData.experience || prev.experience,
+          education: sectionData.education || prev.education,
+          publications: sectionData.publications || prev.publications,
+          certifications: sectionData.certifications || prev.certifications,
+          awards: sectionData.awards || prev.awards,
+          projects: sectionData.projects || prev.projects,
+          services: sectionData.services || prev.services,
+          theme: {
+            ...prev.theme,
+            ...themeSettings,
+            fontStyle: themeSettings.fontStyle || template.data?.theme?.fontStyle || prev.theme.fontStyle,
+            enabledSections: Object.fromEntries(
+              Object.entries(sectionVisibility).map(([key, value]) => [key, value.isEnabled])
+            )
+          }
+        }));
+
+        // Update section visibility state
+        setSectionVisibility(sectionVisibility);
+        
+        // Update font style from theme settings
+        if (themeSettings.fontStyle) {
+          setFontStyle(themeSettings.fontStyle);
+        }
+        
+        setLoadingProgress(100);
       } catch (error) {
         console.error('Error loading data:', error);
         showNotification('Failed to load portfolio data. Please try again.', 'error');
@@ -416,6 +418,7 @@ const TemplateEditor = () => {
           activeSection={activeSection}
           setActiveSection={setActiveSection}
           formData={formData}
+          sectionVisibility={sectionVisibility}
         />
       }
       form={

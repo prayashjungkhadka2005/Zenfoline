@@ -263,7 +263,7 @@ const AboutSection = ({ data }) => {
                           <HighlightItem>
                             <HighlightIcon fontSize="small" />
                             <HighlightText>
-                              {highlight.text || highlight}
+                              {typeof highlight === 'object' ? highlight.text : highlight}
                             </HighlightText>
                           </HighlightItem>
                         </motion.div>
