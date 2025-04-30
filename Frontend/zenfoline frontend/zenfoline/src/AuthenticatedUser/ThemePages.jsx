@@ -27,6 +27,8 @@ const ThemePage = () => {
   const [availableFooters, setAvailableFooters] = useState([]);
   const [activeComponents, setActiveComponents] = useState([]);
   
+  const [fontUpdateMessage, setFontUpdateMessage] = useState('');
+  
   // Predefined component list
   const predefinedComponents = {
     Developer: {
@@ -184,6 +186,10 @@ const ThemePage = () => {
   const handleFontStyleSelect = (font) => {
     setActiveFontStyle(font);
     updateTheme({ fontStyle: font });
+    setFontUpdateMessage('Font updated!');
+    setTimeout(() => {
+      setFontUpdateMessage('');
+    }, 2000);
   };
   
   const handleHeaderChange = (event) => {
@@ -216,6 +222,22 @@ const ThemePage = () => {
       window.open(portfolioUrl, "_blank");
     }
   };
+
+  // Theme configurations with names and colors
+  const themeConfigs = [
+    { name: "Ocean Blue", colors: ["#1a365d", "#2c5282", "#4299e1"] },
+    { name: "Forest Green", colors: ["#1c4532", "#2f855a", "#48bb78"] },
+    { name: "Sunset Orange", colors: ["#9a3412", "#ea580c", "#f97316"] },
+    { name: "Royal Purple", colors: ["#581c87", "#805ad5", "#a78bfa"] },
+    { name: "Ruby Red", colors: ["#881337", "#be123c", "#f43f5e"] },
+    { name: "Emerald", colors: ["#065f46", "#059669", "#34d399"] },
+    { name: "Midnight", colors: ["#18181b", "#27272a", "#3f3f46"] },
+    { name: "Golden", colors: ["#854d0e", "#ca8a04", "#eab308"] },
+    { name: "Rose", colors: ["#881337", "#be123c", "#fb7185"] },
+    { name: "Teal", colors: ["#134e4a", "#0d9488", "#2dd4bf"] },
+    { name: "Indigo", colors: ["#312e81", "#4338ca", "#6366f1"] },
+    { name: "Slate", colors: ["#1e293b", "#475569", "#94a3b8"] }
+  ];
 
   if (isLoading) {
     return (
@@ -333,17 +355,28 @@ const ThemePage = () => {
               <i className="fas fa-paint-brush text-orange-500"></i> Preset Themes
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {Array.from({ length: 12 }).map((_, idx) => (
+              {themeConfigs.map((theme, idx) => (
                 <button
                   key={idx}
                   onClick={() => handlePresetThemeSelect(idx)}
-                  className={`px-3 py-1.5 text-sm border rounded-md transition-all duration-200 ${
+                  className={`px-3 py-2 text-sm border rounded-md transition-all duration-200 ${
                     parseInt(activePresetTheme, 10) === idx 
                       ? "bg-orange-50 border-orange-500 text-orange-500 shadow-sm" 
                       : "border-gray-200 text-gray-700 hover:border-orange-200 hover:text-orange-500"
                   }`}
                 >
-                  Theme {idx + 1}
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex gap-1">
+                      {theme.colors.map((color, colorIdx) => (
+                        <div
+                          key={colorIdx}
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <span className="font-medium">{theme.name}</span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -360,13 +393,18 @@ const ThemePage = () => {
                   <button
                     key={font}
                     onClick={() => handleFontStyleSelect(font)}
-                    className={`px-3 py-1.5 text-sm border rounded-md transition-all duration-200 ${
+                    className={`px-3 py-1.5 text-sm border rounded-md transition-all duration-200 relative ${
                       activeFontStyle === font 
                         ? "bg-orange-50 border-orange-500 text-orange-500 shadow-sm" 
                         : "border-gray-200 text-gray-700 hover:border-orange-200 hover:text-orange-500"
                     }`}
                   >
                     {font}
+                    {activeFontStyle === font && fontUpdateMessage && (
+                      <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap animate-fade-in">
+                        {fontUpdateMessage}
+                      </span>
+                    )}
                   </button>
                 )
               )}

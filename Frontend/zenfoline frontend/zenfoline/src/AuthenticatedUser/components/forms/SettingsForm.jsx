@@ -14,7 +14,6 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
   const [defaultSections, setDefaultSections] = useState([]);
   const [optionalSections, setOptionalSections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [templateCategory, setTemplateCategory] = useState('');
 
   const commonClasses = {
@@ -56,37 +55,38 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
   // Fetch template default sections and section visibility
   useEffect(() => {
     const fetchData = async () => {
+      if (!userId || isInitialized) return;
+      
       try {
         setIsLoading(true);
         
         // Get the template ID from the data prop
-        const templateId = data?.templateId || 'developer'; // Default to developer if not specified
-        console.log('Template ID:', templateId);
+        const templateId = data?.templateId || 'developer';
         
-        // Fetch template data
-        const templateResponse = await fetch(`${API_BASE_URL}/authenticated-user/activetemplate?userId=${userId}`);
+        // Fetch template data and section visibility in parallel
+        const [templateResponse, visibilityResponse] = await Promise.all([
+          fetch(`${API_BASE_URL}/authenticated-user/activetemplate?userId=${userId}`),
+          fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`)
+        ]);
+
         if (!templateResponse.ok) {
           throw new Error('Failed to fetch template data');
         }
-        const templateData = await templateResponse.json();
-        console.log('Template data:', templateData);
+        if (!visibilityResponse.ok) {
+          throw new Error('Failed to fetch section visibility');
+        }
+
+        const [templateData, visibilityData] = await Promise.all([
+          templateResponse.json(),
+          visibilityResponse.json()
+        ]);
         
         // Get template category
         const category = templateData.category || 'designer';
         setTemplateCategory(category);
-        console.log('Template category:', category);
         
         // Get default sections for this template category
         const defaultSectionIds = defaultSectionsByCategory[category] || ['basics', 'about'];
-        console.log('Default section IDs:', defaultSectionIds);
-        
-        // Fetch section visibility
-        const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
-        if (!visibilityResponse.ok) {
-          throw new Error('Failed to fetch section visibility');
-        }
-        const visibilityData = await visibilityResponse.json();
-        console.log('Visibility data:', visibilityData);
         
         // Process section visibility data
         if (visibilityData.data) {
@@ -115,9 +115,6 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
             !defaultSectionIds.includes(section.id) && !section.required
           );
           
-          console.log('Default sections list:', defaultSectionsList);
-          console.log('Optional sections list:', optionalSectionsList);
-          
           setDefaultSections(defaultSectionsList);
           setOptionalSections(optionalSectionsList);
           setIsInitialized(true);
@@ -143,9 +140,7 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
       }
     };
 
-    if (userId && !isInitialized) {
-      fetchData();
-    }
+    fetchData();
   }, [userId, isInitialized, data, onUpdate]);
 
   // Handle section toggle in local state only
@@ -173,6 +168,7 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
     try {
       setError('');
       setStatus('saving');
+      setIsLoading(true);
       
       // Prepare the section configuration for the API
       const sectionConfiguration = {};
@@ -207,16 +203,6 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
       }
       
       setStatus('success');
-      
-      // Show refreshing state
-      setIsRefreshing(true);
-      
-      // Refresh settings data after successful save
-      await refreshSettingsData();
-      
-      // Hide refreshing state
-      setIsRefreshing(false);
-      
       setTimeout(() => {
         setStatus(null);
       }, 3000);
@@ -224,45 +210,12 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
       console.error('Error saving settings:', error);
       setStatus('error');
       setError('Failed to save settings');
-      setIsRefreshing(false);
       setTimeout(() => {
         setStatus(null);
         setError('');
       }, 3000);
-    }
-  };
-
-  // Function to refresh settings data from the API
-  const refreshSettingsData = async () => {
-    try {
-      // Fetch section visibility
-      const visibilityResponse = await fetch(`${API_BASE_URL}/portfolio-save/section-visibility/${userId}`);
-      if (!visibilityResponse.ok) {
-        throw new Error('Failed to fetch section visibility');
-      }
-      const visibilityData = await visibilityResponse.json();
-      
-      // Process section visibility data
-      if (visibilityData.data) {
-        const sectionConfig = {};
-        Object.keys(visibilityData.data).forEach(section => {
-          if (section !== 'customSections') {
-            sectionConfig[section] = visibilityData.data[section].isEnabled;
-          }
-        });
-        
-        // Update local state with fresh data from server
-        setLocalEnabledSections(sectionConfig);
-        
-        // Update parent component with the fetched section configuration
-        onUpdate({
-          ...data,
-          enabledSections: sectionConfig
-        });
-      }
-    } catch (error) {
-      console.error('Error refreshing settings data:', error);
-      // Don't show error to user, just log it
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -297,7 +250,7 @@ const SettingsForm = ({ data, onUpdate, onSettingsSaved }) => {
     );
   };
 
-  if (isLoading || isRefreshing) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Spinner size="lg" />

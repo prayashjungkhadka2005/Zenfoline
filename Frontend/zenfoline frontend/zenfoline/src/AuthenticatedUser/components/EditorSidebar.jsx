@@ -2,22 +2,15 @@ import React from 'react';
 import { FiUser, FiInfo, FiCode, FiBriefcase, FiFileText, FiSettings, FiAward, FiBook, FiServer } from 'react-icons/fi';
 
 const EditorSidebar = ({ sections, activeSection, setActiveSection, formData, sectionVisibility }) => {
-  // Get visible sections for navigation
-  const getVisibleSections = () => {
-    return sections.filter(section => {
-      // Always show required sections and settings
-      if (section.required || section.id === 'settings') {
-        return true;
-      }
-      
-      // For non-required sections, check if they are enabled in the backend data
-      return sectionVisibility[section.id] !== undefined 
-        ? sectionVisibility[section.id] 
-        : formData?.theme?.enabledSections?.[section.id] ?? true;
-    });
-  };
+  // Filter sections based on visibility and required status
+  const visibleSections = sections.filter(section => {
+    // Always show required sections
+    if (section.required) return true;
+    
+    // For non-required sections, check visibility
+    return sectionVisibility[section.id] !== false;
+  });
 
-  const visibleSections = getVisibleSections();
   const visibleCount = Object.values(sectionVisibility).filter(Boolean).length;
 
   return (

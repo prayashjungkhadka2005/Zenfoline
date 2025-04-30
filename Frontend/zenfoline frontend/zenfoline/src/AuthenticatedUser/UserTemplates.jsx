@@ -17,24 +17,73 @@ const Templates = () => {
 
   const [sortBy, setSortBy] = useState('name');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [updatingTemplateId, setUpdatingTemplateId] = useState(null);
+  const [updateMessage, setUpdateMessage] = useState('');
   const userId = useAuthStore((state) => state.userId);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (userId) {
+      // Clear the store's state before fetching
+      useTemplateStore.setState({
+        templates: [],
+        activeTemplateId: null,
+        hasCheckedActiveTemplate: false,
+        lastUserId: null
+      });
       fetchTemplates(userId);
     }
   }, [userId, fetchTemplates]);
 
+  useEffect(() => {
+    if (templates.length > 0) {
+      console.log("All Templates:", templates);
+      templates.forEach(template => {
+        console.log(`Template "${template.name}" image path:`, template.image);
+        console.log(`Full image URL:`, `http://localhost:3000${template.image}`);
+      });
+    }
+  }, [templates]);
+
   const handleActivate = async (templateId) => {
-    await activateTemplate(templateId, userId); 
-    await updateTheme(templateId, userId);
+    try {
+      setUpdatingTemplateId(templateId);
+      setUpdateMessage('');
+      await activateTemplate(templateId, userId);
+      await updateTheme(templateId, userId);
+      setUpdateMessage('Template activated!');
+      setTimeout(() => {
+        setUpdateMessage('');
+      }, 2000);
+    } catch (error) {
+      setUpdateMessage('Failed to activate');
+      setTimeout(() => {
+        setUpdateMessage('');
+      }, 2000);
+    } finally {
+      setUpdatingTemplateId(null);
+    }
   };
 
   const handleDeactivate = async () => {
     if (activeTemplateId) {
-      await activateTemplate(null, userId); 
-      await updateTheme(null, userId);
+      try {
+        setUpdatingTemplateId(activeTemplateId);
+        setUpdateMessage('');
+        await activateTemplate(null, userId);
+        await updateTheme(null, userId);
+        setUpdateMessage('Template deactivated!');
+        setTimeout(() => {
+          setUpdateMessage('');
+        }, 2000);
+      } catch (error) {
+        setUpdateMessage('Failed to deactivate');
+        setTimeout(() => {
+          setUpdateMessage('');
+        }, 2000);
+      } finally {
+        setUpdatingTemplateId(null);
+      }
     }
   };
 
@@ -104,39 +153,56 @@ const Templates = () => {
           <h1 className="text-xl font-semibold text-gray-800">My Templates</h1>
           <p className="text-sm text-gray-500 mt-1">Manage and customize your portfolio templates</p>
         </div>
-        <div className="relative">
+        <div className="flex items-center gap-2">
           <button 
-            onClick={() => setShowSortDropdown(!showSortDropdown)}
+            onClick={() => {
+              useTemplateStore.setState({
+                templates: [],
+                activeTemplateId: null,
+                hasCheckedActiveTemplate: false,
+                lastUserId: null
+              });
+              fetchTemplates(userId);
+            }}
             className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md text-sm text-gray-700 border border-gray-200 hover:border-orange-500 hover:text-orange-500 transition-colors"
           >
-            Sort by: {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
-            <i className={`fas fa-chevron-${showSortDropdown ? 'up' : 'down'} text-xs`}></i>
+            <i className="fas fa-sync-alt"></i>
+            Refresh
           </button>
-          {showSortDropdown && (
-            <div className="absolute right-0 mt-1.5 w-40 bg-white rounded-md shadow-sm border border-gray-200 py-1 z-10">
-              <button
-                onClick={() => handleSort('name')}
-                className="w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors"
-              >
-                Name
-              </button>
-              <button
-                onClick={() => handleSort('active')}
-                className={`w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors ${
-                  !activeTemplateId ? 'text-gray-400 cursor-not-allowed' : ''
-                }`}
-                disabled={!activeTemplateId}
-              >
-                Active First
-              </button>
-              <button
-                onClick={() => handleSort('newest')}
-                className="w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors"
-              >
-                Newest First
-              </button>
-            </div>
-          )}
+          <div className="relative">
+            <button 
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-md text-sm text-gray-700 border border-gray-200 hover:border-orange-500 hover:text-orange-500 transition-colors"
+            >
+              Sort by: {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
+              <i className={`fas fa-chevron-${showSortDropdown ? 'up' : 'down'} text-xs`}></i>
+            </button>
+            {showSortDropdown && (
+              <div className="absolute right-0 mt-1.5 w-40 bg-white rounded-md shadow-sm border border-gray-200 py-1 z-10">
+                <button
+                  onClick={() => handleSort('name')}
+                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors"
+                >
+                  Name
+                </button>
+                <button
+                  onClick={() => handleSort('active')}
+                  className={`w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors ${
+                    !activeTemplateId ? 'text-gray-400 cursor-not-allowed' : ''
+                  }`}
+                  disabled={!activeTemplateId}
+                >
+                  Active First
+                </button>
+                <button
+                  onClick={() => handleSort('newest')}
+                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-orange-50 hover:text-orange-500 transition-colors"
+                >
+                  Newest First
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -184,13 +250,27 @@ const Templates = () => {
                         ? handleDeactivate()
                         : handleActivate(template._id)
                     }
+                    disabled={updatingTemplateId !== null}
                     className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${
                       activeTemplateId === template._id
                         ? 'bg-red-500 text-white hover:bg-red-600'
                         : 'bg-orange-500 text-white hover:bg-orange-600'
-                    }`}
+                    } ${updatingTemplateId !== null ? 'opacity-75 cursor-not-allowed' : ''} 
+                    relative overflow-hidden`}
                   >
-                    {activeTemplateId === template._id ? 'Deactivate' : 'Activate'}
+                    {updatingTemplateId === template._id ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Updating...</span>
+                      </div>
+                    ) : updateMessage && template._id === (activeTemplateId || updatingTemplateId) ? (
+                      <span className="animate-fade-in">{updateMessage}</span>
+                    ) : (
+                      activeTemplateId === template._id ? 'Deactivate' : 'Activate'
+                    )}
                   </button>
                   <div className="flex gap-2">
                     <button 

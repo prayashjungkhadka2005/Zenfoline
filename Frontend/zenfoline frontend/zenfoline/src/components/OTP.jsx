@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import InputField from './InputField';
-import logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 
 const OTP = ({ onSuccessNavigateTo, verifyOtpMethod, resendOtpMethod, email }) => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [otpTouched, setOtpTouched] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,7 +26,11 @@ const OTP = ({ onSuccessNavigateTo, verifyOtpMethod, resendOtpMethod, email }) =
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-
+    setOtpTouched(true);
+    if (!otp) {
+      setError('OTP is required.');
+      return;
+    }
     try {
       await verifyOtpMethod({ otp, email });
       setSuccess('OTP verified successfully!');
@@ -46,46 +50,52 @@ const OTP = ({ onSuccessNavigateTo, verifyOtpMethod, resendOtpMethod, email }) =
   };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
-      <div className="text-center mb-6 w-full max-w-md">
-        <img src={logo} alt="Logo" className="mx-auto w-60 h-35" />
+    <div className="bg-white p-8 rounded-2xl w-full shadow-xl hover:shadow-2xl transition-shadow duration-300">
+      <div className="text-center mb-4">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-[#FE6C05] to-[#DB4437] bg-clip-text text-transparent">
+          Verify OTP
+        </h1>
+        <p className="text-gray-600 text-sm mt-1">Enter the OTP sent to your email</p>
       </div>
-
-      <div className="bg-[#F8F9FA] p-12 rounded-lg w-[600px] h-[400px] outline-none border-2 border-[#000000]/21">
-        <div className="text-center mb-3">
-          <h1 className="text-2xl md:text-3xl lg:text-3xl font-bold">Verify OTP</h1>
-        </div>
-
-        {success && <p className="text-green-500 text-xs text-center">{success}</p>}
-        {error && <p className="text-red-500 text-xs text-center">{error}</p>}
-
-        <div className="w-full p-2 border-b-0 mx-auto">
-          <form onSubmit={handleVerifyOtp}>
+      <div className="w-full">
+        <form onSubmit={handleVerifyOtp} className="space-y-4">
+          <div>
             <InputField
               label="Enter 6-digit OTP"
               placeholder="Enter OTP"
               type="number"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              onChange={(e) => { setOtp(e.target.value); setOtpTouched(true); }}
+              className={error && otpTouched && !otp ? 'border-red-400' : ''}
             />
-            <button
-              type="submit"
-              className="w-full bg-[#FE6C05] text-white font-light text-[18px] rounded-md py-3 my-4 cursor-pointer"
-            >
-              Verify
-            </button>
-          </form>
-
-          <p className="text-center text-[14px]">
-            Not received OTP?
-            <span
-              className="text-[darkblue] text-[14px] px-1 cursor-pointer"
-              onClick={handleResendOtp}
-            >
-              Resend
-            </span>
-          </p>
-        </div>
+            {error && otpTouched && !otp && (
+              <p className="text-xs text-red-500 mt-1 ml-1">OTP is required.</p>
+            )}
+          </div>
+          {/* Backend error message (not field-level) */}
+          {error && otp && error !== 'OTP is required.' && (
+            <p className="text-sm text-red-500 text-center mb-2">{error}</p>
+          )}
+          {/* Success message */}
+          {success && (
+            <p className="text-sm text-green-600 text-center mb-2">{success}</p>
+          )}
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-[#FE6C05] to-[#DB4437] text-white font-medium text-sm rounded-lg py-2 transition-all duration-300 hover:opacity-90 hover:shadow-lg transform hover:-translate-y-0.5"
+          >
+            Verify
+          </button>
+        </form>
+        <p className="text-center text-xs mt-4">
+          Not received OTP?{' '}
+          <span
+            className="text-[#FE6C05] hover:text-[#DB4437] font-medium px-1 cursor-pointer transition-colors"
+            onClick={handleResendOtp}
+          >
+            Resend
+          </span>
+        </p>
       </div>
     </div>
   );

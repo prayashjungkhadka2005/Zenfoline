@@ -1,5 +1,5 @@
 const express = require('express');
-const { addTemplate, deleteTemplate, upload, updateTemplate, addComponent, updateComponentStatus, deleteComponent } = require('../controllers/AuthenticatedAdmin');
+const { addTemplate, deleteTemplate, upload, updateTemplate, updateTemplateImagePath, addComponent, updateComponentStatus, deleteComponent } = require('../controllers/AuthenticatedAdmin');
 const router = express.Router();
 const Template = require('../models/Templates');
 const Component = require('../models/Components');
@@ -18,6 +18,8 @@ router.get('/templates', async (req, res) => {
 
 
 router.put('/updatetemplate/:templateId', upload.single('image'), updateTemplate);
+
+router.post('/update-template-image-path', updateTemplateImagePath);
 
 router.post('/addcomponent', addComponent);
 

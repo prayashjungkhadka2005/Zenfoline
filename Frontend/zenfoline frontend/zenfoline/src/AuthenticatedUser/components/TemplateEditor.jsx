@@ -146,6 +146,20 @@ const TemplateEditor = () => {
         const sectionVisibility = visibilityResult.data || {};
         setLoadingProgress(40);
 
+        // Process section visibility to ensure it's in the correct format
+        const processedSectionVisibility = {};
+        Object.keys(sectionVisibility).forEach(section => {
+          if (section !== 'customSections') {
+            // Handle both object format (with isEnabled property) and boolean format
+            processedSectionVisibility[section] = typeof sectionVisibility[section] === 'object' && sectionVisibility[section] !== null
+              ? sectionVisibility[section].isEnabled
+              : sectionVisibility[section];
+          }
+        });
+        
+        // Update section visibility state with processed data
+        setSectionVisibility(processedSectionVisibility);
+        
         // Define all possible sections with their endpoints
         const allSections = [
           { id: 'basics', endpoint: 'basic-info' },
@@ -162,7 +176,7 @@ const TemplateEditor = () => {
 
         // Filter sections based on visibility
         const sectionsToFetch = allSections.filter(section => 
-          sectionVisibility[section.id]?.isEnabled !== false
+          processedSectionVisibility[section.id] !== false
         );
 
         const sectionData = {};
@@ -205,13 +219,13 @@ const TemplateEditor = () => {
             ...themeSettings,
             fontStyle: themeSettings.fontStyle || template.data?.theme?.fontStyle || prev.theme.fontStyle,
             enabledSections: Object.fromEntries(
-              Object.entries(sectionVisibility).map(([key, value]) => [key, value.isEnabled])
+              Object.entries(processedSectionVisibility).map(([key, value]) => [key, value])
             )
           }
         }));
 
         // Update section visibility state
-        setSectionVisibility(sectionVisibility);
+        setSectionVisibility(processedSectionVisibility);
         
         // Update font style from theme settings
         if (themeSettings.fontStyle) {

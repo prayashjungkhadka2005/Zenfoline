@@ -83,6 +83,31 @@ exports.saveAboutInfo = async (req, res) => {
         console.log(`[saveAboutInfo] Saving about info for user: ${userId}`);
         console.log(`[saveAboutInfo] Request body:`, JSON.stringify(req.body, null, 2));
 
+        // --- Start Validation ---
+        const { description, vision, mission, highlights } = req.body;
+
+        if (description && typeof description !== 'string') {
+            return res.status(400).json({ message: 'Invalid about data format: description must be a string.' });
+        }
+        if (vision && typeof vision !== 'string') {
+            return res.status(400).json({ message: 'Invalid about data format: vision must be a string.' });
+        }
+        if (mission && typeof mission !== 'string') {
+            return res.status(400).json({ message: 'Invalid about data format: mission must be a string.' });
+        }
+        if (highlights && !Array.isArray(highlights)) {
+            return res.status(400).json({ message: 'Invalid about data format: highlights must be an array.' });
+        }
+        // Optional: Validate structure within highlights array if needed
+        if (Array.isArray(highlights)) {
+            for (const item of highlights) {
+                if (typeof item.text !== 'string' || typeof item.isVisible !== 'boolean') {
+                    return res.status(400).json({ message: 'Invalid about data format: Each highlight must have a string `text` and a boolean `isVisible`.' });
+                }
+            }
+        }
+        // --- End Validation ---
+
         let portfolio = await PortfolioData.findOne({ userId });
         if (!portfolio) {
             console.log(`[saveAboutInfo] Portfolio not found for user: ${userId}`);
@@ -274,8 +299,11 @@ exports.saveProjectsInfo = async (req, res) => {
             ? JSON.parse(req.body.projects) 
             : req.body.projects;
 
+        // Ensure projectsData is an array before mapping
+        const validProjectsData = Array.isArray(projectsData) ? projectsData : [];
+
         // Update projects
-        portfolio.projects = projectsData.map((project, index) => ({
+        portfolio.projects = validProjectsData.map((project, index) => ({
             title: project.title,
             description: project.description,
             role: project.role,

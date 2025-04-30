@@ -252,6 +252,21 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
   console.log("--- EditorPreview RENDER END ---");
   // --- END LOG STATE BEFORE RENDER ---
 
+  // Filter sections based on visibility and required status
+  const visibleSections = derivedProps.sectionsForTemplate.filter(sectionId => {
+    // If template or sections are not loaded yet, just use sectionVisibility
+    if (!activeTemplate?.sections) {
+      return sectionVisibility[sectionId] !== false;
+    }
+    
+    // Check if section is required
+    const section = activeTemplate.sections.find(s => s.id === sectionId);
+    if (section?.required) return true;
+    
+    // For non-required sections, check visibility
+    return sectionVisibility[sectionId] !== false;
+  });
+
   return (
     <>
       {!isFullScreen ? (
@@ -347,7 +362,7 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
                       template={activeTemplate} 
                       data={derivedProps.processedData}
                       fontStyle={fontStyle}
-                      availableSections={derivedProps.sectionsForTemplate}
+                      availableSections={visibleSections}
                       checkSectionData={hasSectionData}
                       sectionVisibility={sectionVisibility}
                       isPreviewMode={true}
@@ -385,7 +400,7 @@ const EditorPreview = ({ activeTemplate, formData, fontStyle, userId, showNotifi
                     template={activeTemplate} 
                     data={derivedProps.processedData}
                     fontStyle={fontStyle}
-                    availableSections={derivedProps.sectionsForTemplate}
+                    availableSections={visibleSections}
                     checkSectionData={hasSectionData}
                     sectionVisibility={sectionVisibility}
                     isPreviewMode={true}

@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const Otp = require('../models/Otp');
 const Admin = require('../models/Admin');
@@ -255,13 +255,44 @@ const deleteComponent = async (req, res) => {
     }
 };
 
+const updateTemplateImagePath = async (req, res) => {
+    try {
+        const { templateId, oldPath, newPath } = req.body;
+
+        if (!templateId || !oldPath || !newPath) {
+            return res.status(400).json({ message: 'Template ID, old path, and new path are required.' });
+        }
+
+        const template = await Templates.findById(templateId);
+        if (!template) {
+            return res.status(404).json({ message: 'Template not found.' });
+        }
+
+        if (template.image !== oldPath) {
+            return res.status(400).json({ message: 'Old path does not match current image path.' });
+        }
+
+        // Update the image path
+        template.image = newPath;
+        await template.save();
+
+        return res.status(200).json({
+            message: 'Template image path updated successfully.',
+            data: template
+        });
+    } catch (error) {
+        console.error('Error updating template image path:', error);
+        return res.status(500).json({ message: 'An error occurred while updating the template image path.' });
+    }
+};
 
 module.exports = {
     addTemplate,
     deleteTemplate,
+    updateTemplate,
+    updateTemplateImagePath,
     upload,
     storage,
-    updateTemplate,
     addComponent,
     updateComponentStatus,
     deleteComponent

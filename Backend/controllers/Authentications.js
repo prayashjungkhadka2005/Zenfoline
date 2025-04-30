@@ -97,6 +97,10 @@ const adminLogin = async (req, res) => {
     try {
         const { username, password } = req.body;
 
+        if (!username || !password) {
+            return res.status(400).json({ message: 'All fields are required.' });
+        }
+
         const admin = await Admin.findOne({ username }).lean();
         if (!admin) {
             return res.status(404).json({ message: 'Admin not found! Please signup to login.' });
