@@ -1,8 +1,17 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import logo from "../assets/logo.png";
 
 const Sidebar = () => {
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        // Clear any stored tokens or user data
+        localStorage.removeItem('token');
+        // Redirect to login page
+        navigate('/login');
+    };
+
     const menus = [
         { name: 'Home', path: '/dashboard', icon: 'fas fa-home', exact: true },
         { name: 'Templates', path: '/dashboard/templates', icon: 'fas fa-file-alt' },
@@ -38,9 +47,12 @@ const Sidebar = () => {
             </nav>
             
             <div className="mt-auto p-4 border-t border-gray-100">
-                <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2">
-                    <i className="fas fa-crown text-xs"></i>
-                    Upgrade Plan
+                <button 
+                    onClick={handleLogout}
+                    className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md text-sm font-medium shadow-sm transition-colors flex items-center justify-center gap-2"
+                >
+                    <i className="fas fa-sign-out-alt text-xs"></i>
+                    Logout
                 </button>
             </div>
         </div>

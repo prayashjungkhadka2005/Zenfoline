@@ -15,7 +15,20 @@ const Login = () => {
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
   const location = useLocation();
-  const message = location.state?.message;
+  const [message, setMessage] = useState(location.state?.message);
+
+  // Clear location state and message on mount
+  useEffect(() => {
+    if (location.state?.message) {
+      // Clear the location state
+      window.history.replaceState({}, document.title);
+      // Clear message after 3 seconds
+      const timer = setTimeout(() => {
+        setMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     setError(null);
@@ -128,14 +141,7 @@ const Login = () => {
                 <p className="text-sm text-red-500 text-center mb-2">{error}</p>
               )}
 
-              <div className="flex justify-between items-center text-sm">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="w-3 h-3 text-[#FE6C05] border-gray-300 rounded focus:ring-[#FE6C05]"
-                  />
-                  <label className="ml-2 text-gray-600 text-xs">Remember Me</label>
-                </div>
+              <div className="flex justify-end items-center text-sm">
                 <Link to={"/forgotemail"} className="text-[#FE6C05] hover:text-[#DB4437] transition-colors text-xs">
                   Forgot Password?
                 </Link>
@@ -146,23 +152,6 @@ const Login = () => {
                 className="w-full bg-gradient-to-r from-[#FE6C05] to-[#DB4437] text-white font-medium text-sm rounded-lg py-2 transition-all duration-300 hover:opacity-90 hover:shadow-lg transform hover:-translate-y-0.5"
               >
                 Sign In
-              </button>
-
-              <div className="relative my-3">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-medium text-sm rounded-lg py-2 transition-all duration-300 hover:bg-gray-50 hover:shadow-md"
-              >
-                <i className="fab fa-google text-lg text-[#DB4437]"></i>
-                Google
               </button>
 
               <p className="text-center text-gray-600 text-xs">

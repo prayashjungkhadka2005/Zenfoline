@@ -123,21 +123,6 @@ const Signup = () => {
               >
                 Signup now
               </button>
-              <div className="relative my-3">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 font-medium text-sm rounded-lg py-2 transition-all duration-300 hover:bg-gray-50 hover:shadow-md"
-              >
-                <i className="fab fa-google text-lg text-[#DB4437]"></i>
-                Signup with Google
-              </button>
               <p className="text-center text-gray-600 text-xs">
                 Already Registered?{' '}
                 <Link to="/login" className="text-[#FE6C05] hover:text-[#DB4437] font-medium transition-colors">

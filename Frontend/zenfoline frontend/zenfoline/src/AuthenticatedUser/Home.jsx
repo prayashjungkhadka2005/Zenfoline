@@ -4,10 +4,11 @@ import useTemplateStore from '../store/userTemplateStore';
 import { Link } from 'react-router-dom';
 import { 
     FiEdit, FiEye, FiLayout, FiBarChart2, FiArrowRight, FiSettings, FiCheckCircle, 
-    FiZap, FiUser, FiBriefcase, FiCode, FiAward, FiFileText, FiInfo, FiBook, FiStar, FiTool, FiAlertCircle, FiLoader, FiTrendingUp, FiClock, FiLock
+    FiZap, FiUser, FiBriefcase, FiCode, FiAward, FiFileText, FiInfo, FiBook, FiStar, FiTool, FiAlertCircle, FiLoader, FiTrendingUp, FiClock, FiLock, FiUsers, FiTrendingDown
 } from 'react-icons/fi';
 import { FaPaintBrush } from 'react-icons/fa';
 import Spinner from '../components/Spinner';
+import axios from 'axios';
 
 // Define API Base URL
 const API_BASE_URL = 'http://localhost:3000';
@@ -62,7 +63,7 @@ const checkSectionCompletion = (sectionId, data) => {
 };
 
 const Home = () => {
-    const username = useAuthStore((state) => state.user?.name || state.profile?.name || 'User');
+    const email = useAuthStore((state) => state.email);
     const userId = useAuthStore((state) => state.userId);
     const { templates, activeTemplateId, fetchTemplates } = useTemplateStore();
 
@@ -71,6 +72,15 @@ const Home = () => {
     const [themeSettings, setThemeSettings] = useState(null);
     const [isLoading, setIsLoading] = useState({ visibility: true, content: true, theme: true });
     const [error, setError] = useState({ visibility: null, content: null, theme: null });
+    const [userStats, setUserStats] = useState({
+        sectionsComplete: 0,
+        totalSections: 0,
+        profileViews: 0,
+        uniqueVisitors: 0,
+        averageSessionDuration: 0,
+        bounceRate: 0,
+        lastUpdated: null
+    });
 
     useEffect(() => {
         if (!userId) {
@@ -83,7 +93,8 @@ const Home = () => {
             setError({ visibility: null, content: null, theme: null });
             let visibilityData = null;
             let fetchedTheme = null;
-            let finalCompletionStatus = {}; // Use a temporary object
+            let finalCompletionStatus = {};
+            let analyticsSummary = null;
 
             try {
                 // 1. Fetch Templates
@@ -98,12 +109,12 @@ const Home = () => {
                 setSectionVisibility(visibilityData);
                 setIsLoading(prev => ({ ...prev, visibility: false }));
 
-                // 3. Fetch Theme Settings (concurrently with content? or sequentially? Sequential is simpler for now)
+                // 3. Fetch Theme Settings
                 try {
                     const themeResponse = await fetch(`${API_BASE_URL}/authenticated-user/gettheme?userId=${userId}`);
                     if (!themeResponse.ok) {
                         if (themeResponse.status === 404) {
-                             fetchedTheme = DEFAULT_THEME;
+                            fetchedTheme = DEFAULT_THEME;
                         } else {
                             throw new Error(`Theme fetch failed: ${themeResponse.statusText}`);
                         }
@@ -111,11 +122,10 @@ const Home = () => {
                         const themeResult = await themeResponse.json();
                         fetchedTheme = themeResult.theme;
                     }
-                    setThemeSettings(fetchedTheme); // Update theme state immediately for reference
+                    setThemeSettings(fetchedTheme);
                 } catch (themeErr) {
-                     console.error("Error fetching theme:", themeErr);
-                     setError(prev => ({ ...prev, theme: themeErr.message || 'Failed to load theme' }));
-                     // Set theme loading false even on error so content fetch can proceed
+                    console.error("Error fetching theme:", themeErr);
+                    setError(prev => ({ ...prev, theme: themeErr.message || 'Failed to load theme' }));
                 } finally {
                     setIsLoading(prev => ({ ...prev, theme: false }));
                 }
@@ -139,42 +149,53 @@ const Home = () => {
                     });
                     const completionResults = await Promise.all(contentPromises);
                     completionResults.forEach(result => { if (result) { finalCompletionStatus[result.sectionId] = result.completed; } });
-                } else {
-                    // If no sections enabled, set content loading false
-                     setIsLoading(prev => ({ ...prev, content: false }));
                 }
-                
-                // 5. Check Customize completion (after theme and content fetches attempted)
-                if (fetchedTheme) { // Use the theme data we fetched/defaulted earlier
-                     const isCustomized = 
+
+                // 5. Check Customize completion
+                if (fetchedTheme) {
+                    const isCustomized = 
                         fetchedTheme.colorMode !== DEFAULT_THEME.colorMode ||
-                        // Ensure presetTheme is treated as number if possible for comparison, handle null/undefined
                         (String(fetchedTheme.presetTheme ?? '') !== String(DEFAULT_THEME.presetTheme ?? '') && String(fetchedTheme.presetTheme ?? '') !== '0') || 
                         fetchedTheme.fontStyle !== DEFAULT_THEME.fontStyle;
                     finalCompletionStatus.customize = isCustomized;
-                    console.log('Theme Check:', { fetched: fetchedTheme, default: DEFAULT_THEME, isCustomized }); // Add logging
                 } else {
-                     finalCompletionStatus.customize = false; 
+                    finalCompletionStatus.customize = false;
                 }
-               
-                setContentCompletion(finalCompletionStatus); // Final state update
+
+                // 6. Fetch analytics summary for profile views
+                try {
+                    const analyticsRes = await axios.get(`http://localhost:3000/api/analytics/summary?userId=${userId}&timeRange=30d`);
+                    analyticsSummary = analyticsRes.data.data;
+                } catch (analyticsErr) {
+                    console.error('Error fetching analytics summary:', analyticsErr);
+                }
+
+                // Update completion status and stats
+                setContentCompletion(finalCompletionStatus);
+                const completedCount = Object.values(finalCompletionStatus).filter(Boolean).length;
+                setUserStats(prev => ({
+                    ...prev,
+                    sectionsComplete: completedCount,
+                    totalSections: Object.keys(finalCompletionStatus).length,
+                    profileViews: analyticsSummary?.totalSessions || 0,
+                    uniqueVisitors: analyticsSummary?.uniqueVisitors || 0,
+                    averageSessionDuration: analyticsSummary?.averageSessionDuration || 0,
+                    bounceRate: analyticsSummary?.bounceRate || 0,
+                    lastUpdated: new Date().toLocaleDateString()
+                }));
 
             } catch (err) {
                 console.error("Error fetching dashboard data:", err);
                 setError(prev => ({ ...prev, visibility: err.message || 'Failed to load data' }));
-                // If visibility fails, set all loading to false
                 setIsLoading({ visibility: false, content: false, theme: false });
             } finally {
-                 // Set content loading false *after* completion check
-                 // Check if content loading was actually started and not skipped
-                 if (isLoading.content) { // Ensure we only set false if it was true
+                if (isLoading.content) {
                     setIsLoading(prev => ({ ...prev, content: false }));
-                 }
+                }
             }
         };
 
         fetchAllData();
-
     }, [userId, fetchTemplates]);
 
     const activeTemplate = templates.find(t => t._id === activeTemplateId);
@@ -342,32 +363,71 @@ const Home = () => {
         <div className="space-y-8">
             {/* Welcome Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-lg shadow-md text-white">
-                <h1 className="text-2xl font-bold">Welcome back, {username}!</h1>
+                <h1 className="text-2xl font-bold">Welcome back, {email?.split('@')[0] || 'User'}!</h1>
                 <p className="mt-1 text-orange-100">Let's make your portfolio stand out today.</p>
             </div>
 
-            {/* Quick Stats Card - Moved to top */}
+            {/* Quick Stats Card */}
             <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-                 <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h2>
-                 <div className="grid grid-cols-1 sm:grid-cols-3">
-                     {/* Sections Complete */}
-                     <div className="flex flex-col items-center sm:items-start py-2 px-4">
-                         <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1"><FiCheckCircle className="w-4 h-4 text-green-500"/> Sections Complete</span>
-                         <span className="text-2xl font-bold text-gray-800">
-                             {isLoading.content ? <Spinner size="sm" color="gray-500" className="inline-block h-5 w-5"/> : `${completedItems} / ${totalItems || '?'}`}
-                         </span>
-                     </div>
-                     {/* Profile Views */}
-                     <div className="flex flex-col items-center sm:items-start py-2 px-4 sm:border-l sm:border-gray-200">
-                         <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1"><FiTrendingUp className="w-4 h-4 text-blue-500"/> Profile Views (Month)</span>
-                         <span className="text-2xl font-bold text-gray-800">_ _</span> 
-                     </div>
-                     {/* Last Updated */}
-                     <div className="flex flex-col items-center sm:items-start py-2 px-4 sm:border-l sm:border-gray-200">
-                         <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1"><FiClock className="w-4 h-4 text-purple-500"/> Last Updated</span>
-                         <span className="text-2xl font-bold text-gray-800">Today</span> 
-                     </div>
-                 </div>
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h2>
+                {activeTemplateId ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-3">
+                        {/* Sections Complete */}
+                        <div className="flex flex-col items-center sm:items-start py-2 px-4">
+                            <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1">
+                                <FiCheckCircle className="w-4 h-4 text-green-500"/> Sections Complete
+                            </span>
+                            <span className="text-2xl font-bold text-gray-800">
+                                {isLoading.content ? (
+                                    <Spinner size="sm" color="gray-500" className="inline-block h-5 w-5"/>
+                                ) : (
+                                    `${userStats.sectionsComplete} / ${userStats.totalSections}`
+                                )}
+                            </span>
+                        </div>
+                        {/* Profile Views */}
+                        <div className="flex flex-col items-center sm:items-start py-2 px-4 sm:border-l sm:border-gray-200">
+                            <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1">
+                                <FiTrendingUp className="w-4 h-4 text-blue-500"/> Profile Views
+                            </span>
+                            <span className="text-2xl font-bold text-gray-800">
+                                {isLoading.content ? (
+                                    <Spinner size="sm" color="gray-500" className="inline-block h-5 w-5"/>
+                                ) : (
+                                    userStats.profileViews
+                                )}
+                            </span>
+                        </div>
+                        {/* Last Updated */}
+                        <div className="flex flex-col items-center sm:items-start py-2 px-4 sm:border-l sm:border-gray-200">
+                            <span className="flex items-center gap-1.5 text-sm text-gray-500 mb-1">
+                                <FiClock className="w-4 h-4 text-purple-500"/> Last Updated
+                            </span>
+                            <span className="text-2xl font-bold text-gray-800">
+                                {isLoading.content ? (
+                                    <Spinner size="sm" color="gray-500" className="inline-block h-5 w-5"/>
+                                ) : (
+                                    userStats.lastUpdated || 'Never'
+                                )}
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-8">
+                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mb-3">
+                            <FiLayout className="w-7 h-7 text-orange-500" />
+                        </div>
+                        <div className="text-lg font-semibold text-gray-800 mb-1">No Template Active</div>
+                        <div className="text-gray-500 text-sm mb-4 text-center max-w-xs">
+                            Choose and activate a template to start building your portfolio and track your progress here.
+                        </div>
+                        <Link to="/dashboard/templates">
+                            <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm">
+                                Browse Templates
+                            </button>
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {/* Main Content Grid */}
@@ -467,48 +527,11 @@ const Home = () => {
                             </div>
                         )}
                     </div>
-                    
-                    {/* Next Steps Section - Only visible when template is active */}
-                    {activeTemplateId && (
-                        <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
-                            <h2 className="text-lg font-semibold text-gray-800 mb-4">Next Steps</h2>
-                            <div className="space-y-4">
-                                {/* Step 2: Customize Appearance */}
-                                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200">
-                                    <div className="flex-shrink-0 w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold">2</div>
-                                    <div className="flex-grow">
-                                        <h3 className="text-base font-semibold text-gray-700">Customize Appearance</h3>
-                                        <p className="text-sm text-gray-600 mt-1">Personalize colors, fonts, and layout for your portfolio.</p>
-                                        <Link to="/dashboard/themepage" className="mt-3 inline-block">
-                                            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
-                                                Customize <FiArrowRight className="w-4 h-4" />
-                                            </button>
-                                        </Link>
-                                    </div>
-                                </div>
-
-                                {/* Step 3: Add Content */}
-                                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg shadow-sm border border-purple-200">
-                                    <div className="flex-shrink-0 w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center text-lg font-bold">3</div>
-                                    <div className="flex-grow">
-                                        <h3 className="text-base font-semibold text-gray-700">Add Your Content</h3>
-                                        <p className="text-sm text-gray-600 mt-1">Fill in your professional information and showcase your work.</p>
-                                        <button 
-                                            onClick={() => handleEditTemplate()}
-                                            className="mt-3 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
-                                        >
-                                            Add Content <FiArrowRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
-                {/* Right Column (Quick Actions & Upgrade) */}
-                <div className="space-y-6">
-                    {/* Quick Actions Title */}
+                {/* Right Column (Quick Actions & Analytics) */}
+                <div className="flex flex-col h-full space-y-6">
+                    {/* Quick Actions Title, Manage Templates, Customize Appearance, Overview Analytics */}
                     <h2 className="text-lg font-semibold text-gray-800">Quick Actions</h2>
                     
                     {/* Manage Templates Card */}
@@ -538,31 +561,117 @@ const Home = () => {
                             </span>
                         </div>
                     </Link>
-                    
-                    {/* Analytics Placeholder Card */}
-                    <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 opacity-60 cursor-not-allowed flex flex-col">
-                         <div>
-                             <FiBarChart2 className="w-7 h-7 text-gray-400 mb-3" />
-                             <h3 className="font-semibold text-gray-500 mb-1">View Analytics</h3>
-                             <p className="text-sm text-gray-400">Track portfolio views and engagement. (Coming Soon)</p>
-                         </div>
-                         <span className="text-sm text-gray-400 font-medium mt-4 inline-flex items-center">
-                             Coming Soon
-                         </span>
-                     </div>
 
-                    {/* Upgrade Plan CTA */}
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-5 rounded-lg shadow-md text-white text-center">
-                        <FiZap className="w-10 h-10 mx-auto mb-3 text-indigo-200"/>
-                        <h3 className="text-lg font-semibold mb-2">Unlock More Features</h3>
-                        <p className="text-sm text-indigo-100 mb-4">Upgrade your plan for advanced templates, analytics, and support.</p>
-                        <Link to="/dashboard/plans"> {/* Update path if needed */} 
-                            <button className="bg-white hover:bg-gray-100 text-indigo-600 font-semibold px-5 py-2 rounded-md text-sm transition-colors">
-                                See Plans
-                            </button>
-                        </Link>
-                    </div>
+                    {/* Overview Analytics Card */}
+                    {activeTemplateId ? (
+                        <div className="mt-6">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-4">Overview Analytics</h2>
+                            <div className="grid grid-cols-1 gap-4">
+                                {/* Unique Visitors */}
+                                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+                                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-green-50">
+                                        <FiUsers className="w-6 h-6 text-green-500" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Unique Visitors</div>
+                                        <div className="text-2xl font-bold text-gray-800">{userStats.uniqueVisitors ?? 0}</div>
+                                    </div>
+                                </div>
+                                {/* Avg. Session Duration */}
+                                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+                                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-purple-50">
+                                        <FiClock className="w-6 h-6 text-purple-500" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Avg. Session Duration</div>
+                                        <div className="text-2xl font-bold text-gray-800">{userStats.averageSessionDuration ?? 0}s</div>
+                                    </div>
+                                </div>
+                                {/* Bounce Rate */}
+                                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+                                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-red-50">
+                                        <FiTrendingDown className="w-6 h-6 text-red-500" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Bounce Rate</div>
+                                        <div className="text-2xl font-bold text-gray-800">{userStats.bounceRate ?? 0}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="mt-6">
+                            <h2 className="text-lg font-semibold text-gray-800 mb-4">Overview Analytics</h2>
+                            <div className="grid grid-cols-1 gap-4">
+                                {/* Unique Visitors */}
+                                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+                                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-green-50">
+                                        <FiUsers className="w-6 h-6 text-green-500" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Unique Visitors</div>
+                                        <div className="text-gray-400 text-sm">Activate a template to see analytics.</div>
+                                    </div>
+                                </div>
+                                {/* Avg. Session Duration */}
+                                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+                                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-purple-50">
+                                        <FiClock className="w-6 h-6 text-purple-500" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Avg. Session Duration</div>
+                                        <div className="text-gray-400 text-sm">Activate a template to see analytics.</div>
+                                    </div>
+                                </div>
+                                {/* Bounce Rate */}
+                                <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+                                    <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-red-50">
+                                        <FiTrendingDown className="w-6 h-6 text-red-500" />
+                                    </div>
+                                    <div>
+                                        <div className="text-xs text-gray-500">Bounce Rate</div>
+                                        <div className="text-gray-400 text-sm">Activate a template to see analytics.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
+                {/* Next Steps Section - Full Row */}
+                {activeTemplateId && (
+                    <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 lg:col-span-3 col-span-full">
+                        <h2 className="text-lg font-semibold text-gray-800 mb-4">Next Steps</h2>
+                        <div className="space-y-4">
+                            {/* Step 2: Customize Appearance */}
+                            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200">
+                                <div className="flex-shrink-0 w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold">2</div>
+                                <div className="flex-grow">
+                                    <h3 className="text-base font-semibold text-gray-700">Customize Appearance</h3>
+                                    <p className="text-sm text-gray-600 mt-1">Personalize colors, fonts, and layout for your portfolio.</p>
+                                    <Link to="/dashboard/themepage" className="mt-3 inline-block">
+                                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2">
+                                            Customize <FiArrowRight className="w-4 h-4" />
+                                        </button>
+                                    </Link>
+                                </div>
+                            </div>
+                            {/* Step 3: Add Content */}
+                            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg shadow-sm border border-purple-200">
+                                <div className="flex-shrink-0 w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center text-lg font-bold">3</div>
+                                <div className="flex-grow">
+                                    <h3 className="text-base font-semibold text-gray-700">Add Your Content</h3>
+                                    <p className="text-sm text-gray-600 mt-1">Fill in your professional information and showcase your work.</p>
+                                    <button 
+                                        onClick={() => handleEditTemplate()}
+                                        className="mt-3 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+                                    >
+                                        Add Content <FiArrowRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

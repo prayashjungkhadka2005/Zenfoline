@@ -21,6 +21,7 @@ import PublicPortfolioView from './PublicPortfolio/PublicPortfolioView';
 import ProtectedRoute from './components/ProtectedRoute';
 import Analytics from './AuthenticatedUser/Analytics';
 import Setting from './AuthenticatedUser/Setting';
+import LandingPage from './LandingPage';
 
 const App = () => {
   return (
@@ -35,7 +36,7 @@ const App = () => {
           <Route path="/forgotemail" element={<ForgotEmail />} />
           <Route path="/forgotpasswordotp" element={<ForgotPasswordOTP />} />
           <Route path="/adminsignup" element={<AdminSignup />} />
-          <Route path="/" element={<AdminLogin />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/portfolio/:userId" element={<PublicPortfolioView />} />
 
           {/* Protected Admin Routes */}

@@ -284,7 +284,11 @@ const Templates = () => {
                     >
                       Edit Template
                     </button>
-                    <button className="flex-1 py-1.5 rounded-md text-sm font-medium border border-orange-500 text-orange-500 hover:bg-orange-50 transition-colors">
+                    <button
+                      className={`flex-1 py-1.5 rounded-md text-sm font-medium border border-orange-500 text-orange-500 hover:bg-orange-50 transition-colors ${activeTemplateId !== template._id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={() => window.open(`${window.location.origin}/portfolio/${userId}`, '_blank')}
+                      disabled={activeTemplateId !== template._id}
+                    >
                       Live Preview
                     </button>
                   </div>

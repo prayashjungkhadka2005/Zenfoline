@@ -320,7 +320,7 @@ const ThemePage = () => {
             }`}
             disabled={!activeTemplate}
           >
-            {activeTemplate ? activeTemplate.category : ""} Components
+            {activeTemplate ? (activeTemplate.category.charAt(0).toUpperCase() + activeTemplate.category.slice(1)) : ""} Components
           </button>
         </div>
       </div>
@@ -331,13 +331,14 @@ const ThemePage = () => {
           <div className="bg-white rounded-lg shadow-sm p-5">
             <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <i className="fas fa-palette text-orange-500"></i> Color Mode
+              <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full ml-2">Coming Soon</span>
             </h3>
             <div className="flex gap-3">
               {["default", "light", "dark"].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => handleColorModeChange(mode)}
-                  className={`px-3 py-1.5 text-sm border rounded-md transition-all duration-200 ${
+                  className={`px-3 py-1.5 text-sm border rounded-md transition-all duration-200 relative ${
                     activeColorMode === mode 
                       ? "bg-orange-50 border-orange-500 text-orange-500 shadow-sm" 
                       : "border-gray-200 text-gray-700 hover:border-orange-200 hover:text-orange-500"
@@ -353,13 +354,14 @@ const ThemePage = () => {
           <div className="bg-white rounded-lg shadow-sm p-5">
             <h3 className="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <i className="fas fa-paint-brush text-orange-500"></i> Preset Themes
+              <span className="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full ml-2">Coming Soon</span>
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {themeConfigs.map((theme, idx) => (
                 <button
                   key={idx}
                   onClick={() => handlePresetThemeSelect(idx)}
-                  className={`px-3 py-2 text-sm border rounded-md transition-all duration-200 ${
+                  className={`px-3 py-2 text-sm border rounded-md transition-all duration-200 relative ${
                     parseInt(activePresetTheme, 10) === idx 
                       ? "bg-orange-50 border-orange-500 text-orange-500 shadow-sm" 
                       : "border-gray-200 text-gray-700 hover:border-orange-200 hover:text-orange-500"
@@ -375,7 +377,6 @@ const ThemePage = () => {
                         />
                       ))}
                     </div>
-                    <span className="font-medium">{theme.name}</span>
                   </div>
                 </button>
               ))}

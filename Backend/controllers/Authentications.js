@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const PortfolioData = require('../models/PortfolioData');
 
 const saltRounds = 10;
 const generateOTP = () => Math.floor(9999 + Math.random() * 900);
@@ -391,6 +392,190 @@ const updateForgotPassword = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const { userId, currentPassword, newPassword } = req.body;
+
+        if (!userId || !currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'All fields are required.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        // Verify current password
+        const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!passwordMatch) {
+            return res.status(400).json({ message: 'Current password is incorrect.' });
+        }
+
+        // Check if new password is same as current
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({ message: 'New password must be different from current password.' });
+        }
+
+        // Hash and update new password
+        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+        user.password = hashedPassword;
+        await user.save();
+
+        return res.status(200).json({
+            message: 'Password updated successfully.',
+        });
+    } catch (error) {
+        console.error('Error changing password:', error);
+        return res.status(500).json({ message: 'An error occurred while changing password.' });
+    }
+};
+
+const changeEmail = async (req, res) => {
+    try {
+        const { userId, currentPassword, newEmail } = req.body;
+
+        if (!userId || !currentPassword || !newEmail) {
+            return res.status(400).json({ message: 'All fields are required.' });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(newEmail)) {
+            return res.status(400).json({ message: 'Please enter a valid email address.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        // Verify current password
+        const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!passwordMatch) {
+            return res.status(400).json({ message: 'Current password is incorrect.' });
+        }
+
+        // Check if new email is same as current
+        if (user.email.toLowerCase() === newEmail.toLowerCase()) {
+            return res.status(400).json({ message: 'New email must be different from current email.' });
+        }
+
+        // Check if new email is already in use
+        const existingUser = await User.findOne({ email: newEmail.toLowerCase() });
+        if (existingUser) {
+            return res.status(400).json({ message: 'This email is already registered.' });
+        }
+
+        // Generate OTP for email verification
+        const otpCode = generateOTP();
+        const otpExpire = new Date(Date.now() + 60 * 1000);
+
+        // Save OTP
+        await Otp.create({
+            user_id: user._id,
+            otp: otpCode,
+            otpExpiry: otpExpire,
+            newEmail: newEmail.toLowerCase() // Store the new email with OTP
+        });
+
+        // Send verification email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: newEmail,
+            subject: 'Verify Your New Email Address',
+            text: `Your OTP to verify your new email address (expires in 1 minute): ${otpCode}`,
+        };
+        await transporter.sendMail(mailOptions);
+
+        return res.status(200).json({
+            message: 'Verification OTP sent to new email address.',
+            data: { email: newEmail }
+        });
+    } catch (error) {
+        console.error('Error changing email:', error);
+        return res.status(500).json({ message: 'An error occurred while changing email.' });
+    }
+};
+
+// Add verifyEmailChange function
+const verifyEmailChange = async (req, res) => {
+    try {
+        const { userId, otp } = req.body;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        const otpRecord = await Otp.findOne({
+            user_id: user._id,
+            otp,
+            otpExpiry: { $gt: Date.now() }
+        });
+
+        if (!otpRecord) {
+            return res.status(400).json({ message: 'Invalid or expired OTP.' });
+        }
+
+        // Update user's email using the newEmail stored in OTP record
+        await User.findByIdAndUpdate(userId, {
+            email: otpRecord.newEmail,
+            updatedAt: Date.now()
+        });
+
+        // Delete the used OTP
+        await Otp.deleteOne({ _id: otpRecord._id });
+
+        return res.status(200).json({
+            message: 'Email updated successfully.',
+            data: { email: otpRecord.newEmail }
+        });
+    } catch (error) {
+        console.error('Error verifying email change:', error);
+        return res.status(500).json({ message: 'An error occurred while verifying email change.' });
+    }
+};
+
+const deleteAccount = async (req, res) => {
+    try {
+        const { userId, currentPassword } = req.body;
+
+        if (!userId || !currentPassword) {
+            return res.status(400).json({ message: 'User ID and current password are required.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found!' });
+        }
+
+        // Verify current password
+        const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!passwordMatch) {
+            return res.status(400).json({ message: 'Current password is incorrect.' });
+        }
+
+        // Delete user's OTP records
+        await Otp.deleteMany({ user_id: user._id });
+
+        // Delete user's portfolio data if exists
+        if (user.portfolioData) {
+            await PortfolioData.findByIdAndDelete(user.portfolioData);
+        }
+
+        // Delete the user
+        await User.findByIdAndDelete(userId);
+
+        return res.status(200).json({
+            message: 'Account deleted successfully.',
+        });
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        return res.status(500).json({ message: 'An error occurred while deleting the account.' });
+    }
+};
+
 module.exports = {
     handleSignupMethod,
     userLogin,
@@ -401,4 +586,8 @@ module.exports = {
     resendOTP,
     addAdmin,
     adminLogin,
+    changePassword,
+    changeEmail,
+    verifyEmailChange,
+    deleteAccount,
 };

@@ -14,6 +14,35 @@ const PublicPortfolioView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Track page view
+  const trackPageView = async (userId) => {
+    try {
+        // Get or create session ID
+        let sessionId = localStorage.getItem('analyticsSessionId');
+        if (!sessionId) {
+            sessionId = crypto.randomUUID();
+            localStorage.setItem('analyticsSessionId', sessionId);
+        }
+
+        const response = await fetch('http://localhost:3000/api/analytics/track', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId,
+                sessionId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to track page view');
+        }
+    } catch (error) {
+        console.error('Error tracking page view:', error);
+    }
+  };
+
   // Helper function to check if a section has data
   const checkSectionData = (sectionId) => {
     if (!portfolioData || !portfolioData[sectionId]) return false;
@@ -95,6 +124,9 @@ const PublicPortfolioView = () => {
             });
             setSectionVisibility(transformedVisibility);
           }
+
+          // Track page view after successful data load
+          trackPageView(userId);
         } else {
           throw new Error(portfolioResponse.data.message || templateResponse.data.message);
         }
@@ -110,6 +142,18 @@ const PublicPortfolioView = () => {
       fetchData();
     }
   }, [userId]);
+
+  // Track when user leaves the page
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // You could implement session duration tracking here if needed
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   if (loading) {
     return <LoadingScreen showMessages={false} />;

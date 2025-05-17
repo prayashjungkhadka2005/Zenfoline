@@ -11,6 +11,7 @@ const authenticatedAdminRoutes = require('./routes/AuthenticatedAdminRoutes');
 const authenticatedUserRoutes = require('./routes/AuthenticatedUserRoutes');
 const portfolioRoutes = require('./routes/publicViewPortfolioRoutes');
 const portfolioSaveRoutes = require('./routes/portfolioDataRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/authenticated-user', authenticatedUserRoutes);
 app.use('/authenticated-admin', authenticatedAdminRoutes);
 app.use('/portfolio', portfolioRoutes);
 app.use('/portfolio-save', portfolioSaveRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 mongoose.connect(MONGOURL)
   .then(() => {
