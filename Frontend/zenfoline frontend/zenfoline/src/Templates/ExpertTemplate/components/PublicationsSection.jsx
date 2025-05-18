@@ -61,6 +61,9 @@ const PublicationsSection = ({ data, theme }) => {
     }
   };
 
+  const fallbackImageUrl = 'https://placehold.co/400x200/png?text=Publication+Image';
+  // or alternatively: 'https://picsum.photos/400/200'
+
   return (
     <section id="publications" className="py-12 md:py-16">
       <div className="text-center mb-12 md:mb-16">
@@ -97,8 +100,8 @@ const PublicationsSection = ({ data, theme }) => {
                   alt={pub.title}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = 'https://via.placeholder.com/400x200?text=Publication+Image';
+                    e.target.onerror = null; // Prevent infinite loop
+                    e.target.src = fallbackImageUrl;
                   }}
                 />
               </motion.div>

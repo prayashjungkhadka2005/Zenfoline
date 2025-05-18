@@ -62,114 +62,116 @@ const HeroSection = ({ data, hasSectionData, theme }) => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 pb-12">
       <div className="absolute inset-0" style={overlayStyle}></div>
       
-      <div className="container mx-auto px-4 sm:px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
-        <motion.div 
-          className="w-full md:w-1/2 text-center md:text-left space-y-6 order-2 md:order-1"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <div className="space-y-4">
-            <motion.h1 
-              className="text-4xl md:text-6xl lg:text-7xl font-bold"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <motion.span 
-                style={nameStyle}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
-                {basics.name || 'Your Name'}
-              </motion.span>
-              <br />
-              <motion.span 
-                style={roleStyle} 
-                className="break-words"
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
-                {basics.role || 'Your Role'}
-              </motion.span>
-            </motion.h1>
-            <motion.p 
-              className="text-lg md:text-xl max-w-2xl" 
-              style={bioStyle}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              {basics.bio || 'Your professional bio will appear here'}
-            </motion.p>
-          </div>
-          
+      <div className="container mx-auto px-8 lg:px-16 xl:px-24 max-w-7xl relative z-10">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-12">
           <motion.div 
-            className="flex flex-wrap gap-4 justify-center md:justify-start"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            className="w-full md:w-1/2 text-center md:text-left space-y-6 order-2 md:order-1"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            {hasSectionData('projects') && data?.projects?.length > 0 && (
+            <div className="space-y-4">
+              <motion.h1 
+                className="text-4xl md:text-5xl lg:text-6xl font-bold"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <motion.span 
+                  style={nameStyle}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {basics.name || 'Your Name'}
+                </motion.span>
+                <br />
+                <motion.span 
+                  style={roleStyle} 
+                  className="break-words"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {basics.role || 'Your Role'}
+                </motion.span>
+              </motion.h1>
+              <motion.p 
+                className="text-lg max-w-xl" 
+                style={bioStyle}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                {basics.bio || 'Your professional bio will appear here'}
+              </motion.p>
+            </div>
+            
+            <motion.div 
+              className="flex flex-wrap gap-4 justify-center md:justify-start"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              {hasSectionData('projects') && data?.projects?.length > 0 && (
+                <motion.a 
+                  href="#projects" 
+                  style={primaryButtonStyle}
+                  whileHover={{ scale: 1.05, boxShadow: `0 8px 20px ${theme.highlight}50` }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <FaCode className="w-5 h-5" />
+                  View Projects
+                </motion.a>
+              )}
               <motion.a 
-                href="#projects" 
-                style={primaryButtonStyle}
-                whileHover={{ scale: 1.05, boxShadow: `0 8px 20px ${theme.highlight}50` }}
+                href="#contact" 
+                style={secondaryButtonStyle}
+                whileHover={{ 
+                  scale: 1.05, 
+                  backgroundColor: theme.highlight,
+                  color: 'white',
+                  boxShadow: `0 8px 20px ${theme.highlight}40`
+                }}
                 whileTap={{ scale: 0.98 }}
               >
-                <FaCode className="w-5 h-5" />
-                View Projects
+                <FaEnvelope className="w-5 h-5" />
+                Contact Me
               </motion.a>
-            )}
-            <motion.a 
-              href="#contact" 
-              style={secondaryButtonStyle}
-              whileHover={{ 
-                scale: 1.05, 
-                backgroundColor: theme.highlight,
-                color: 'white',
-                boxShadow: `0 8px 20px ${theme.highlight}40`
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <FaEnvelope className="w-5 h-5" />
-              Contact Me
-            </motion.a>
-          </motion.div>
-        </motion.div>
-
-        <motion.div 
-          className="w-full md:w-1/2 flex justify-center order-1 md:order-2 pt-8 md:pt-0"
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <div className="relative w-64 h-64 md:w-80 md:h-80">
-            <motion.div 
-              className="absolute inset-0 rounded-full overflow-hidden"
-              style={profileBorderStyle}
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.3 }}
-              animate={{ 
-                boxShadow: [
-                  `0 0 30px ${theme.highlight}40`,
-                  `0 0 50px ${theme.highlight}30`,
-                  `0 0 30px ${theme.highlight}40`
-                ]
-              }}
-            >
-              <img
-                src={basics.profileImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'}
-                alt={basics.name || 'Profile'}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
-                }}
-              />
             </motion.div>
-          </div>
-        </motion.div>
+          </motion.div>
+
+          <motion.div 
+            className="w-full md:w-1/2 flex justify-center md:justify-end order-1 md:order-2"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <div className="relative w-56 h-56 md:w-72 md:h-72 lg:w-80 lg:h-80">
+              <motion.div 
+                className="absolute inset-0 rounded-full overflow-hidden"
+                style={profileBorderStyle}
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+                animate={{ 
+                  boxShadow: [
+                    `0 0 30px ${theme.highlight}40`,
+                    `0 0 50px ${theme.highlight}30`,
+                    `0 0 30px ${theme.highlight}40`
+                  ]
+                }}
+              >
+                <img
+                  src={basics.profileImage || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'}
+                  alt={basics.name || 'Profile'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80';
+                  }}
+                />
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

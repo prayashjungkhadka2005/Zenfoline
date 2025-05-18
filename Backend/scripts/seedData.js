@@ -5,7 +5,8 @@ const Template = require('../models/Templates');
 const PortfolioData = require('../models/PortfolioData');
 const Analytics = require('../models/Analytics');
 const Theme = require('../models/ThemeSchema');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGOURL)

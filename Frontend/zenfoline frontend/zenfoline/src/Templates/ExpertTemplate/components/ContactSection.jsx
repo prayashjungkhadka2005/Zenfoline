@@ -1,11 +1,9 @@
 import React from 'react';
-import { FaEnvelope, FaLinkedin, FaGithub, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
-import { getSocialLink } from '../utils/helpers';
+import { FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const ContactSection = ({ data, theme }) => {
   const basics = data?.basics || {};
-  const socialLinks = data?.socialLinks || {};
   
   const sectionStyle = {
     backgroundColor: `${theme.primary}80`,
@@ -120,45 +118,13 @@ const ContactSection = ({ data, theme }) => {
             </motion.a>
           )}
           
-          {getSocialLink('linkedin', socialLinks) && (
-            <motion.a
-              href={`https://linkedin.com/in/${getSocialLink('linkedin', socialLinks)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={secondaryButtonStyle}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              whileHover={{ y: -2 }}
-            >
-              <FaLinkedin className="w-5 h-5" />
-              LinkedIn
-            </motion.a>
-          )}
-          
-          {getSocialLink('github', socialLinks) && (
-            <motion.a
-              href={`https://github.com/${getSocialLink('github', socialLinks)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={secondaryButtonStyle}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              whileHover={{ y: -2 }}
-            >
-              <FaGithub className="w-5 h-5" />
-              GitHub
-            </motion.a>
-          )}
-          
           {basics.phone && (
             <motion.a
               href={`tel:${basics.phone}`}
               style={secondaryButtonStyle}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.6 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
               whileHover={{ y: -2 }}
             >
               <FaPhone className="w-5 h-5" />
@@ -172,7 +138,7 @@ const ContactSection = ({ data, theme }) => {
               style={infoStyle}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.7 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
               whileHover={{ y: -2 }}
             >
               <FaMapMarkerAlt className="w-5 h-5" style={iconStyle} />

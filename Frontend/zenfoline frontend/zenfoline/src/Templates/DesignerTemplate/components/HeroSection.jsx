@@ -9,17 +9,21 @@ import { getContrastTextColor } from '../utils/helpers';
 const StyledHeroSection = styled(Box)(({ theme }) => ({
   width: '100%',
   minHeight: '100vh',
-  height: '100vh',
   display: 'flex',
   alignItems: 'center',
   position: 'relative',
   overflow: 'hidden',
-  padding: theme.spacing(6, 0),
-  [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(10, 0),
-    minHeight: '100vh',
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(4, 0),
+    marginTop: 0,
   },
-  // Unique background with diagonal pattern
+  [theme.breakpoints.up('md')]: {
+    padding: theme.spacing(2, 0), // Reduced padding
+    paddingTop: '90px', // Fixed padding from navbar
+    minHeight: '100vh',
+    height: 'auto', // Let it adjust naturally
+    marginTop: 0, // Remove margin as we're using paddingTop
+  },
   background: `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.9)} 0%, ${alpha(theme.palette.background.default, 0.9)} 100%)`,
   '&::before': {
     content: '""',
@@ -42,6 +46,10 @@ const StyledHeroSection = styled(Box)(({ theme }) => ({
 const ContentContainer = styled(Container)(({ theme }) => ({
   position: 'relative',
   zIndex: 1,
+  [theme.breakpoints.up('md')]: {
+    paddingTop: 0, // Remove extra padding
+    marginTop: '-20px', // Slight negative margin to pull content up
+  }
 }));
 
 // Asymmetrical grid layout
@@ -180,9 +188,8 @@ const VisualContainer = styled(motion.div)(({ theme }) => ({
   marginTop: theme.spacing(5),
   [theme.breakpoints.up('md')]: {
     minHeight: '450px',
-    marginTop: 0,
+    marginTop: '-20px', // Pull the image up slightly
   },
-  // Ensure proper display on mobile
   [theme.breakpoints.down('sm')]: {
     minHeight: '300px',
     marginTop: theme.spacing(2),
