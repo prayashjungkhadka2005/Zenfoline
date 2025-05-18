@@ -140,19 +140,6 @@ const AdminLogin = () => {
                 <p className="text-sm text-red-400 text-center">{error}</p>
               )}
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 bg-white/10 border-white/20 rounded text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
-                  />
-                  <label className="ml-2 text-white/80 text-sm">Remember Me</label>
-                </div>
-                <Link to="/admin/forgot-password" className="text-indigo-400 text-sm hover:text-indigo-300 transition-colors">
-                  Forgot Password?
-                </Link>
-              </div>
-
               <button
                 type="submit"
                 className="w-full bg-indigo-600 text-white font-medium text-sm rounded-lg py-3 transition-all duration-300 hover:bg-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-[#1a1b3b] mt-6"

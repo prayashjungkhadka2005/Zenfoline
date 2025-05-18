@@ -10,18 +10,44 @@ const PortfolioData = require('../models/PortfolioData');
 // Sample data
 const templates = [
   {
-    name: 'Modern Portfolio',
-    description: 'A clean, modern template for professionals.',
-    image: '/images/templates/modern.png',
-    category: 'professional',
-    predefinedTemplate: 'modern',
+    name: 'Professional Developer',
+    description: 'A clean and professional template for developers',
+    image: 'professional',
+    category: 'developer',
+    predefinedTemplate: 'professional',
+    sectionConfiguration: {
+      basics: { isEnabled: true, order: 1 },
+      about: { isEnabled: true, order: 2 },
+      skills: { isEnabled: true, order: 3, displayStyle: 'grid' },
+      experience: { isEnabled: true, order: 4 },
+      education: { isEnabled: true, order: 5 },
+      projects: { isEnabled: true, order: 6, displayStyle: 'grid' },
+      certifications: { isEnabled: true, order: 7 },
+      publications: { isEnabled: true, order: 8 },
+      awards: { isEnabled: true, order: 9 },
+      services: { isEnabled: true, order: 10 },
+      customSections: { isEnabled: true }
+    }
   },
   {
-    name: 'Creative Portfolio',
-    description: 'A vibrant template for creatives.',
-    image: '/images/templates/creative.png',
-    category: 'creative',
+    name: 'Creative Designer',
+    description: 'A modern and creative template for designers',
+    image: 'creative',
+    category: 'designer',
     predefinedTemplate: 'creative',
+    sectionConfiguration: {
+      basics: { isEnabled: true, order: 1 },
+      about: { isEnabled: true, order: 2 },
+      skills: { isEnabled: true, order: 3, displayStyle: 'cloud' },
+      experience: { isEnabled: true, order: 4 },
+      education: { isEnabled: true, order: 5 },
+      projects: { isEnabled: true, order: 6, displayStyle: 'grid' },
+      certifications: { isEnabled: true, order: 7 },
+      publications: { isEnabled: true, order: 8 },
+      awards: { isEnabled: true, order: 9 },
+      services: { isEnabled: true, order: 10 },
+      customSections: { isEnabled: true }
+    }
   }
 ];
 
@@ -35,7 +61,7 @@ const users = [
 ];
 
 async function seed() {
-  await mongoose.connect('mongodb+srv://prayashjungkhadka:1415@user.uvnkq.mongodb.net/?retryWrites=true&w=majority&appName=User'); // Atlas connection string
+  await mongoose.connect(process.env.MONGOURL); // Use environment variable for connection string
   console.log('Connected to MongoDB for seeding.');
 
   // Seed Templates
@@ -68,7 +94,7 @@ async function seed() {
         userId: user._id,
         templateId: template._id,
         basics: { name: 'Admin User', email: user.email, isVisible: true },
-        portfolioType: 'professional'
+        portfolioType: 'developer' // Changed to developer as default
       });
       console.log('Seeded portfolio data for user.');
     }
@@ -79,8 +105,9 @@ async function seed() {
       await Theme.create({
         userId: user._id,
         activeTemplateId: template._id,
-        colorMode: 'default',
-        fontStyle: 'Poppins'
+        colorMode: 'light', // Updated to match your theme
+        fontStyle: 'Poppins',
+        presetTheme: 'professional' // Added to match your theme data
       });
       console.log('Seeded theme for user.');
     }

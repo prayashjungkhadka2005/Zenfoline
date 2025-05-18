@@ -178,7 +178,7 @@ const AdminSignup = () => {
 
               <p className="text-center text-gray-400 text-sm">
                 Already an admin?{' '}
-                <Link to="/" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                <Link to="/adminlogin" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
                   Login here
                 </Link>
               </p>

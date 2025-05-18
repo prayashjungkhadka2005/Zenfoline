@@ -36,6 +36,7 @@ const App = () => {
           <Route path="/forgotemail" element={<ForgotEmail />} />
           <Route path="/forgotpasswordotp" element={<ForgotPasswordOTP />} />
           <Route path="/adminsignup" element={<AdminSignup />} />
+          <Route path="/adminlogin" element={<AdminLogin />} />
           <Route path="/" element={<LandingPage />} />
           <Route path="/portfolio/:userId" element={<PublicPortfolioView />} />
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiCheckCircle, FiUser, FiLayout, FiBarChart2, FiZap, FiArrowRight, FiEdit, FiEye, FiChevronDown } from 'react-icons/fi';
+import { FiCheckCircle, FiUser, FiLayout, FiBarChart2, FiZap, FiArrowRight, FiEdit, FiEye, FiChevronDown, FiMenu, FiX, FiLogIn } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import ScrollProgressBar from './ScrollProgressBar';
 
@@ -23,11 +23,81 @@ const features = [
 ];
 
 export default function LandingPage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navHeight = 80; // Height of your fixed navbar
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+      setIsMenuOpen(false); // Close mobile menu after clicking
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-orange-50 to-white min-h-screen">
       <ScrollProgressBar />
+      
+      {/* Navigation Bar */}
+      <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md shadow-sm z-50 animate-fade-in">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <button onClick={() => scrollToSection('hero')} className="flex items-center">
+              <img 
+                src="/logo.png" 
+                alt="Zenfoline Logo" 
+                className="h-10 w-auto hover:opacity-90 transition-opacity duration-300"
+              />
+            </button>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <button onClick={() => scrollToSection('templates')} className="text-gray-600 hover:text-orange-500 transition-colors duration-300">Templates</button>
+              <button onClick={() => scrollToSection('how-it-works')} className="text-gray-600 hover:text-orange-500 transition-colors duration-300">How It Works</button>
+              <button onClick={() => scrollToSection('showcase')} className="text-gray-600 hover:text-orange-500 transition-colors duration-300">Showcase</button>
+              <button onClick={() => scrollToSection('faq')} className="text-gray-600 hover:text-orange-500 transition-colors duration-300">FAQ</button>
+              <Link to="/login" className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
+                <FiLogIn className="w-5 h-5" />
+                Login
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden text-gray-600 hover:text-orange-500 transition-colors duration-300"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
+            </button>
+          </div>
+
+          {/* Mobile Navigation */}
+          {isMenuOpen && (
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg py-4 px-6 animate-fade-in-down">
+              <div className="flex flex-col space-y-4">
+                <button onClick={() => scrollToSection('templates')} className="text-gray-600 hover:text-orange-500 transition-colors duration-300 text-left">Templates</button>
+                <button onClick={() => scrollToSection('how-it-works')} className="text-gray-600 hover:text-orange-500 transition-colors duration-300 text-left">How It Works</button>
+                <button onClick={() => scrollToSection('showcase')} className="text-gray-600 hover:text-orange-500 transition-colors duration-300 text-left">Showcase</button>
+                <button onClick={() => scrollToSection('faq')} className="text-gray-600 hover:text-orange-500 transition-colors duration-300 text-left">FAQ</button>
+                <Link to="/login" className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-all duration-300 flex items-center gap-2 justify-center">
+                  <FiLogIn className="w-5 h-5" />
+                  Login
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-6 min-h-screen flex flex-col justify-center items-center text-center animate-fade-in">
+      <section id="hero" className="max-w-6xl mx-auto px-6 min-h-screen flex flex-col justify-center items-center text-center animate-fade-in pt-20">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 animate-slide-up">
           Build Your <span className="text-orange-500 hover:text-orange-600 transition-colors duration-300">Dream Portfolio</span> in Minutes
         </h1>
@@ -44,7 +114,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 bg-gradient-to-br from-white via-orange-50 to-white rounded-2xl shadow mt-[120px] transform hover:shadow-lg transition-all duration-300">
+      <section id="templates" className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 bg-gradient-to-br from-white via-orange-50 to-white rounded-2xl shadow mt-[120px] transform hover:shadow-lg transition-all duration-300">
         {features.map((f, i) => (
           <div key={i} className="bg-white rounded-2xl shadow-lg p-10 flex flex-col items-center text-center hover:scale-105 hover:shadow-2xl hover:bg-orange-50/60 transition-all duration-300 group w-full animate-fade-in-up" style={{ animationDelay: `${i * 150}ms` }}>
             {React.cloneElement(f.icon, { className: 'w-12 h-12 mb-2 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ' + f.icon.props.className })}
@@ -55,7 +125,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-white via-blue-50 to-white rounded-2xl shadow mt-[120px] transform hover:shadow-lg transition-all duration-300">
+      <section id="how-it-works" className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-white via-blue-50 to-white rounded-2xl shadow mt-[120px] transform hover:shadow-lg transition-all duration-300">
         <h2 className="text-3xl font-extrabold text-gray-900 mb-10 text-center mt-6"><span className="text-blue-500 hover:text-blue-600 transition-colors duration-300">How Zenfoline Works</span></h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
           {[
@@ -90,7 +160,7 @@ export default function LandingPage() {
       </section>
 
       {/* Visual Preview / Demo */}
-      <section className="max-w-7xl mx-auto px-6 py-12 flex flex-col items-center bg-gradient-to-br from-white via-purple-50 to-white rounded-2xl shadow mt-[120px] transform hover:shadow-lg transition-all duration-300">
+      <section id="showcase" className="max-w-7xl mx-auto px-6 py-12 flex flex-col items-center bg-gradient-to-br from-white via-purple-50 to-white rounded-2xl shadow mt-[120px] transform hover:shadow-lg transition-all duration-300">
         <h2 className="text-3xl font-extrabold text-gray-900 mb-8 text-center"><span className="text-purple-500 hover:text-purple-600 transition-colors duration-300">See Zenfoline in Action</span></h2>
         <div className="w-full flex justify-center">
           <div className="rounded-2xl overflow-hidden shadow-2xl bg-white max-w-7xl w-full hover:shadow-2xl transition-all duration-300">
@@ -129,7 +199,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-white via-orange-50 to-white rounded-2xl shadow mt-[120px] mb-[60px] transform hover:shadow-lg transition-all duration-300">
+      <section id="faq" className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-white via-orange-50 to-white rounded-2xl shadow mt-[120px] mb-[60px] transform hover:shadow-lg transition-all duration-300">
         <h2 className="text-3xl font-extrabold text-gray-900 mb-10 text-center"><span className="text-orange-500 hover:text-orange-600 transition-colors duration-300">Frequently Asked Questions</span></h2>
         <div className="space-y-4">
           {[
@@ -210,6 +280,10 @@ export default function LandingPage() {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-2px); }
         }
+        @keyframes fade-in-down {
+          from { transform: translateY(-10px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
         .animate-bounce-x {
           animation: bounce-x 1s infinite;
         }
@@ -239,6 +313,9 @@ export default function LandingPage() {
         }
         .animate-bounce-subtle {
           animation: bounce-subtle 2s infinite;
+        }
+        .animate-fade-in-down {
+          animation: fade-in-down 0.3s ease-out forwards;
         }
       `}</style>
     </div>

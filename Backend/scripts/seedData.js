@@ -17,9 +17,9 @@ const templatesData = [
   {
     name: "Professional Developer",
     description: "A clean and professional template for developers",
-    image: "https://example.com/developer-template.jpg", // Required field
+    image: "professional", // Using the image name you provided
     category: "developer",
-    predefinedTemplate: "professional", // Required field
+    predefinedTemplate: "professional",
     sectionConfiguration: {
       basics: { isEnabled: true, order: 1 },
       about: { isEnabled: true, order: 2 },
@@ -37,9 +37,9 @@ const templatesData = [
   {
     name: "Creative Designer",
     description: "A modern and creative template for designers",
-    image: "https://example.com/designer-template.jpg", // Required field
+    image: "creative", // Using the image name you provided
     category: "designer",
-    predefinedTemplate: "creative", // Required field
+    predefinedTemplate: "creative",
     sectionConfiguration: {
       basics: { isEnabled: true, order: 1 },
       about: { isEnabled: true, order: 2 },
@@ -59,28 +59,40 @@ const templatesData = [
 // Sample users data with data type
 const usersData = [
   {
-    email: "john.doe@example.com",
+    email: "developer1@example.com",
     password: "password123",
     portfolioType: "developer",
     dataType: "complete" // Complete profile
   },
   {
-    email: "jane.smith@example.com",
+    email: "developer2@example.com",
     password: "password123",
-    portfolioType: "designer",
+    portfolioType: "developer",
     dataType: "minimal" // Minimal profile
   },
   {
-    email: "mike.wilson@example.com",
+    email: "developer3@example.com",
     password: "password123",
     portfolioType: "developer",
     dataType: "partial" // Partial profile
   },
   {
-    email: "sarah.jones@example.com",
+    email: "designer1@example.com",
     password: "password123",
     portfolioType: "designer",
     dataType: "complete" // Complete profile
+  },
+  {
+    email: "designer2@example.com",
+    password: "password123",
+    portfolioType: "designer",
+    dataType: "minimal" // Minimal profile
+  },
+  {
+    email: "designer3@example.com",
+    password: "password123",
+    portfolioType: "designer",
+    dataType: "partial" // Partial profile
   }
 ];
 
@@ -94,12 +106,12 @@ const portfolioData = {
         bio: "Passionate about building scalable web applications",
         title: "Full Stack Developer",
         summary: "Experienced developer with expertise in MERN stack",
-        email: "john.doe@example.com",
+        email: "developer1@example.com",
         phone: "+1234567890",
         location: "San Francisco, CA",
         website: "https://johndoe.dev",
-        profileImage: "https://example.com/profile.jpg",
-        coverImage: "https://example.com/cover.jpg",
+        profileImage: "/uploads/1745896277859-Screenshot 2025-04-29 023739.png",
+        coverImage: "/uploads/1745896493488-Screenshot 2025-04-29 085702.png",
         isVisible: true
       },
       socialLinks: [
@@ -177,7 +189,7 @@ const portfolioData = {
           description: "Full stack e-commerce solution",
           role: "Lead Developer",
           technologies: ["React", "Node.js", "MongoDB"],
-          images: ["https://example.com/project1.jpg"],
+          images: ["/uploads/1737719923127-Screenshot 2025-01-18 163951.png"],
           liveUrl: "https://project1.com",
           sourceUrl: "https://github.com/project1",
           startDate: new Date("2022-01-01"),
@@ -205,7 +217,7 @@ const portfolioData = {
           publicationDate: new Date("2022-01-01"),
           description: "Best practices for scaling",
           url: "https://techjournal.com/article",
-          image: "https://example.com/article.jpg",
+          image: "/uploads/1737628322754-c0a9e0ca62d84e149b5633446d899969-free.png",
           isVisible: true
         }
       ],
@@ -215,7 +227,7 @@ const portfolioData = {
           issuer: "Tech Awards",
           date: new Date("2022-12-01"),
           description: "Recognition for excellence",
-          image: "https://example.com/award.jpg",
+          image: "/uploads/1743864245507-pin.png",
           isVisible: true
         }
       ],
@@ -223,7 +235,7 @@ const portfolioData = {
         {
           title: "Web Development",
           description: "Custom web applications",
-          image: "https://example.com/service.jpg",
+          image: "/uploads/1737628322754-c0a9e0ca62d84e149b5633446d899969-free.png",
           price: "$100/hour",
           features: ["Custom Development", "24/7 Support"],
           isVisible: true
@@ -232,51 +244,96 @@ const portfolioData = {
     },
     minimal: {
       basics: {
-        name: "Mike Wilson",
+        name: "Dev Minimal",
         role: "Junior Developer",
-        bio: "Aspiring developer",
-        title: "Junior Developer",
-        summary: "Learning and growing",
-        email: "mike.wilson@example.com",
+        bio: "Starting my journey in web development",
+        title: "Junior Web Developer",
+        summary: "Fresh graduate with passion for coding",
+        email: "developer2@example.com",
         phone: "+1234567890",
         location: "New York, NY",
+        profileImage: "/uploads/1742217153698-download.jfif",
         isVisible: true
       },
       skills: [
         {
-          name: "JavaScript",
-          category: "Technical",
+          name: "HTML",
+          category: "Frontend",
           proficiency: "Intermediate",
+          isVisible: true
+        },
+        {
+          name: "CSS",
+          category: "Frontend",
+          proficiency: "Intermediate",
+          isVisible: true
+        },
+        {
+          name: "JavaScript",
+          category: "Programming",
+          proficiency: "Beginner",
+          isVisible: true
+        }
+      ],
+      education: [
+        {
+          institution: "City University",
+          degree: "BS",
+          field: "Computer Science",
+          location: "New York",
+          startDate: new Date("2019-09-01"),
+          endDate: new Date("2023-06-01"),
+          current: false,
           isVisible: true
         }
       ]
     },
     partial: {
       basics: {
-        name: "Mike Wilson",
-        role: "Junior Developer",
-        bio: "Aspiring developer",
-        title: "Junior Developer",
-        summary: "Learning and growing",
-        email: "mike.wilson@example.com",
+        name: "Dev Partial",
+        role: "Web Developer",
+        bio: "Building the web, one line at a time",
+        title: "Web Developer",
+        summary: "Focused on frontend development",
+        email: "developer3@example.com",
         phone: "+1234567890",
-        location: "New York, NY",
+        location: "Chicago, IL",
         isVisible: true
       },
       skills: [
         {
-          name: "JavaScript",
-          category: "Technical",
+          name: "React",
+          category: "Frontend",
           proficiency: "Intermediate",
+          isVisible: true
+        },
+        {
+          name: "Node.js",
+          category: "Backend",
+          proficiency: "Beginner",
           isVisible: true
         }
       ],
       projects: [
         {
-          title: "Personal Website",
-          description: "My first project",
+          title: "Personal Blog",
+          description: "A blog built with React and Node.js",
           role: "Developer",
-          technologies: ["HTML", "CSS", "JavaScript"],
+          technologies: ["React", "Node.js", "MongoDB"],
+          liveUrl: "https://myblog.com",
+          images: ["/uploads/1737719923127-Screenshot 2025-01-18 163951.png"],
+          isVisible: true
+        }
+      ],
+      education: [
+        {
+          institution: "Tech Bootcamp",
+          degree: "Certificate",
+          field: "Full Stack Development",
+          location: "Chicago",
+          startDate: new Date("2023-01-01"),
+          endDate: new Date("2023-06-01"),
+          current: false,
           isVisible: true
         }
       ]
@@ -290,12 +347,12 @@ const portfolioData = {
         bio: "Creating beautiful user experiences",
         title: "UI/UX Designer",
         summary: "Passionate about design",
-        email: "sarah.jones@example.com",
+        email: "designer1@example.com",
         phone: "+1234567890",
         location: "London, UK",
         website: "https://sarahjones.design",
-        profileImage: "https://example.com/profile.jpg",
-        coverImage: "https://example.com/cover.jpg",
+        profileImage: "/uploads/1743857012711-eleven-stranger-things-uamb92s7v4syrz9e.jpg",
+        coverImage: "/uploads/1743864245507-pin.png",
         isVisible: true
       },
       socialLinks: [
@@ -372,7 +429,7 @@ const portfolioData = {
           description: "Complete UI/UX overhaul",
           role: "Lead Designer",
           technologies: ["Figma", "Sketch"],
-          images: ["https://example.com/project1.jpg"],
+          images: ["/uploads/1738326003525-467105749_1760507594726565_350810348785686048_n.gif"],
           liveUrl: "https://project1.com",
           startDate: new Date("2022-01-01"),
           endDate: new Date("2022-06-01"),
@@ -399,7 +456,7 @@ const portfolioData = {
           publicationDate: new Date("2022-01-01"),
           description: "Trends in UI design",
           url: "https://designjournal.com/article",
-          image: "https://example.com/article.jpg",
+          image: "/uploads/1743864375838-pin.png",
           isVisible: true
         }
       ],
@@ -409,7 +466,7 @@ const portfolioData = {
           issuer: "Design Awards",
           date: new Date("2022-12-01"),
           description: "Recognition for excellence",
-          image: "https://example.com/award.jpg",
+          image: "/uploads/1738326003525-467105749_1760507594726565_350810348785686048_n.gif",
           isVisible: true
         }
       ],
@@ -417,7 +474,7 @@ const portfolioData = {
         {
           title: "UI/UX Design",
           description: "Custom design solutions",
-          image: "https://example.com/service.jpg",
+          image: "/uploads/1737721007815-c0a9e0ca62d84e149b5633446d899969-free.png",
           price: "$100/hour",
           features: ["UI Design", "UX Research"],
           isVisible: true
@@ -426,21 +483,95 @@ const portfolioData = {
     },
     minimal: {
       basics: {
-        name: "Jane Smith",
-        role: "Junior Designer",
-        bio: "Aspiring designer",
-        title: "Junior Designer",
-        summary: "Learning and growing",
-        email: "jane.smith@example.com",
+        name: "Design Minimal",
+        role: "UI Designer",
+        bio: "Beginning my design journey",
+        title: "Junior UI Designer",
+        summary: "Fresh graduate with an eye for design",
+        email: "designer2@example.com",
         phone: "+1234567890",
-        location: "Paris, France",
+        location: "Los Angeles, CA",
+        profileImage: "/uploads/1742217213963-download.jfif",
         isVisible: true
       },
       skills: [
         {
-          name: "UI Design",
+          name: "Figma",
           category: "Design",
           proficiency: "Intermediate",
+          isVisible: true
+        },
+        {
+          name: "Adobe XD",
+          category: "Design",
+          proficiency: "Beginner",
+          isVisible: true
+        }
+      ],
+      education: [
+        {
+          institution: "Design Institute",
+          degree: "BA",
+          field: "Graphic Design",
+          location: "Los Angeles",
+          startDate: new Date("2019-09-01"),
+          endDate: new Date("2023-06-01"),
+          current: false,
+          isVisible: true
+        }
+      ]
+    },
+    partial: {
+      basics: {
+        name: "Design Partial",
+        role: "UX Designer",
+        bio: "Creating user-centered experiences",
+        title: "UX Designer",
+        summary: "Focused on user experience and interaction design",
+        email: "designer3@example.com",
+        phone: "+1234567890",
+        location: "Seattle, WA",
+        isVisible: true
+      },
+      skills: [
+        {
+          name: "User Research",
+          category: "UX",
+          proficiency: "Intermediate",
+          isVisible: true
+        },
+        {
+          name: "Prototyping",
+          category: "UX",
+          proficiency: "Intermediate",
+          isVisible: true
+        },
+        {
+          name: "Wireframing",
+          category: "UX",
+          proficiency: "Advanced",
+          isVisible: true
+        }
+      ],
+      projects: [
+        {
+          title: "Food Delivery App",
+          description: "UX design for a food delivery application",
+          role: "UX Designer",
+          technologies: ["Figma", "Miro"],
+          images: ["/uploads/1737719923127-Screenshot 2025-01-18 163951.png"],
+          isVisible: true
+        }
+      ],
+      education: [
+        {
+          institution: "UX Design School",
+          degree: "Certificate",
+          field: "User Experience Design",
+          location: "Seattle",
+          startDate: new Date("2023-01-01"),
+          endDate: new Date("2023-06-01"),
+          current: false,
           isVisible: true
         }
       ]
